@@ -5,6 +5,7 @@ import "./final.css";
 import "./ops.css";
 import "./overrides.css";
 import "./product.css";
+import "./payment-scope.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
