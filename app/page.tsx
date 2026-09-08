@@ -1,3 +1,3 @@
 "use client";
-import { ProductApp } from "@/components/product-app";
-export default function Home(){return <ProductApp/>}
+import { DemoShell } from "@/components/demo-shell";
+export default function Home(){return <DemoShell/>}
