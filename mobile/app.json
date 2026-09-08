@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "KaamSabha",
+    "slug": "kaamsabha",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "kaamsabha",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.aadiharale.kaamsabha"
+    },
+    "android": {
+      "package": "com.aadiharale.kaamsabha",
+      "adaptiveIcon": {
+        "backgroundColor": "#123E36"
+      },
+      "edgeToEdgeEnabled": true
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "874b7239-40b9-4241-9912-e3e0a59c9ab9"
+      }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/874b7239-40b9-4241-9912-e3e0a59c9ab9"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
+  }
+}
