@@ -23,8 +23,8 @@ function fallback(items:VoiceItem[]){
   {label:"Travel & service area",re:/travel|distance|route|area|radius|eta/i},
   {label:"Ratings & review",re:/rating|review|complaint|deactiv|penalty/i},
  ];
- const themes:Theme[]=buckets.map(bucket=>{const matches=items.filter(item=>bucket.re.test(`${item.category} ${item.text}`));const count=matches.length;return{label:bucket.label,count,severity:count>=4?"high":count>=2?"medium":"low",evidence:matches[0]?.text.slice(0,180)||"No repeated signal in this category."};}).filter(t=>t.count>0).sort((a,b)=>b.count-a.count).slice(0,6);
- if(!themes.length)themes.push({label:"General member feedback",count:items.length,severity:items.length>=4?"medium":"low",evidence:items[0]?.text.slice(0,180)||"No text supplied."});
+ const themes:Theme[]=buckets.map(bucket=>{const matches=items.filter(item=>bucket.re.test(`${item.category} ${item.text}`));const count=matches.length;const severity:Theme["severity"]=count>=4?"high":count>=2?"medium":"low";return{label:bucket.label,count,severity,evidence:matches[0]?.text.slice(0,180)||"No repeated signal in this category."};}).filter(t=>t.count>0).sort((a,b)=>b.count-a.count).slice(0,6);
+ if(!themes.length){const severity:Theme["severity"]=items.length>=4?"medium":"low";themes.push({label:"General member feedback",count:items.length,severity,evidence:items[0]?.text.slice(0,180)||"No text supplied."});}
  const top=themes[0];
  return{mode:"manual-fallback" as const,analyzedCount:items.length,themes,recommendedAction:`Review the ${top.label.toLowerCase()} pattern with affected worker-members, verify it against Decision Receipts and workload/opportunity records, then decide whether a Policy Twin is warranted.`,draftTitle:`Member review: ${top.label}`,draftDescription:`Multiple member voice records point to ${top.label.toLowerCase()}. Validate the pattern against frozen operational records before drafting any executable rule. Keep the Worker Protection Floor, safe-refusal, workload, rating-firewall and no-reverse-bidding safeguards unchanged.`,notice:"AI provider unavailable. KaamSabha used a deterministic category/keyword fallback. No dispatch, pay, worker status, vote or policy changed."};
 }
@@ -32,7 +32,7 @@ function fallback(items:VoiceItem[]){
 function validate(value:unknown,count:number){
  if(!value||typeof value!=="object")return null;const v=value as Record<string,unknown>;
  const rawThemes=Array.isArray(v.themes)?v.themes:[];
- const themes:Theme[]=rawThemes.slice(0,6).flatMap(raw=>{if(!raw||typeof raw!=="object")return[];const t=raw as Record<string,unknown>;const label=sanitize(t.label,80),evidence=sanitize(t.evidence,220);const n=Math.max(1,Math.min(count,Number(t.count)||1));const severity=t.severity==="high"||t.severity==="medium"?t.severity:"low";return label?[{label,count:n,severity,evidence}]:[];});
+ const themes:Theme[]=rawThemes.slice(0,6).flatMap(raw=>{if(!raw||typeof raw!=="object")return[];const t=raw as Record<string,unknown>;const label=sanitize(t.label,80),evidence=sanitize(t.evidence,220);const n=Math.max(1,Math.min(count,Number(t.count)||1));const severity:Theme["severity"]=t.severity==="high"||t.severity==="medium"?t.severity:"low";return label?[{label,count:n,severity,evidence}]:[];});
  const recommendedAction=sanitize(v.recommendedAction,400),draftTitle=sanitize(v.draftTitle,120),draftDescription=sanitize(v.draftDescription,700);
  if(!themes.length||!recommendedAction||!draftTitle||!draftDescription)return null;
  return{mode:"ai-assisted" as const,analyzedCount:count,themes,recommendedAction,draftTitle,draftDescription,notice:"AI clustered member voice for admin review only. It cannot rank workers, punish anyone, vote, dispatch, set pay or activate policy."};
