@@ -7,6 +7,11 @@ export const runtime="nodejs";
 
 function validPurpose(value:unknown):value is OtpPurpose{return value==="start"||value==="completion"}
 
+export async function GET(){
+  const config=resolveOtpRuntimeConfig(process.env);
+  return NextResponse.json({ok:Boolean(config),mode:config?.source??"disabled",demo:Boolean(config?.demo)},{status:config?200:503});
+}
+
 export async function POST(request:Request){
   let body:Record<string,unknown>;
   try{body=await request.json() as Record<string,unknown>;}catch{return NextResponse.json({error:"Invalid JSON"},{status:400});}
