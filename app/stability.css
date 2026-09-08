@@ -1,0 +1,24 @@
+/* Final stability and accessibility corrections for judge-demo surfaces. */
+.realMap{position:relative;isolation:isolate;contain:layout paint;overflow:hidden}
+.mapViewport{position:relative;isolation:isolate;overflow:hidden;contain:layout paint;background:#e6ece9}
+.leaflet-container,.leaflet-map-pane,.leaflet-tile-pane,.leaflet-overlay-pane,.leaflet-marker-pane{will-change:auto!important}
+.leaflet-fade-anim .leaflet-tile,.leaflet-zoom-anim .leaflet-zoom-animated,.leaflet-tile{transition:none!important;animation:none!important}
+.mapHeading{position:relative;z-index:2;overflow:hidden}
+.mapHeading>div{min-width:0}.mapHeading strong,.mapHeading span{overflow-wrap:anywhere}
+.mapExpandButton{width:auto!important;min-width:142px;min-height:40px;display:inline-flex!important;align-items:center;justify-content:center;gap:8px;padding:9px 13px!important;border:1px solid rgba(255,255,255,.32)!important;border-radius:11px!important;background:rgba(255,255,255,.1)!important;color:#fff!important;font-size:11px!important;font-weight:800!important;line-height:1!important;white-space:nowrap;box-shadow:none!important;transform:none!important}
+.mapExpandButton:hover{background:rgba(255,255,255,.17)!important;border-color:rgba(255,255,255,.5)!important;transform:none!important}.mapExpandButton:focus-visible{outline:3px solid #d6ed8d!important;outline-offset:2px}
+.mapPreviewHit{cursor:zoom-in}.mapPreviewHit:focus-visible{outline:3px solid #b7d65a;outline-offset:-3px}
+.mapPreviewLabel{position:absolute;right:14px;bottom:14px;z-index:500;display:inline-flex;align-items:center;min-height:30px;padding:7px 11px;border-radius:999px;background:rgba(24,60,49,.92);color:#fff;font-size:10px;font-weight:800;line-height:1;pointer-events:none;box-shadow:0 4px 14px rgba(17,42,34,.18)}
+
+/* Customer Start OTP should read as the next lifecycle action, not float awkwardly. */
+.orderCard>.scopeDecisionNote+button{width:auto!important;min-width:176px;min-height:46px;margin:13px 0 7px!important;padding:0 20px!important;border-radius:12px!important;display:inline-flex!important;align-items:center;justify-content:center;font-size:13px!important;font-weight:850!important;box-shadow:0 7px 18px rgba(23,107,82,.16)!important}
+.orderCard>.scopeDecisionNote+button:hover{transform:translateY(-1px)}
+.otpCallout{max-width:440px;margin-top:10px!important}
+
+/* Case register must never expose machine-only payloads as visible content. */
+.caseRow{align-items:flex-start!important;gap:16px}.caseRow>div:first-child{min-width:0}.caseRow p{overflow-wrap:anywhere;word-break:break-word;white-space:normal}.caseRow [data-machine-metadata="true"]{display:none!important}
+
+@media(max-width:720px){
+ .mapHeading{align-items:center!important}.mapHeading>div span{display:block;max-width:220px}.mapExpandButton{min-width:42px;padding:9px 10px!important}.mapExpandButton span:first-child{display:none}.mapPreviewLabel{right:9px;bottom:9px}.orderCard>.scopeDecisionNote+button{width:100%!important}
+}
+@media(prefers-reduced-motion:reduce){.orderCard>.scopeDecisionNote+button:hover{transform:none}}
