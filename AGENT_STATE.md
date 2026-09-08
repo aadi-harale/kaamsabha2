@@ -1,42 +1,50 @@
 # Product
 
-KAAMSABHA2 is the active SIH26089 implementation workspace. `aadi-harale/KaamSabha` is reference-only and was not modified.
+KAAMSABHA2 is the active SIH26089 implementation workspace. `aadi-harale/KaamSabha` remains reference-only and was not modified.
 
-# Iterations completed
+# Build history
 
-Exactly three substantial iterations were used.
+The original three substantial iterations established foundation, judge-facing UX, and full cross-role integration. After deployment, the user explicitly requested a final product-polish/closure pass; that pass did not introduce unrelated scope and only closed visible SIH/product gaps.
 
-## Iteration 1 — foundation
-Native Next.js/Vercel foundation, isolated role sessions, one versioned persisted state envelope, deterministic eligibility/dispatch primitives, protected payout floor, frozen Decision Receipts, guarded lifecycle transitions, CI verification workflow, safe environment template and deployment notes.
+## Final verified product state
 
-## Iteration 2 — judge-facing UX
-Customer became service-first; worker task-first; admin operations-first. English/Hindi/Marathi navigation, responsive layouts, Fair Work, demand, federation and the SAME JOBS / SAME WORKERS / DIFFERENT RULES visual were made reachable without overwhelming the customer marketplace.
+Customer flow is service-first and complete: discover/search service -> configure location/schedule/emergency -> persist structured problem intake and optional reference filename -> cooperative-first dispatch -> track assignment/travel -> issue start OTP -> review proof and Scope Lock change -> issue completion OTP -> settle invoice -> feedback/issues. Before arrival, cancellation produces an auditable cancellation-protection record; once a worker has accepted/travelled, the constitution protects 25% of the ₹760 floor (₹190 in the deterministic demo) and records the remaining customer refund.
 
-## Iteration 3 — integration and hardening
-The cross-role work lifecycle is linked in the shared register: booking -> federation/cooperative dispatch -> worker acceptance/travel/arrival -> server-signed start OTP -> work proof -> scope change approval -> server-signed completion OTP -> settlement/invoice -> feedback/issues. Worker challenges create frozen Replay Court summaries. Admin settlement, worker certification, Policy Twin, demand and Federation Mesh views consume the same persisted state.
+Worker flow is task-first: current job, protected payout, real directions handoff to the service locality, demo ETA clearly labelled as demo, accept/travel/arrival, OTP verification, proof, change order, earnings, Workload Safety Guard, Opportunity Access Normalization, Decision Receipt, Replay Court challenge and one-member/one-vote governance.
 
-Federation dispatch enforces the intended two-stage rule: the federation selects an eligible cooperative first; only then does the receiving cooperative select its worker using its own constitution. The global worker protection floor is applied before receipt creation and again at settlement so inter-cooperative routing cannot undercut it.
+Admin flow is operations-first: live register, verified workers/certifications/welfare guard, cases and rating firewall, settlements and cancellation protection, Cooperative Dispatch Constitution, Counterfactual Policy Twin, demand/workforce guidance, Federation Mesh and a reachable safeguard register.
 
-# Verified invariants
-- Deterministic seed 26089.
-- Worker Protection Floor / protected payout / no reverse bidding.
-- Hard skill, verification, activity, availability and workload safety before allocation.
-- Federation selects cooperative first; receiving cooperative selects worker second.
-- Decision receipts freeze cooperative, worker, policy version, hard checks and payout facts.
-- Start/completion OTPs are job-specific, purpose-specific, expiring and server-signed; application state enforces attempt count and single-use lifecycle gates.
-- Completion OTP cannot be issued before work proof and unresolved scope changes block completion approval.
-- Refusal is not modeled as a rating/opportunity penalty; rating issues are review records rather than automatic deactivation.
-- Settlement is job-linked and preserves the protection floor.
-- Policy Twin is counterfactual-only and does not mutate active rules or settled receipts.
-- AI remains intake-only.
+# Differentiators verified/reachable
+
+- Worker Protection Floor / Protected Payout / No Reverse Bidding.
+- Cooperative Dispatch Constitution.
+- Counterfactual Policy Twin (simulation only; cannot activate itself).
+- Decision Receipt + Replay Court.
+- Opportunity Access Normalization (refusal carries zero rating/opportunity penalty).
+- Scope Lock + Change Order.
+- Cancellation / Settlement Protection.
+- Rating & Deactivation Firewall.
+- Workload Safety Guard.
+- Federation Mesh: eligible cooperative first, receiving cooperative's own constitution selects worker second.
+- One member / one vote governance.
+- SAME JOBS / SAME WORKERS / DIFFERENT RULES visual.
+
+Collective Pattern Court is intentionally not enabled because it was not already implemented/stable; no fake surface was added.
+
+# Baseline SIH26089 coverage
+
+Worker registration/verification representation and certification registry, skill profiling, customer booking/scheduling, locality-based matching, payments/invoices, ratings/feedback, worker welfare, emergency/on-demand booking, cooperative/federation operations, English/Hindi/Marathi navigation, and synthetic demand/workforce guidance are all reachable. The deterministic demo stores structured intake; AI remains intake-only and no live external-model claim is made without a configured provider. In-app distance/ETA values are explicitly demo-labelled; the live-directions action hands off to Google Maps using the actual service locality rather than pretending a fake map is live.
 
 # Verification evidence
-Local Node 22 domain/integration suite passed 6/6 tests before commit, including cooperative-first federation dispatch, payout-floor protection, complete cross-role lifecycle gates, proof requirement and server OTP job/purpose/expiry checks.
 
-A Vercel production URL was not linked at the time of this iteration, so no deployed smoke test is claimed. `VERCEL_DEPLOY.md` contains exact import, environment and smoke-test steps. The GitHub CI/build result for the final commit must be inspected before calling the repository production-ready.
+GitHub Actions Verify run for commit `96139a00b0eeaffc54e4132c0dbcf83761883aee` passed install, tests, typecheck and production `next build`. The expanded domain suite includes structured intake persistence and accepted-job cancellation protection in addition to federation dispatch, payout floor, OTP gates, proof/change-order lifecycle and settlement.
+
+Vercel project `kaamsabha2` is linked to `aadi-harale/kaamsabha2`. Production deployment for commit `96139a00b0eeaffc54e4132c0dbcf83761883aee` reached READY. `/api/health` is the production smoke endpoint. `FINAL_DEMO_CHECKLIST.md` contains the exact judge flow.
 
 # Data mode
-The current repository is a deterministic SIH demo data adapter persisted in browser storage with isolated session storage. Supabase variable placeholders remain documented but no unverified Supabase persistence claim is made. Legacy persisted v1 state is normalized to the final schema on load.
+
+The current repository remains a deterministic SIH demo adapter persisted in browser localStorage with isolated role sessionStorage. Legacy v1 state is normalized forward, including new intake and cancellation arrays. Supabase placeholders remain documented, but no unverified Supabase persistence claim is made.
 
 # Freeze
-No new product features after Iteration 3. Remaining work after Vercel linking is deployment verification only, not another substantial implementation iteration.
+
+Feature development is frozen. Future changes should be bug fixes, provider wiring (for example real mapping/AI/Supabase), copy/localization expansion, or deployment maintenance only.
