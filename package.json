@@ -1,6 +1,6 @@
 {
   "name": "kaamsabha2",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "engines": { "node": ">=22.13.0" },
   "scripts": {
@@ -13,11 +13,13 @@
     "verify": "npm run test && npm run typecheck && npm run build"
   },
   "dependencies": {
+    "leaflet": "^1.9.4",
     "next": "16.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@types/leaflet": "^1.9.21",
     "@types/node": "22.19.19",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
