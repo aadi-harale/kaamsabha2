@@ -23,6 +23,7 @@ export function normalizeState(value:AppState):AppState{
   opportunities:Array.isArray(value.opportunities)?value.opportunities:[],
   settlements:Array.isArray(value.settlements)?value.settlements:[],
   cancellations:Array.isArray(value.cancellations)?value.cancellations:[],
+  earningsHistory:Array.isArray(value.earningsHistory)&&value.earningsHistory.length?value.earningsHistory:seed.earningsHistory,
   safeDeclines:Array.isArray(value.safeDeclines)?value.safeDeclines:[],
   feedback:Array.isArray(value.feedback)?value.feedback:[],
   challenges:Array.isArray(value.challenges)?value.challenges:[],
