@@ -16,10 +16,23 @@ export function normalizeState(value:AppState):AppState{
  const workers=[...seed.workers.map(base=>({...base,...persistedWorkers.find(w=>w.id===base.id),maxDailyMinutes:persistedWorkers.find(w=>w.id===base.id)?.maxDailyMinutes??base.maxDailyMinutes??480,minRestMinutes:persistedWorkers.find(w=>w.id===base.id)?.minRestMinutes??base.minRestMinutes??30})),...persistedWorkers.filter(w=>!seed.workers.some(base=>base.id===w.id))];
  const persistedCoops=Array.isArray(value.cooperatives)?value.cooperatives:[];
  const cooperatives=[...seed.cooperatives.map(base=>({...base,...persistedCoops.find(c=>c.id===base.id)})),...persistedCoops.filter(c=>!seed.cooperatives.some(base=>base.id===c.id))];
+ const federation=value.federation&&Array.isArray(value.federation.opportunities)?{opportunities:value.federation.opportunities,snapshots:Array.isArray(value.federation.snapshots)?value.federation.snapshots:[],replays:Array.isArray(value.federation.replays)?value.federation.replays:[],settlements:Array.isArray(value.federation.settlements)?value.federation.settlements:[]}:seed.federation;
  return{...seed,...value,cooperatives,workers,
-  jobs:Array.isArray(value.jobs)?value.jobs.map(j=>({...j,evidence:Array.isArray(j.evidence)?j.evidence:[],changeOrders:Array.isArray(j.changeOrders)?j.changeOrders:[],intakeNote:j.intakeNote||"",referenceName:j.referenceName||"",declinedWorkerIds:Array.isArray(j.declinedWorkerIds)?j.declinedWorkerIds:[]})):[],
-  receipts:Array.isArray(value.receipts)?value.receipts.map(r=>({...r,federationReason:r.federationReason||"Legacy receipt: cooperative routing reason was not recorded."})):[],
-  settlements:Array.isArray(value.settlements)?value.settlements:[],cancellations:Array.isArray(value.cancellations)?value.cancellations:[],safeDeclines:Array.isArray(value.safeDeclines)?value.safeDeclines:[],feedback:Array.isArray(value.feedback)?value.feedback:[],challenges:Array.isArray(value.challenges)?value.challenges:[],issues:Array.isArray(value.issues)?value.issues.map(i=>({...i,notes:Array.isArray(i.notes)?i.notes:[]})):[],suggestions:Array.isArray(value.suggestions)?value.suggestions:[],policyReviews:Array.isArray(value.policyReviews)?value.policyReviews:[],votes:Array.isArray(value.votes)?value.votes:[],session:null};
+  jobs:Array.isArray(value.jobs)?value.jobs.map(j=>({...j,evidence:Array.isArray(j.evidence)?j.evidence:[],changeOrders:Array.isArray(j.changeOrders)?j.changeOrders:[],intakeNote:j.intakeNote||"",referenceName:j.referenceName||"",declinedWorkerIds:Array.isArray(j.declinedWorkerIds)?j.declinedWorkerIds:[],homeCooperativeId:j.homeCooperativeId??seed.cooperatives.find(c=>j.locality.toLowerCase().includes(c.locality.toLowerCase()))?.id})):[],
+  receipts:Array.isArray(value.receipts)?value.receipts.map(r=>({...r,federationReason:r.federationReason||"Legacy receipt: cooperative routing reason was not recorded.",candidateWorkerIds:Array.isArray(r.candidateWorkerIds)?r.candidateWorkerIds:[]})):[],
+  opportunities:Array.isArray(value.opportunities)?value.opportunities:[],
+  settlements:Array.isArray(value.settlements)?value.settlements:[],
+  cancellations:Array.isArray(value.cancellations)?value.cancellations:[],
+  safeDeclines:Array.isArray(value.safeDeclines)?value.safeDeclines:[],
+  feedback:Array.isArray(value.feedback)?value.feedback:[],
+  challenges:Array.isArray(value.challenges)?value.challenges:[],
+  issues:Array.isArray(value.issues)?value.issues.map(i=>({...i,notes:Array.isArray(i.notes)?i.notes:[]})):[],
+  suggestions:Array.isArray(value.suggestions)?value.suggestions:[],
+  proposals:Array.isArray(value.proposals)&&value.proposals.length?value.proposals:seed.proposals,
+  policyReviews:Array.isArray(value.policyReviews)?value.policyReviews:seed.policyReviews,
+  votes:Array.isArray(value.votes)&&value.votes.length?value.votes:seed.votes,
+  federation,
+  session:null};
 }
 
 function remoteEnabled(){return typeof window!=="undefined"&&process.env.NEXT_PUBLIC_KAAMSABHA_REMOTE_SYNC==="true";}
