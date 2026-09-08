@@ -6,7 +6,6 @@
     "orientation": "portrait",
     "scheme": "kaamsabha",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.aadiharale.kaamsabha"
@@ -15,8 +14,7 @@
       "package": "com.aadiharale.kaamsabha",
       "adaptiveIcon": {
         "backgroundColor": "#123E36"
-      },
-      "edgeToEdgeEnabled": true
+      }
     },
     "plugins": [
       "expo-router"
