@@ -1,50 +1,78 @@
 # Product
 
-KAAMSABHA2 is the active SIH26089 implementation workspace. `aadi-harale/KaamSabha` remains reference-only and was not modified.
+KAAMSABHA2 is the active SIH26089 implementation workspace. `aadi-harale/KaamSabha` remains reference-only and was not modified. The final parity pass used that repository as behavioral/design reference and ported its important worker-governance, mapping and Federation Opportunity Exchange mechanisms into the native Next.js/Vercel implementation.
 
-# Build history
+# Final product state
 
-The original three substantial iterations established foundation, judge-facing UX, and full cross-role integration. After deployment, the user explicitly requested a final product-polish/closure pass; that pass did not introduce unrelated scope and only closed visible SIH/product gaps.
+Customer flow is service-first: discover/search five service categories -> configure location/schedule/emergency -> structured problem intake and optional reference filename -> home-cooperative-first dispatch -> protected federation fallback only when local safe capacity fails -> in-browser OpenStreetMap/OSRM tracking -> start OTP -> work proof -> Scope Lock/change approval -> completion OTP -> settlement/invoice -> 1–5 feedback/support. Low ratings create a cooperative review case through the Rating Firewall and do not alter worker activation or opportunity access. Accepted/travelling cancellations create an auditable worker-protection payment.
 
-## Final verified product state
+Worker flow is task-first: protected payout and scope before commitment, real in-browser route, safe decline with zero penalty, configurable workability limits, OTP verification, evidence, change orders, earnings, Fair Work Decision Receipt, persisted Opportunity Access ledger, Replay Court challenge, Issues, Speak-up policy suggestions, personal Policy Twin impact review, dissent-aware one-member/one-vote governance and visible proposal status.
 
-Customer flow is service-first and complete: discover/search service -> configure location/schedule/emergency -> persist structured problem intake and optional reference filename -> cooperative-first dispatch -> track assignment/travel -> issue start OTP -> review proof and Scope Lock change -> issue completion OTP -> settle invoice -> feedback/issues. Before arrival, cancellation produces an auditable cancellation-protection record; once a worker has accepted/travelled, the constitution protects 25% of the ₹760 floor (₹190 in the deterministic demo) and records the remaining customer refund.
+Admin flow is operations-first: live jobs, verified members/certifications/workability, shared issues and Rating Firewall cases, Replay Court execution, worker suggestion review, money/cancellation ledger, executable Cooperative Dispatch Constitution governance, protection validator, Counterfactual Policy Twin, quorum/approval-controlled activation, synthetic demand planning, full Federation Opportunity Exchange and safeguard register.
 
-Worker flow is task-first: current job, protected payout, real directions handoff to the service locality, demo ETA clearly labelled as demo, accept/travel/arrival, OTP verification, proof, change order, earnings, Workload Safety Guard, Opportunity Access Normalization, Decision Receipt, Replay Court challenge and one-member/one-vote governance.
+# Federation Opportunity Exchange
 
-Admin flow is operations-first: live register, verified workers/certifications/welfare guard, cases and rating firewall, settlements and cancellation protection, Cooperative Dispatch Constitution, Counterfactual Policy Twin, demand/workforce guidance, Federation Mesh and a reachable safeguard register.
+Federation is an executable second decision layer rather than a platform-wide worker pool.
 
-# Differentiators verified/reachable
+1. The booking resolves the customer's home cooperative from locality.
+2. That cooperative checks its own certified, active, available and workload-safe workers first.
+3. Only if no local member can safely serve the request does the federation compare other cooperatives using capacity, Worker Protection Covenant compatibility and customer SLA.
+4. The federation selects a cooperative, never an individual worker.
+5. The receiving cooperative then selects its own worker under its active constitution.
+
+The persisted federation proof contains candidate cooperative exclusions, linked cooperative/worker receipt IDs, a frozen capacity snapshot, replay result and a reconciled illustrative settlement. The deterministic judge vector matches the reference story: Kharadi has no safe local electrician capacity; Yerawada has two safely available members at 24 minutes and is selected; Viman Nagar is blocked by workload protection despite a 21-minute ETA; Hadapsar is outside the 35-minute promise at 39 minutes; Yerawada's own constitution selects Meena Jadhav.
+
+The Federation Policy Twin runs the same 12 capacity scenarios in Local-only and Federation Mesh modes. The deterministic vector produces Local-only 0 served / 12 unfilled versus Federation Mesh 11 served / 1 unfilled, 22.5-minute average ETA, 25-minute p90, 11 cross-cooperative fulfilments and zero worker-protection violations.
+
+Federation cannot undercut the active Worker Protection Floor. A post-ballot regression test activates an ₹860 floor and verifies a later federation proof pays ₹860; its illustrative customer total becomes ₹1,000 = ₹860 worker + ₹40 welfare + ₹100 fulfilling cooperative.
+
+# Governance and worker voice
+
+Worker-facing speaking-up paths are intentionally separate and plain-language:
+
+- **Issue** — something is wrong with a current service, safety, payment, scope or interaction.
+- **Replay Court challenge** — a past allocation decision appears wrong; admin replays its frozen receipt rather than today's state.
+- **Speak up / Suggestion** — the worker thinks a future rule should change. The suggestion has category, title, details and review status and never mutates policy by itself.
+- **Member ballot** — a validated/simulated proposal is ready for governance. A worker must review personal impact before voting; a no vote requires a dissent reason so opposition remains attached to the record.
+
+The executable policy lifecycle is Suggest -> protection validation -> Policy Twin -> personal impact review -> one-member/one-vote -> quorum -> approval -> activation. The judge proposal requires 9 participating members and 7 support votes. The Worker Protection Floor, paid-priority ban, reverse-auction ban and bounded fair-wait rule are validated before activation. Once activated, a new constitution affects only later dispatches; existing Decision Receipts and settlements stay frozen.
+
+# Differentiators implemented and reachable
 
 - Worker Protection Floor / Protected Payout / No Reverse Bidding.
 - Cooperative Dispatch Constitution.
-- Counterfactual Policy Twin (simulation only; cannot activate itself).
-- Decision Receipt + Replay Court.
-- Opportunity Access Normalization (refusal carries zero rating/opportunity penalty).
+- Counterfactual Policy Twin.
+- Decision Receipt + Replay Court with frozen-input replay.
+- Opportunity Access Normalization backed by persisted eligible-offer records.
 - Scope Lock + Change Order.
 - Cancellation / Settlement Protection.
-- Rating & Deactivation Firewall.
-- Workload Safety Guard.
-- Federation Mesh: eligible cooperative first, receiving cooperative's own constitution selects worker second.
-- One member / one vote governance.
+- Rating & Deactivation Firewall backed by human-review issue records.
+- Workload Safety Guard and member-set workability limits.
+- Federation Opportunity Exchange / Federation Mesh with two-stage selection, two receipts, replay and Policy Twin.
+- Worker Suggestions / Member Voice.
+- Personal policy impact + One Member / One Vote + quorum-controlled activation.
 - SAME JOBS / SAME WORKERS / DIFFERENT RULES visual.
 
-Collective Pattern Court is intentionally not enabled because it was not already implemented/stable; no fake surface was added.
+Collective Pattern Court remains intentionally disabled because no stable implementation exists; there is no fake surface for it.
 
 # Baseline SIH26089 coverage
 
-Worker registration/verification representation and certification registry, skill profiling, customer booking/scheduling, locality-based matching, payments/invoices, ratings/feedback, worker welfare, emergency/on-demand booking, cooperative/federation operations, English/Hindi/Marathi navigation, and synthetic demand/workforce guidance are all reachable. The deterministic demo stores structured intake; AI remains intake-only and no live external-model claim is made without a configured provider. In-app distance/ETA values are explicitly demo-labelled; the live-directions action hands off to Google Maps using the actual service locality rather than pretending a fake map is live.
+Worker verification/certification registry, skill profiles, customer booking/scheduling, locality-based matching, five service categories, payments/invoices, ratings/feedback, worker welfare/workability, emergency/on-demand booking, cooperative/federation operations, English/Hindi/Marathi navigation, and synthetic demand/workforce guidance are reachable.
+
+# Maps and providers
+
+Customer and worker tracking use Leaflet with OpenStreetMap tiles inside the browser. `/api/route` uses public OSRM road geometry/distance/duration and falls back to a clearly labelled approximate direct route if routing fails. Map tile failure has an accessible service-area fallback. Worker positions are deterministic illustrative service positions; worker home addresses and production live GPS are not claimed.
+
+AI intake is server-side and intake-only. With an OpenRouter key it can structure a customer's problem description; missing/failed provider access leaves manual booking available. AI never dispatches, prices, penalizes, replays or activates policy.
+
+Browser localStorage remains the reliable deterministic demo source of truth with isolated role sessionStorage. Optional Supabase remote mirroring is provider wiring, not a claim that hosted Supabase is the verified authoritative repository. No hosted RLS/Realtime/private-storage claim is made without credentials and migration verification.
 
 # Verification evidence
 
-GitHub Actions Verify run for commit `96139a00b0eeaffc54e4132c0dbcf83761883aee` passed install, tests, typecheck and production `next build`. The expanded domain suite includes structured intake persistence and accepted-job cancellation protection in addition to federation dispatch, payout floor, OTP gates, proof/change-order lifecycle and settlement.
+GitHub Actions Verify run `34184375446` for commit `71646e0062cd81f05f90d07c7463a97e8285d25f` passed install, 20 tests, TypeScript typecheck and production Next.js build. The suite covers home-cooperative-first dispatch, automatic federation fallback, golden federation exclusions, protection undercut blocking, frozen federation replay, Local-only vs Mesh Policy Twin, OTP/proof/Scope Lock/settlement lifecycle, cancellation protection, Opportunity Access safe decline, workability, worker suggestions, personal-impact-before-vote, quorum activation, paid-priority/reverse-auction/floor-cut rejection, Rating Firewall, and post-activation federation settlement protection.
 
-Vercel project `kaamsabha2` is linked to `aadi-harale/kaamsabha2`. Production deployment for commit `96139a00b0eeaffc54e4132c0dbcf83761883aee` reached READY. `/api/health` is the production smoke endpoint. `FINAL_DEMO_CHECKLIST.md` contains the exact judge flow.
-
-# Data mode
-
-The current repository remains a deterministic SIH demo adapter persisted in browser localStorage with isolated role sessionStorage. Legacy v1 state is normalized forward, including new intake and cancellation arrays. Supabase placeholders remain documented, but no unverified Supabase persistence claim is made.
+`FINAL_DEMO_CHECKLIST.md` is the authoritative judge walkthrough. After documentation-only commits, re-run CI and verify the exact final production deployment before claiming the public Vercel alias is current.
 
 # Freeze
 
-Feature development is frozen. Future changes should be bug fixes, provider wiring (for example real mapping/AI/Supabase), copy/localization expansion, or deployment maintenance only.
+Product feature work is frozen after this parity pass. Remaining work is deployment/browser verification, bug fixing, provider credential wiring, or deeper Hindi/Marathi copy coverage—not another feature expansion.
