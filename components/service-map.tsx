@@ -7,43 +7,141 @@ import type { AppState, FederationOpportunity, Job } from "@/lib/domain";
 
 type Point={lat:number;lng:number};
 type Route={geometry:Point[];distanceMeters:number;durationSeconds:number;provider:string;isApproximate:boolean};
-const anchors:Record<string,Point>={"kharadi":{lat:18.5515,lng:73.947},"hadapsar":{lat:18.5089,lng:73.9259},"viman nagar":{lat:18.5679,lng:73.9143},"kothrud":{lat:18.5074,lng:73.8077},"baner":{lat:18.559,lng:73.7868},"wakad":{lat:18.598,lng:73.762},"shivajinagar":{lat:18.5308,lng:73.8475},"kondhwa":{lat:18.4602,lng:73.891},"aundh":{lat:18.5597,lng:73.8075},"yerawada":{lat:18.552,lng:73.889}};
-function anchor(locality:string){const lower=locality.toLowerCase();return Object.entries(anchors).find(([name])=>lower.includes(name))?.[1]||anchors.kharadi;}
-function workerPoint(job:Job){const target=anchor(job.locality),n=Number((job.workerId||"W02").replace(/\D/g,""))||2,angle=((26089+n*137)%360)*Math.PI/180,distanceKm=1.2+(n%4)*.55;return{lat:target.lat+(distanceKm/111)*Math.cos(angle),lng:target.lng+(distanceKm/(111*Math.cos(target.lat*Math.PI/180)))*Math.sin(angle)};}
-function fmtKm(m:number){return m<1000?`${m} m`:`${(m/1000).toFixed(1)} km`;}
+
+const anchors:Record<string,Point>={
+  kharadi:{lat:18.5515,lng:73.947},hadapsar:{lat:18.5089,lng:73.9259},"viman nagar":{lat:18.5679,lng:73.9143},
+  kothrud:{lat:18.5074,lng:73.8077},baner:{lat:18.559,lng:73.7868},wakad:{lat:18.598,lng:73.762},
+  shivajinagar:{lat:18.5308,lng:73.8475},kondhwa:{lat:18.4602,lng:73.891},aundh:{lat:18.5597,lng:73.8075},
+  yerawada:{lat:18.552,lng:73.889}
+};
+
+function anchor(locality:string){
+  const lower=locality.toLowerCase();
+  return Object.entries(anchors).find(([name])=>lower.includes(name))?.[1]??anchors.kharadi;
+}
+function workerPoint(job:Job){
+  const target=anchor(job.locality),n=Number((job.workerId||"W02").replace(/\D/g,""))||2;
+  const angle=((26089+n*137)%360)*Math.PI/180,distanceKm=1.2+(n%4)*.55;
+  return{lat:target.lat+(distanceKm/111)*Math.cos(angle),lng:target.lng+(distanceKm/(111*Math.cos(target.lat*Math.PI/180)))*Math.sin(angle)};
+}
+function fmtKm(m:number){return m<1000?`${Math.round(m)} m`:`${(m/1000).toFixed(1)} km`;}
 function fmtMin(s:number){return `${Math.max(1,Math.ceil(s/60))} min`;}
 
 function MapModal({title,subtitle,onClose,children}:{title:string;subtitle:string;onClose:()=>void;children:ReactNode}){
- const closeRef=useRef<HTMLButtonElement>(null);
- useEffect(()=>{const previous=document.body.style.overflow;document.body.style.overflow="hidden";const onKey=(event:KeyboardEvent)=>{if(event.key==="Escape")onClose();};window.addEventListener("keydown",onKey);requestAnimationFrame(()=>closeRef.current?.focus());return()=>{document.body.style.overflow=previous;window.removeEventListener("keydown",onKey);};},[onClose]);
- if(typeof document==="undefined")return null;
- return createPortal(<div className="mapModalBackdrop" role="presentation" onMouseDown={(e)=>{if(e.target===e.currentTarget)onClose();}}><section className="mapModal" role="dialog" aria-modal="true" aria-label={title}><header><div><span>INTERACTIVE MAP</span><h2>{title}</h2><p>{subtitle}</p></div><button ref={closeRef} className="mapModalClose" onClick={onClose} aria-label="Close expanded map">×</button></header><div className="mapModalBody">{children}</div></section></div>,document.body);
+  const closeRef=useRef<HTMLButtonElement>(null);
+  useEffect(()=>{
+    const previous=document.body.style.overflow;document.body.style.overflow="hidden";
+    const onKey=(event:KeyboardEvent)=>{if(event.key==="Escape")onClose();};
+    window.addEventListener("keydown",onKey);requestAnimationFrame(()=>closeRef.current?.focus());
+    return()=>{document.body.style.overflow=previous;window.removeEventListener("keydown",onKey);};
+  },[onClose]);
+  if(typeof document==="undefined")return null;
+  return createPortal(
+    <div className="mapModalBackdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <section className="mapModal" role="dialog" aria-modal="true" aria-label={title}>
+        <header><div><span>INTERACTIVE MAP</span><h2>{title}</h2><p>{subtitle}</p></div><button type="button" ref={closeRef} className="mapModalClose" onClick={onClose} aria-label="Close expanded map">×</button></header>
+        <div className="mapModalBody">{children}</div>
+      </section>
+    </div>,document.body
+  );
 }
 
-function Fallback({from,to,label}:{from:Point;to:Point;label:string}){return <div className="mapFallback" role="img" aria-label={`Illustrative service-area route from ${label} to customer`}><svg viewBox="0 0 400 250"><title>Accessible service-area fallback</title><path d="M18 62 94 24l82 28 78-31 126 50-27 72 29 72-112 29-78-22-92 26-80-55 30-62Z"/><line x1="96" y1="172" x2="301" y2="82"/><circle className="workerCircle" cx="96" cy="172" r="13"/><text x="96" y="176" textAnchor="middle">W</text><rect x="282" y="63" width="38" height="38" rx="8"/><text x="301" y="87" textAnchor="middle">Job</text></svg><span>Map tiles unavailable · route remains accessible as a service-area diagram</span><span className="srOnly">Worker coordinate {from.lat.toFixed(3)}, {from.lng.toFixed(3)}. Customer coordinate {to.lat.toFixed(3)}, {to.lng.toFixed(3)}.</span></div>}
+function Fallback({from,to,label}:{from:Point;to:Point;label:string}){
+  return <div className="mapFallback" role="img" aria-label={`Illustrative service-area route from ${label} to customer`}>
+    <svg viewBox="0 0 400 250"><title>Accessible service-area fallback</title><path d="M18 62 94 24l82 28 78-31 126 50-27 72 29 72-112 29-78-22-92 26-80-55 30-62Z"/><line x1="96" y1="172" x2="301" y2="82"/><circle className="workerCircle" cx="96" cy="172" r="13"/><text x="96" y="176" textAnchor="middle">W</text><rect x="282" y="63" width="38" height="38" rx="8"/><text x="301" y="87" textAnchor="middle">Job</text></svg>
+    <span>Map tiles unavailable · route remains accessible as a service-area diagram</span>
+    <span className="srOnly">Worker coordinate {from.lat.toFixed(3)}, {from.lng.toFixed(3)}. Customer coordinate {to.lat.toFixed(3)}, {to.lng.toFixed(3)}.</span>
+  </div>;
+}
 
 function ServiceCanvas({from,to,route,workerName,job,mode,interactive,onFail}:{from:Point;to:Point;route:Route|null;workerName?:string;job:Job;mode:"customer"|"worker";interactive:boolean;onFail:()=>void}){
- const host=useRef<HTMLDivElement>(null),map=useRef<LeafletMap|null>(null);
- useEffect(()=>{if(!host.current)return;let cancelled=false;void import("leaflet").then(L=>{if(cancelled||!host.current)return;const instance=L.map(host.current,{scrollWheelZoom:interactive,zoomControl:interactive,dragging:interactive,doubleClickZoom:interactive,touchZoom:interactive,boxZoom:interactive,keyboard:interactive,attributionControl:true});map.current=instance;const tiles=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"&copy; OpenStreetMap contributors",maxZoom:18,crossOrigin:true});let failures=0;tiles.on("tileerror",()=>{failures++;if(failures>=3)onFail();});tiles.addTo(instance);const workerIcon=L.divIcon({className:"kmsMapIcon",html:`<span class="kmsWorkerPin" aria-hidden="true">${mode==="worker"?"You":"W"}</span>`,iconSize:[42,42],iconAnchor:[21,21]});const jobIcon=L.divIcon({className:"kmsMapIcon",html:"<span class=\"kmsJobPin\" aria-hidden=\"true\">Job</span>",iconSize:[44,44],iconAnchor:[22,22]});L.marker([from.lat,from.lng],{keyboard:interactive,title:workerName||job.workerId||"Assigned worker",icon:workerIcon,interactive}).addTo(instance);L.marker([to.lat,to.lng],{keyboard:interactive,title:`Service request: ${job.locality}`,icon:jobIcon,interactive}).addTo(instance);const geometry=(route?.geometry?.length?route.geometry:[from,to]).map(p=>[p.lat,p.lng] as [number,number]);L.polyline(geometry,{color:"#176b52",weight:4,dashArray:route?.isApproximate?"7 7":undefined,opacity:.9,interactive:false}).addTo(instance);const bounds=L.latLngBounds([[from.lat,from.lng],[to.lat,to.lng]]);instance.fitBounds(bounds,{padding:interactive?[78,78]:[48,48],maxZoom:interactive?15:14});requestAnimationFrame(()=>instance.invalidateSize(false));setTimeout(()=>instance.invalidateSize(false),180);}).catch(onFail);return()=>{cancelled=true;map.current?.remove();map.current=null};},[from.lat,from.lng,to.lat,to.lng,route?.provider,route?.isApproximate,workerName,job.workerId,job.locality,mode,interactive,onFail]);
- return <div ref={host} className="leafletHost"/>;
+  const host=useRef<HTMLDivElement>(null),map=useRef<LeafletMap|null>(null),failRef=useRef(onFail);
+  useEffect(()=>{failRef.current=onFail;},[onFail]);
+  useEffect(()=>{
+    if(!host.current)return;let cancelled=false;
+    void import("leaflet").then(L=>{
+      if(cancelled||!host.current)return;
+      const instance=L.map(host.current,{scrollWheelZoom:interactive,zoomControl:interactive,dragging:interactive,doubleClickZoom:interactive,touchZoom:interactive,boxZoom:interactive,keyboard:interactive,attributionControl:true,fadeAnimation:false,zoomAnimation:false,markerZoomAnimation:false});
+      map.current=instance;
+      const tiles=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"&copy; OpenStreetMap contributors",maxZoom:18,crossOrigin:true,updateWhenIdle:true,keepBuffer:2});
+      let failures=0;tiles.on("tileerror",()=>{failures++;if(failures>=3)failRef.current();});tiles.addTo(instance);
+      const workerIcon=L.divIcon({className:"kmsMapIcon",html:`<span class="kmsWorkerPin" aria-hidden="true">${mode==="worker"?"You":"W"}</span>`,iconSize:[42,42],iconAnchor:[21,21]});
+      const jobIcon=L.divIcon({className:"kmsMapIcon",html:"<span class=\"kmsJobPin\" aria-hidden=\"true\">Job</span>",iconSize:[44,44],iconAnchor:[22,22]});
+      L.marker([from.lat,from.lng],{keyboard:interactive,title:workerName||job.workerId||"Assigned worker",icon:workerIcon,interactive}).addTo(instance);
+      L.marker([to.lat,to.lng],{keyboard:interactive,title:`Service request: ${job.locality}`,icon:jobIcon,interactive}).addTo(instance);
+      const geometry=(route?.geometry?.length?route.geometry:[from,to]).map(p=>[p.lat,p.lng] as [number,number]);
+      L.polyline(geometry,{color:"#176b52",weight:4,dashArray:route?.isApproximate?"7 7":undefined,opacity:.9,interactive:false}).addTo(instance);
+      instance.fitBounds(L.latLngBounds([[from.lat,from.lng],[to.lat,to.lng]]),{padding:interactive?[78,78]:[48,48],maxZoom:interactive?15:14,animate:false});
+      requestAnimationFrame(()=>{if(!cancelled)instance.invalidateSize({animate:false});});
+    }).catch(()=>failRef.current());
+    return()=>{cancelled=true;map.current?.remove();map.current=null;};
+  },[from.lat,from.lng,to.lat,to.lng,route?.provider,route?.isApproximate,workerName,job.workerId,job.locality,mode,interactive]);
+  return <div ref={host} className="leafletHost"/>;
 }
 
 export function ServiceMap({job,workerName,mode="customer"}:{job:Job;workerName?:string;mode?:"customer"|"worker"}){
- const[to,from]=useMemo(()=>[anchor(job.locality),workerPoint(job)],[job.locality,job.workerId]);const[route,setRoute]=useState<Route|null>(null),[failed,setFailed]=useState(false),[expanded,setExpanded]=useState(false);
- useEffect(()=>{let cancelled=false;void fetch("/api/route",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({origin:from,destination:to})}).then(r=>r.ok?r.json():Promise.reject()).then((data:Route)=>{if(!cancelled)setRoute(data)}).catch(()=>{if(!cancelled)setRoute({geometry:[from,to],distanceMeters:0,durationSeconds:0,provider:"route unavailable",isApproximate:true})});return()=>{cancelled=true}},[from.lat,from.lng,to.lat,to.lng]);
- const distance=route?.distanceMeters??0,duration=route?.durationSeconds??0;
- const canvas=failed?<Fallback from={from} to={to} label={workerName||job.workerId||"worker"}/>:<ServiceCanvas from={from} to={to} route={route} workerName={workerName} job={job} mode={mode} interactive={false} onFail={()=>setFailed(true)}/>;
- return <section className="realMap" aria-label="Service route map"><div className="mapHeading"><div><strong>{job.locality}</strong><span>{mode==="worker"?"Your route to the customer":"Assigned worker route"}</span></div><button className="mapExpandButton" onClick={()=>setExpanded(true)}>Open map ↗</button></div><p className="srOnly">{workerName||job.workerId||"Worker"} to {job.locality}. {distance?`${fmtKm(distance)}, ${fmtMin(duration)}.`:"Route details loading."}</p><div className="mapViewport mapPreviewHit" role="button" tabIndex={0} aria-label="Open interactive route map" onClick={()=>setExpanded(true)} onKeyDown={(e)=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setExpanded(true);}}}>{canvas}<div className="mapPreviewLabel">Click map to expand</div></div><div className="mapSummary"><div><span>Worker</span><strong>{workerName||job.workerId||"Pending"}</strong></div><div><span>Distance</span><strong>{distance?fmtKm(distance):"Loading"}</strong></div><div><span>ETA</span><strong>{duration?fmtMin(duration):"Loading"}</strong></div><div><span>Source</span><strong>{route?.provider||"Routing"}</strong></div></div><p className="mapRuleLine">OpenStreetMap is shown in-browser. {route?.isApproximate?"Road routing was unavailable, so the dashed line is approximate.":"Distance and ETA come from the current OSRM road route."} Worker home addresses are never displayed.</p>{expanded&&<MapModal title={`${job.locality} service route`} subtitle={`${workerName||job.workerId||"Assigned worker"} → customer service location`} onClose={()=>setExpanded(false)}><div className="expandedMapCanvas">{failed?<Fallback from={from} to={to} label={workerName||job.workerId||"worker"}/>:<ServiceCanvas from={from} to={to} route={route} workerName={workerName} job={job} mode={mode} interactive onFail={()=>setFailed(true)}/>}</div><div className="expandedMapFacts"><span><b>{distance?fmtKm(distance):"—"}</b> road distance</span><span><b>{duration?fmtMin(duration):"—"}</b> ETA</span><span><b>{route?.provider||"Routing"}</b> route provider</span></div></MapModal>}</section>;
+  const[to,from]=useMemo(()=>[anchor(job.locality),workerPoint(job)],[job.locality,job.workerId]);
+  const[route,setRoute]=useState<Route|null>(null),[failed,setFailed]=useState(false),[expanded,setExpanded]=useState(false);
+  useEffect(()=>{
+    let cancelled=false;setFailed(false);
+    void fetch("/api/route",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({origin:from,destination:to})})
+      .then(r=>r.ok?r.json():Promise.reject())
+      .then((data:Route)=>{if(!cancelled)setRoute(data);})
+      .catch(()=>{if(!cancelled)setRoute({geometry:[from,to],distanceMeters:0,durationSeconds:0,provider:"route unavailable",isApproximate:true});});
+    return()=>{cancelled=true;};
+  },[from.lat,from.lng,to.lat,to.lng]);
+  const distance=route?.distanceMeters??0,duration=route?.durationSeconds??0;
+  const fail=()=>setFailed(true);
+  return <section className="realMap" aria-label="Service route map">
+    <div className="mapHeading"><div><strong>{job.locality}</strong><span>{mode==="worker"?"Your route to the customer":"Assigned worker route"}</span></div><button type="button" className="mapExpandButton" onClick={()=>setExpanded(true)}><span>Expand map</span><span aria-hidden="true">↗</span></button></div>
+    <p className="srOnly">{workerName||job.workerId||"Worker"} to {job.locality}. {distance?`${fmtKm(distance)}, ${fmtMin(duration)}.`:"Route details loading."}</p>
+    <div className="mapViewport mapPreviewHit" role="button" tabIndex={0} aria-label="Open interactive route map" onClick={()=>setExpanded(true)} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setExpanded(true);}}}>
+      {failed?<Fallback from={from} to={to} label={workerName||job.workerId||"worker"}/>:<ServiceCanvas from={from} to={to} route={route} workerName={workerName} job={job} mode={mode} interactive={false} onFail={fail}/>}<div className="mapPreviewLabel">Expand interactive map</div>
+    </div>
+    <div className="mapSummary"><div><span>Worker</span><strong>{workerName||job.workerId||"Pending"}</strong></div><div><span>Distance</span><strong>{distance?fmtKm(distance):"Loading"}</strong></div><div><span>ETA</span><strong>{duration?fmtMin(duration):"Loading"}</strong></div><div><span>Source</span><strong>{route?.provider||"Routing"}</strong></div></div>
+    <p className="mapRuleLine">OpenStreetMap is shown in-browser. {route?.isApproximate?"Road routing was unavailable, so the line is approximate.":"Distance and ETA come from the current OSRM road route."} Worker home addresses are never displayed.</p>
+    {expanded&&<MapModal title={`${job.locality} service route`} subtitle={`${workerName||job.workerId||"Assigned worker"} → customer service location`} onClose={()=>setExpanded(false)}><div className="expandedMapCanvas">{failed?<Fallback from={from} to={to} label={workerName||job.workerId||"worker"}/>:<ServiceCanvas from={from} to={to} route={route} workerName={workerName} job={job} mode={mode} interactive onFail={fail}/>}</div><div className="expandedMapFacts"><span><b>{distance?fmtKm(distance):"—"}</b> road distance</span><span><b>{duration?fmtMin(duration):"—"}</b> ETA</span><span><b>{route?.provider||"Routing"}</b> route provider</span></div></MapModal>}
+  </section>;
 }
 
 function FederationCanvas({state,opportunity,selectedId,interactive,onSelect,onFail}:{state:AppState;opportunity:FederationOpportunity;selectedId?:string;interactive:boolean;onSelect?:(id:string)=>void;onFail:()=>void}){
- const host=useRef<HTMLDivElement>(null),map=useRef<LeafletMap|null>(null);const home=state.cooperatives.find(c=>c.id===opportunity.homeCooperativeId);
- useEffect(()=>{if(!host.current||!home)return;let cancelled=false;void import("leaflet").then(L=>{if(cancelled||!host.current)return;const instance=L.map(host.current,{scrollWheelZoom:interactive,zoomControl:interactive,dragging:interactive,doubleClickZoom:interactive,touchZoom:interactive,boxZoom:interactive,keyboard:interactive,attributionControl:true});map.current=instance;const tiles=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"&copy; OpenStreetMap contributors",maxZoom:18,crossOrigin:true});let failures=0;tiles.on("tileerror",()=>{failures++;if(failures>=3)onFail();});tiles.addTo(instance);const bounds=L.latLngBounds([]);state.cooperatives.forEach(c=>{const candidate=opportunity.candidates.find(x=>x.cooperativeId===c.id);const stateName=c.id===home.id?"home":c.id===selectedId?"selected":candidate?.eligible?"eligible":"blocked";const detail=c.id===home.id?"home":candidate?`${candidate.availableWorkers} free · ${candidate.eta} min`:"not checked";bounds.extend([c.lat,c.lng]);const icon=L.divIcon({className:"kmsMapIcon federationIcon",html:`<span class="kmsCoopPin ${stateName}">${c.locality.replace("Viman Nagar","Viman")}<b>${detail}</b></span>`,iconSize:[132,52],iconAnchor:[66,26]});const marker=L.marker([c.lat,c.lng],{keyboard:interactive,title:`${c.name}. ${candidate?.exclusionReason??(stateName==="selected"?"Receiving cooperative selected.":stateName==="home"?"Home cooperative.":"Eligible federation candidate.")}`,icon,interactive}).addTo(instance);if(interactive&&candidate?.eligible&&c.id!==home.id&&onSelect)marker.on("click",()=>onSelect(c.id));if(c.id!==home.id)L.polyline([[home.lat,home.lng],[c.lat,c.lng]],{color:stateName==="selected"?"#176b52":"#71817a",weight:stateName==="selected"?4:2,dashArray:stateName==="selected"?undefined:"5 7",opacity:stateName==="selected"?.92:.45,interactive:false}).addTo(instance)});if(bounds.isValid())instance.fitBounds(bounds,{padding:interactive?[96,96]:[68,68],maxZoom:interactive?13:12});requestAnimationFrame(()=>instance.invalidateSize(false));setTimeout(()=>instance.invalidateSize(false),180);}).catch(onFail);return()=>{cancelled=true;map.current?.remove();map.current=null}},[home,opportunity,state.cooperatives,selectedId,interactive,onSelect,onFail]);
- return <div ref={host} className="leafletHost"/>;
+  const host=useRef<HTMLDivElement>(null),map=useRef<LeafletMap|null>(null),failRef=useRef(onFail),selectRef=useRef(onSelect);
+  const home=state.cooperatives.find(c=>c.id===opportunity.homeCooperativeId);
+  useEffect(()=>{failRef.current=onFail;selectRef.current=onSelect;},[onFail,onSelect]);
+  const cooperativeSignature=state.cooperatives.map(c=>`${c.id}:${c.lat}:${c.lng}:${c.locality}`).join("|");
+  const candidateSignature=opportunity.candidates.map(c=>`${c.cooperativeId}:${c.availableWorkers}:${c.eta}:${c.eligible}:${c.exclusionReason??""}`).join("|");
+  useEffect(()=>{
+    if(!host.current||!home)return;let cancelled=false;
+    void import("leaflet").then(L=>{
+      if(cancelled||!host.current)return;
+      const instance=L.map(host.current,{scrollWheelZoom:interactive,zoomControl:interactive,dragging:interactive,doubleClickZoom:interactive,touchZoom:interactive,boxZoom:interactive,keyboard:interactive,attributionControl:true,fadeAnimation:false,zoomAnimation:false,markerZoomAnimation:false});map.current=instance;
+      const tiles=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"&copy; OpenStreetMap contributors",maxZoom:18,crossOrigin:true,updateWhenIdle:true,keepBuffer:2});let failures=0;tiles.on("tileerror",()=>{failures++;if(failures>=3)failRef.current();});tiles.addTo(instance);
+      const bounds=L.latLngBounds([]);
+      state.cooperatives.forEach(c=>{
+        const candidate=opportunity.candidates.find(x=>x.cooperativeId===c.id),stateName=c.id===home.id?"home":c.id===selectedId?"selected":candidate?.eligible?"eligible":"blocked";
+        const detail=c.id===home.id?"home":candidate?`${candidate.availableWorkers} free · ${candidate.eta} min`:"not checked";bounds.extend([c.lat,c.lng]);
+        const icon=L.divIcon({className:"kmsMapIcon federationIcon",html:`<span class="kmsCoopPin ${stateName}">${c.locality.replace("Viman Nagar","Viman")}<b>${detail}</b></span>`,iconSize:[132,52],iconAnchor:[66,26]});
+        const marker=L.marker([c.lat,c.lng],{keyboard:interactive,title:`${c.name}. ${candidate?.exclusionReason??(stateName==="selected"?"Receiving cooperative selected.":stateName==="home"?"Home cooperative.":"Eligible federation candidate.")}`,icon,interactive}).addTo(instance);
+        if(interactive&&candidate?.eligible&&c.id!==home.id)marker.on("click",()=>selectRef.current?.(c.id));
+        if(c.id!==home.id)L.polyline([[home.lat,home.lng],[c.lat,c.lng]],{color:stateName==="selected"?"#176b52":"#71817a",weight:stateName==="selected"?4:2,dashArray:stateName==="selected"?undefined:"5 7",opacity:stateName==="selected"?.92:.45,interactive:false}).addTo(instance);
+      });
+      if(bounds.isValid())instance.fitBounds(bounds,{padding:interactive?[96,96]:[68,68],maxZoom:interactive?13:12,animate:false});
+      requestAnimationFrame(()=>{if(!cancelled)instance.invalidateSize({animate:false});});
+    }).catch(()=>failRef.current());
+    return()=>{cancelled=true;map.current?.remove();map.current=null;};
+  },[home?.id,cooperativeSignature,candidateSignature,selectedId,interactive,opportunity.id]);
+  return <div ref={host} className="leafletHost"/>;
 }
 
 export function FederationMap({state,opportunity,selectedCooperativeId,onSelectCooperative}:{state:AppState;opportunity:FederationOpportunity;selectedCooperativeId?:string;onSelectCooperative?:(id:string)=>void}){
- const[failed,setFailed]=useState(false),[expanded,setExpanded]=useState(false);const home=state.cooperatives.find(c=>c.id===opportunity.homeCooperativeId);const selectedId=selectedCooperativeId??opportunity.selectedCooperativeId;
- const fallback=<div className="mapLoading">Map tiles are unavailable. The capacity table remains authoritative.</div>;
- return <section className="realMap federationMap" aria-label="Pune federation capacity map"><div className="mapHeading"><div><strong>Pune Federation capacity</strong><span>Locality anchors only · worker addresses stay private</span></div><button className="mapExpandButton" onClick={()=>setExpanded(true)}>Open control map ↗</button></div><p className="srOnly">Home cooperative {home?.name}. {opportunity.candidates.map(c=>{const coop=state.cooperatives.find(x=>x.id===c.cooperativeId);return `${coop?.name??c.cooperativeId}: ${c.eligible?"eligible":c.exclusionReason}, ${c.eta} minutes.`}).join(" ")}</p><div className="mapViewport mapPreviewHit" role="button" tabIndex={0} aria-label="Open interactive federation map" onClick={()=>setExpanded(true)} onKeyDown={(e)=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setExpanded(true);}}}>{failed?fallback:<FederationCanvas state={state} opportunity={opportunity} selectedId={selectedId} interactive={false} onFail={()=>setFailed(true)}/>}<div className="mapPreviewLabel">Click map to expand · choose eligible cooperative in full view</div></div>{expanded&&<MapModal title="Federation capacity control map" subtitle={`${home?.name??"Home cooperative"} overflow · ${opportunity.service} · ${opportunity.slaMinutes}-minute SLA`} onClose={()=>setExpanded(false)}><div className="expandedMapCanvas">{failed?fallback:<FederationCanvas state={state} opportunity={opportunity} selectedId={selectedId} interactive onSelect={onSelectCooperative} onFail={()=>setFailed(true)}/>}</div><div className="expandedFederationLegend">{state.cooperatives.map(c=>{const candidate=opportunity.candidates.find(x=>x.cooperativeId===c.id);const homeCoop=c.id===opportunity.homeCooperativeId;return <button key={c.id} disabled={homeCoop||!candidate?.eligible} className={c.id===selectedId?"selected":""} onClick={()=>{if(candidate?.eligible)onSelectCooperative?.(c.id);}}><span>{c.locality}</span><strong>{homeCoop?"Home":candidate?`${candidate.availableWorkers} safe · ${candidate.eta} min`:"No capacity"}</strong><small>{homeCoop?"Origin":candidate?.eligible?"Eligible — click to choose":candidate?.exclusionReason}</small></button>})}</div></MapModal>}</section>;
+  const[failed,setFailed]=useState(false),[expanded,setExpanded]=useState(false),home=state.cooperatives.find(c=>c.id===opportunity.homeCooperativeId),selectedId=selectedCooperativeId??opportunity.selectedCooperativeId;
+  const fallback=<div className="mapLoading">Map tiles are unavailable. The capacity table remains authoritative.</div>,fail=()=>setFailed(true);
+  return <section className="realMap federationMap" aria-label="Pune federation capacity map">
+    <div className="mapHeading"><div><strong>Pune Federation capacity</strong><span>Locality anchors only · worker addresses stay private</span></div><button type="button" className="mapExpandButton" onClick={()=>setExpanded(true)}><span>Open control map</span><span aria-hidden="true">↗</span></button></div>
+    <p className="srOnly">Home cooperative {home?.name}. {opportunity.candidates.map(c=>{const coop=state.cooperatives.find(x=>x.id===c.cooperativeId);return `${coop?.name??c.cooperativeId}: ${c.eligible?"eligible":c.exclusionReason}, ${c.eta} minutes.`;}).join(" ")}</p>
+    <div className="mapViewport mapPreviewHit" role="button" tabIndex={0} aria-label="Open interactive federation map" onClick={()=>setExpanded(true)} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setExpanded(true);}}}>
+      {failed?fallback:<FederationCanvas state={state} opportunity={opportunity} selectedId={selectedId} interactive={false} onFail={fail}/>}<div className="mapPreviewLabel">Expand control map</div>
+    </div>
+    {expanded&&<MapModal title="Federation capacity control map" subtitle={`${home?.name??"Home cooperative"} overflow · ${opportunity.service} · ${opportunity.slaMinutes}-minute SLA`} onClose={()=>setExpanded(false)}><div className="expandedMapCanvas">{failed?fallback:<FederationCanvas state={state} opportunity={opportunity} selectedId={selectedId} interactive onSelect={onSelectCooperative} onFail={fail}/>}</div><div className="expandedFederationLegend">{state.cooperatives.map(c=>{const candidate=opportunity.candidates.find(x=>x.cooperativeId===c.id),homeCoop=c.id===opportunity.homeCooperativeId;return <button type="button" key={c.id} disabled={homeCoop||!candidate?.eligible} className={c.id===selectedId?"selected":""} onClick={()=>{if(candidate?.eligible)onSelectCooperative?.(c.id);}}><span>{c.locality}</span><strong>{homeCoop?"Home":candidate?`${candidate.availableWorkers} safe · ${candidate.eta} min`:"No capacity"}</strong><small>{homeCoop?"Origin":candidate?.eligible?"Eligible — choose cooperative":candidate?.exclusionReason??"Not eligible"}</small></button>;})}</div></MapModal>}
+  </section>;
 }
