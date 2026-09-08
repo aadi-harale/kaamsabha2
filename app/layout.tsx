@@ -9,6 +9,7 @@ import "./payment-scope.css";
 import "./help.css";
 import "./worker-demo.css";
 import "./stability.css";
+import "./login-polish.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
