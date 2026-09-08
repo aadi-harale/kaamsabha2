@@ -46,14 +46,30 @@ export function DemoShell(){
 
   useEffect(()=>{
     if(!session)return;
-    const replaceWorkerIds=()=>{
+    const decorateProductUi=()=>{
       const root=document.querySelector(".productShell");if(!root)return;
-      const state=stateRepository.load();const names=new Map(state.workers.map(w=>[w.id,w.name]));
+      const state=stateRepository.load(),names=new Map(state.workers.map(w=>[w.id,w.name]));
       const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node=walker.nextNode();
-      while(node){const value=node.nodeValue??"";const replaced=value.replace(/\bW(?:0[1-9]|10)\b/g,id=>names.get(id)??id);if(replaced!==value)node.nodeValue=replaced;node=walker.nextNode();}
+      while(node){
+        const value=node.nodeValue??"";
+        const replaced=value
+          .replace(/\bW(?:0[1-9]|10)\b/g,id=>names.get(id)??id)
+          .replace(/\bpolicy-ai\b/g,"Policy Signal Monitor")
+          .replace(/\bcustomer01\b/g,"Customer 01")
+          .replace(/\badmin01\b/g,"Cooperative Admin");
+        if(replaced!==value)node.nodeValue=replaced;node=walker.nextNode();
+      }
+      root.querySelectorAll<HTMLElement>(".caseRow p").forEach(note=>{
+        const text=(note.textContent??"").trim();
+        if(text.startsWith("POLICY_INSIGHT_JSON:")){
+          note.dataset.machineMetadata="true";
+          note.setAttribute("aria-hidden","true");
+          note.textContent="";
+        }
+      });
     };
-    replaceWorkerIds();
-    const observer=new MutationObserver(()=>replaceWorkerIds());
+    decorateProductUi();
+    const observer=new MutationObserver(()=>decorateProductUi());
     const root=document.querySelector(".productShell");if(root)observer.observe(root,{subtree:true,childList:true,characterData:true});
     const click=(event:MouseEvent)=>{
       const button=(event.target as HTMLElement|null)?.closest("button.navItem");if(!button)return;
@@ -67,7 +83,7 @@ export function DemoShell(){
   },[session,appKey]);
 
   function login(role:Role,identity:string){
-    const base=stateRepository.load();const next=signIn(base,identity,role);stateRepository.save(next);setSession(next.session);setAppKey(k=>k+1);
+    const base=stateRepository.load(),next=signIn(base,identity,role);stateRepository.save(next);setSession(next.session);setAppKey(k=>k+1);
   }
 
   if(!loaded||!loginState)return <main className="shell loading">Loading KaamSabha…</main>;
