@@ -4,6 +4,7 @@ import "./map.css";
 import "./final.css";
 import "./ops.css";
 import "./overrides.css";
+import "./product.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
