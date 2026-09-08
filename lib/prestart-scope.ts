@@ -46,6 +46,7 @@ export function proposePreStartScopeChange(
     jobs: replaceJob(state, {
       ...job,
       status: "change_pending",
+      startOtp: undefined,
       changeOrders: [...job.changeOrders, change],
     }),
   });
@@ -79,6 +80,7 @@ export function decidePreStartScopeChange(
     jobs: replaceJob(state, {
       ...job,
       status: "arrived",
+      startOtp: undefined,
       changeOrders,
       amount,
     }),
