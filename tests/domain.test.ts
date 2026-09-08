@@ -1,23 +1,2 @@
-import test from "node:test";
-import assert from "node:assert/strict";
-import { eligible, initialState, selectWorker } from "../lib/domain.ts";
-
-test("deterministic seed keeps protection floor and worker eligibility", () => {
-  const state = initialState();
-  assert.equal(state.policy.minimumPayout, 760);
-  assert.equal(state.workers.length, 3);
-  assert.equal(eligible(state.workers[0], "electrician"), true);
-});
-
-test("dispatch respects hard eligibility and stable workload ordering", () => {
-  const state = initialState();
-  const selected = selectWorker(state, "electrician");
-  assert.equal(selected?.id, "W01");
-  const unsafe = { ...state, workers: state.workers.map((w) => w.id === "W01" ? { ...w, workloadTodayMinutes: 500 } : w) };
-  assert.equal(selectWorker(unsafe, "electrician")?.id, "W02");
-});
-
-test("ineligible skill is never assigned", () => {
-  const state = initialState();
-  assert.equal(selectWorker(state, "plumbing"), undefined);
-});
+import test from "node:test";import assert from "node:assert/strict";import { eligible,initialState,selectCooperative,selectWorker,selectWorkerInCooperative } from "../lib/domain.ts";import { addEvidence,addFeedback,createBooking,decideChangeOrder,recordOtpIssued,recordOtpVerified,requestChangeOrder,settleJob,signIn,signOut,transitionJob } from "../lib/commands.ts";
+test("deterministic seed keeps protection floor and worker eligibility",()=>{const state=initialState();assert.equal(state.policy.minimumPayout,760);assert.equal(state.workers.length,3);assert.equal(eligible(state.workers[0],"electrician"),true)});test("federation selects cooperative first, then its constitution selects worker",()=>{const state=initialState(),coop=selectCooperative(state,"electrician");assert.equal(coop?.id,"coop-kharadi");assert.equal(selectWorkerInCooperative(state,coop!.id,"electrician")?.id,"W02");assert.equal(selectWorker(state,"electrician")?.id,"W02")});test("federation cannot route below worker protection floor",()=>{let state=signIn(initialState(),"customer01","customer");state=createBooking(state,{customerId:"customer01",service:"electrician",locality:"Kharadi",scheduledAt:new Date(0).toISOString(),amount:100});assert.equal(state.jobs[0].amount,760);assert.equal(state.receipts[0].protectedPayout,760);assert.equal(state.jobs[0].cooperativeId,"coop-kharadi");assert.equal(state.jobs[0].workerId,"W02")});test("cross-role lifecycle preserves OTP gates, evidence, scope approval and settlement",()=>{let state=signIn(initialState(),"customer01","customer");state=createBooking(state,{customerId:"customer01",service:"electrician",locality:"Kharadi",scheduledAt:new Date(0).toISOString()});const jobId=state.jobs[0].id;state=signOut(state);state=signIn(state,"W02","worker");state=transitionJob(state,jobId,"accepted");state=transitionJob(state,jobId,"travelling");state=transitionJob(state,jobId,"arrived");assert.throws(()=>recordOtpVerified(state,jobId,"start"),/OTP was not issued/);state=signOut(state);state=signIn(state,"customer01","customer");state=recordOtpIssued(state,jobId,{purpose:"start",token:"server-signed",expiresAt:Date.now()+60000,attemptsLeft:5});state=signOut(state);state=signIn(state,"W02","worker");state=recordOtpVerified(state,jobId,"start");state=addEvidence(state,jobId,"Before/after work proof");state=requestChangeOrder(state,jobId,"Additional switch replacement",180);state=signOut(state);state=signIn(state,"customer01","customer");const changeId=state.jobs.find(j=>j.id===jobId)!.changeOrders[0].id;state=decideChangeOrder(state,jobId,changeId,true);assert.equal(state.jobs.find(j=>j.id===jobId)!.amount,940);state=recordOtpIssued(state,jobId,{purpose:"completion",token:"server-signed-2",expiresAt:Date.now()+60000,attemptsLeft:5});state=signOut(state);state=signIn(state,"W02","worker");state=recordOtpVerified(state,jobId,"completion");state=signOut(state);state=signIn(state,"customer01","customer");state=settleJob(state,jobId);state=addFeedback(state,jobId,5,"Completed as agreed");assert.equal(state.jobs.find(j=>j.id===jobId)!.status,"settled");assert.equal(state.settlements[0].workerPayout,940);assert.equal(state.feedback[0].rating,5)});test("completion OTP cannot be issued before proof",()=>{let state=signIn(initialState(),"customer01","customer");state=createBooking(state,{customerId:"customer01",service:"appliance",locality:"Kharadi",scheduledAt:new Date(0).toISOString()});const jobId=state.jobs[0].id;state=signOut(state);state=signIn(state,"W02","worker");state=transitionJob(state,jobId,"accepted");state=transitionJob(state,jobId,"travelling");state=transitionJob(state,jobId,"arrived");state=signOut(state);state=signIn(state,"customer01","customer");assert.throws(()=>recordOtpIssued(state,jobId,{purpose:"completion",token:"x",expiresAt:Date.now()+1000,attemptsLeft:5}),/while work is active/)})

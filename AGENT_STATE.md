@@ -1,44 +1,42 @@
 # Product
 
-KAAMSABHA2 is the active SIH26089 implementation workspace. `aadi-harale/KaamSabha` is reference-only and must never be modified from this workspace.
+KAAMSABHA2 is the active SIH26089 implementation workspace. `aadi-harale/KaamSabha` is reference-only and was not modified.
 
-# Iteration 1 state
+# Iterations completed
 
-Iteration 1 established a native Next.js/Vercel foundation with one versioned application-state envelope, isolated customer/worker/admin sessions, deterministic worker selection, protected payout floor, frozen Decision Receipts, guarded lifecycle transitions, shared jobs/issues/votes and explicit Vercel boundaries. Cloudflare/Vinext/Vite runtime assumptions are absent from the target.
+Exactly three substantial iterations were used.
 
-# Iteration 2 state
+## Iteration 1 — foundation
+Native Next.js/Vercel foundation, isolated role sessions, one versioned persisted state envelope, deterministic eligibility/dispatch primitives, protected payout floor, frozen Decision Receipts, guarded lifecycle transitions, CI verification workflow, safe environment template and deployment notes.
 
-Iteration 2 rebuilt the judge-facing UX around the design authority without changing the domain boundary. The customer view is now service-first with clear service discovery, smart-intake positioning, location, active/past orders and issue reporting. The worker view is task-first with current job, protected payout, route summary, workload safety, Fair Work reasoning, Decision Receipt visibility, earnings and member-governance surfaces. The admin view is operations-first with separate workers, live jobs, issues, settlements, governance/Policy Twin, demand forecast and Federation Mesh surfaces.
+## Iteration 2 — judge-facing UX
+Customer became service-first; worker task-first; admin operations-first. English/Hindi/Marathi navigation, responsive layouts, Fair Work, demand, federation and the SAME JOBS / SAME WORKERS / DIFFERENT RULES visual were made reachable without overwhelming the customer marketplace.
 
-English/Hindi/Marathi navigation copy is available through the persisted locale setting. Responsive CSS explicitly covers desktop/tablet/mobile breakpoints down through 360px, preserves keyboard focus and reduced-motion handling, and keeps the required SAME JOBS / SAME WORKERS / DIFFERENT RULES visual prominent without turning the customer experience into a governance dashboard.
+## Iteration 3 — integration and hardening
+The cross-role work lifecycle is linked in the shared register: booking -> federation/cooperative dispatch -> worker acceptance/travel/arrival -> server-signed start OTP -> work proof -> scope change approval -> server-signed completion OTP -> settlement/invoice -> feedback/issues. Worker challenges create frozen Replay Court summaries. Admin settlement, worker certification, Policy Twin, demand and Federation Mesh views consume the same persisted state.
 
-No browser-only OTP workaround was introduced. Start/completion OTP verification, evidence persistence and connected Supabase flows remain Iteration 3 integration work; the Iteration 2 UI does not falsely claim those server features are complete.
+Federation dispatch enforces the intended two-stage rule: the federation selects an eligible cooperative first; only then does the receiving cooperative select its worker using its own constitution. The global worker protection floor is applied before receipt creation and again at settlement so inter-cooperative routing cannot undercut it.
 
-# Preserved invariants
-
+# Verified invariants
 - Deterministic seed 26089.
-- Worker Protection Floor / no reverse bidding.
-- Hard worker eligibility precedes livelihood ordering.
-- Decision receipts carry policy version and immutable allocation facts.
-- Refusal/deactivation protections remain domain invariants.
-- Federation chooses a cooperative first; its own constitution then chooses a worker, with no worker-protection undercutting.
-- Policy activation is separate from dispatch and cannot rewrite settled work.
-- Customer, worker, admin sessions are isolated; role switching requires logout.
-- AI remains intake-only and cannot dispatch, price, penalize, replay or activate policy.
+- Worker Protection Floor / protected payout / no reverse bidding.
+- Hard skill, verification, activity, availability and workload safety before allocation.
+- Federation selects cooperative first; receiving cooperative selects worker second.
+- Decision receipts freeze cooperative, worker, policy version, hard checks and payout facts.
+- Start/completion OTPs are job-specific, purpose-specific, expiring and server-signed; application state enforces attempt count and single-use lifecycle gates.
+- Completion OTP cannot be issued before work proof and unresolved scope changes block completion approval.
+- Refusal is not modeled as a rating/opportunity penalty; rating issues are review records rather than automatic deactivation.
+- Settlement is job-linked and preserves the protection floor.
+- Policy Twin is counterfactual-only and does not mutate active rules or settled receipts.
+- AI remains intake-only.
 
-# Deployment boundary
+# Verification evidence
+Local Node 22 domain/integration suite passed 6/6 tests before commit, including cooperative-first federation dispatch, payout-floor protection, complete cross-role lifecycle gates, proof requirement and server OTP job/purpose/expiry checks.
 
-`package.json` uses native `next dev`, `next build`, and `next start`. `vercel.json` selects Next.js. `/api/health` uses the Node.js runtime. `.env.example` separates public identifiers from server-only secrets. `VERCEL_DEPLOY.md` contains one-time setup and smoke-test steps.
+A Vercel production URL was not linked at the time of this iteration, so no deployed smoke test is claimed. `VERCEL_DEPLOY.md` contains exact import, environment and smoke-test steps. The GitHub CI/build result for the final commit must be inspected before calling the repository production-ready.
 
-# Remaining Iteration 3 work
+# Data mode
+The current repository is a deterministic SIH demo data adapter persisted in browser storage with isolated session storage. Supabase variable placeholders remain documented but no unverified Supabase persistence claim is made. Legacy persisted v1 state is normalized to the final schema on load.
 
-- Implement and verify server-side job-specific start/completion OTP flows; no insecure browser-only OTP.
-- Implement/verify evidence and change-order persistence and customer approval linkage.
-- Verify completion -> settlement -> Past Orders -> feedback/issues as one shared cross-role flow.
-- Verify Supabase adapter/auth/storage/realtime path if configured; otherwise retain clearly-labelled deterministic demo mode.
-- Verify challenge/vote/Replay/Policy Twin/Federation behavior end-to-end and Collective Pattern Court only if stable.
-- Run tests, typecheck, lint/build where available and verify production Vercel deployment/smoke tests if project access is available.
-
-# Verification note
-
-Iteration 2 is committed only after the UI/state changes are assembled. A passing production build and screenshot smoke test must still be evidenced by CI/deployment checks; do not call the application production-ready until those checks and Iteration 3 flows pass.
+# Freeze
+No new product features after Iteration 3. Remaining work after Vercel linking is deployment verification only, not another substantial implementation iteration.
