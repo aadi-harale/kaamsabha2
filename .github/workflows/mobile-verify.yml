@@ -8,6 +8,9 @@ on:
       - '.github/workflows/mobile-verify.yml'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   verify-mobile:
     runs-on: ubuntu-latest
@@ -19,6 +22,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Normalize React Native font weights
+        run: |
+          sed -i 's/fontWeight: "850"/fontWeight: "800"/g; s/fontWeight: "750"/fontWeight: "700"/g' src/screens.tsx
+      - name: Commit automatic style fix
+        run: |
+          if ! git diff --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add src/screens.tsx
+            git commit -m "Fix React Native font weights"
+            git push origin HEAD:mobile-expo
+          fi
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Typecheck
