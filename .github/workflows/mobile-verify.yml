@@ -1,0 +1,31 @@
+name: Mobile Verify
+
+on:
+  push:
+    branches: [mobile-expo]
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/mobile-verify.yml'
+  workflow_dispatch:
+
+jobs:
+  verify-mobile:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Expo Doctor
+        run: npx expo-doctor@latest
+      - name: Bundle Android JS
+        run: npx expo export --platform android --output-dir dist-android
