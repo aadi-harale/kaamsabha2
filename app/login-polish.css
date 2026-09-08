@@ -1,0 +1,23 @@
+.namedLoginShell{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#f4f7f5}
+.namedLoginCard{width:min(560px,100%);display:flex;flex-direction:column;background:#fff;border:1px solid #dce5e0;border-radius:24px;overflow:hidden;box-shadow:0 22px 60px rgba(20,45,36,.10)}
+.namedLoginIntro{padding:28px 30px 22px;display:flex;align-items:center;gap:13px;background:#fff;color:#10261f;border-bottom:1px solid #e7ece9}
+.namedLoginIntro>.eyebrow,.namedLoginIntro>h1,.namedLoginIntro>p,.namedLoginIntro>.namedProof{display:none!important}
+.namedLoginIntro::after{content:"KAAMSABHA";font-size:1.22rem;line-height:1;font-weight:850;letter-spacing:.055em;color:#123e36}
+.namedBrand{width:44px;height:44px;flex:0 0 44px;border-radius:13px;display:grid;place-items:center;background:#123e36;color:#fff;font-size:1.25rem;font-weight:850;box-shadow:none}
+.namedLoginForm{padding:26px 30px 30px;display:grid;align-content:start;gap:16px}
+.namedLoginForm>.eyebrow{display:none!important}
+.namedRoleGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.namedRoleGrid button{min-height:82px;text-align:left;border:1px solid #dce4df;background:#fff;border-radius:14px;padding:13px 12px;color:#17352f;transition:border-color .15s ease,background .15s ease,box-shadow .15s ease,transform .15s ease}
+.namedRoleGrid button:hover{border-color:#9bbcaf;background:#fafcfb;transform:translateY(-1px)}
+.namedRoleGrid button:focus-visible{outline:3px solid rgba(23,107,82,.22);outline-offset:2px}
+.namedRoleGrid button.active{border-color:#176b52;background:#edf7f3;box-shadow:0 0 0 2px rgba(23,107,82,.08)}
+.namedRoleGrid button strong{display:block;font-size:.95rem;line-height:1.2}
+.namedRoleGrid button span{display:block;margin-top:5px;font-size:.72rem;line-height:1.35;color:#6b7973}
+.namedWorkerSelect,.namedIdentityPreview{margin-top:2px}
+.namedWorkerSelect select{min-height:46px}
+.namedWorkerSelect small{margin-top:7px;color:#74817b}
+.namedIdentityPreview{padding:14px 15px;border:1px solid #e1e8e4;border-radius:13px;background:#fafcfb}
+.namedIdentityPreview span{display:block;font-size:.72rem;color:#75817c;margin:0 0 3px}
+.namedIdentityPreview strong{display:block;margin:0;font-size:.98rem;color:#1a332a}
+.namedOpen{min-height:48px;border-radius:13px;font-weight:800}
+@media(max-width:620px){.namedLoginShell{padding:14px}.namedLoginCard{border-radius:20px}.namedLoginIntro{padding:21px 20px 18px}.namedLoginForm{padding:20px}.namedRoleGrid{grid-template-columns:1fr}.namedRoleGrid button{min-height:66px}.namedLoginIntro::after{font-size:1.08rem}}
