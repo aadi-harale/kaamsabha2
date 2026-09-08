@@ -11,6 +11,10 @@ export interface Worker {
   radiusKm:number; workloadTodayMinutes:number; rating:number; certifications?:string[]; maxDailyMinutes?:number;
   minRestMinutes?:number; availableUntil?:string;
 }
+export interface WorkerEarningEntry {
+  id:string; workerId:string; service:string; amount:number; earnedAt:string;
+  type:"job"|"cancellation"; label:string;
+}
 export interface Cooperative { id:string; name:string; locality:string; lat:number; lng:number; active:boolean; serviceRadiusKm:number; policyVersion:string; }
 export interface DecisionCandidateSnapshot {
   workerId:string; verified:boolean; active:boolean; available:boolean; skill:boolean;
@@ -67,6 +71,7 @@ export interface FederationState { opportunities:FederationOpportunity[]; snapsh
 export interface AppState {
   schema:1; revision:number; locale:Locale; session:{userId:string;role:Role}|null; cooperatives:Cooperative[]; workers:Worker[];
   jobs:Job[]; receipts:DecisionReceipt[]; opportunities:OpportunityRecord[]; settlements:Settlement[]; cancellations:CancellationRecord[];
+  earningsHistory:WorkerEarningEntry[];
   safeDeclines:SafeDeclineRecord[]; feedback:Feedback[]; challenges:Challenge[]; issues:IssueRecord[]; suggestions:PolicySuggestion[];
   proposals:PolicyProposal[]; policyReviews:{proposalId:string;memberId:string;reviewedAt:string}[]; votes:VoteRecord[]; federation:FederationState;
   policy:{version:string;minimumPayout:number;maxAddedWaitMinutes:number;activeFrom:string};
@@ -97,7 +102,42 @@ function seededFederation():FederationState{
   };
 }
 
+function seededEarnings(workers:Worker[]):WorkerEarningEntry[]{
+  const dates=["2026-07-19","2026-07-27","2026-08-04","2026-08-12","2026-08-20","2026-08-28","2026-09-03","2026-09-06"];
+  const base=[760,820,760,940,860,1020,780,900];
+  return workers.flatMap((worker,workerIndex)=>{
+    const service=worker.skills[0]??"service";
+    const regular=dates.map((date,index)=>({
+      id:`HIST-${worker.id}-${index+1}`,
+      workerId:worker.id,
+      service,
+      amount:base[index]+(workerIndex%4)*40,
+      earnedAt:`${date}T12:00:00.000Z`,
+      type:"job" as const,
+      label:`${service.replaceAll("_"," ")} service completed`
+    }));
+    const protection:WorkerEarningEntry={
+      id:`HIST-${worker.id}-P`,workerId:worker.id,service,amount:190,
+      earnedAt:`2026-08-${String(16+(workerIndex%8)).padStart(2,"0")}T09:30:00.000Z`,
+      type:"cancellation",label:"Protected cancellation payout"
+    };
+    return workerIndex%2===0?[...regular,protection]:regular;
+  });
+}
+
 export function initialState():AppState{
+  const workers:Worker[]=[
+    {id:"W01",name:"Meena Jadhav",cooperativeId:"coop-yerawada",skills:["electrician"],certifications:["Electrical Safety L2"],verified:true,active:true,available:true,radiusKm:9,workloadTodayMinutes:160,rating:4.8,maxDailyMinutes:480,minRestMinutes:30},
+    {id:"W02",name:"Ravi Shinde",cooperativeId:"coop-kharadi",skills:["electrician","appliance"],certifications:["Electrical Safety L2","Appliance Repair L1"],verified:true,active:true,available:true,radiusKm:8,workloadTodayMinutes:210,rating:4.7,maxDailyMinutes:480,minRestMinutes:30},
+    {id:"W03",name:"Asha Kamble",cooperativeId:"coop-kharadi",skills:["cleaning"],certifications:["Home Hygiene L2"],verified:true,active:true,available:true,radiusKm:7,workloadTodayMinutes:130,rating:4.9,maxDailyMinutes:420,minRestMinutes:30},
+    {id:"W04",name:"Sagar Pawar",cooperativeId:"coop-hadapsar",skills:["plumbing"],certifications:["Plumbing & Leak Safety L1"],verified:true,active:true,available:true,radiusKm:10,workloadTodayMinutes:95,rating:4.8,maxDailyMinutes:480,minRestMinutes:30},
+    {id:"W05",name:"Nikita More",cooperativeId:"coop-yerawada",skills:["carpentry"],certifications:["Home Carpentry L1"],verified:true,active:true,available:true,radiusKm:9,workloadTodayMinutes:115,rating:4.9,maxDailyMinutes:420,minRestMinutes:30},
+    {id:"W06",name:"Priya Gaikwad",cooperativeId:"coop-yerawada",skills:["electrician","appliance"],certifications:["Electrical Safety L2"],verified:true,active:true,available:true,radiusKm:9,workloadTodayMinutes:240,rating:4.8,maxDailyMinutes:480,minRestMinutes:30},
+    {id:"W07",name:"Imran Shaikh",cooperativeId:"coop-hadapsar",skills:["electrician","cleaning"],certifications:["Electrical Safety L1"],verified:true,active:true,available:true,radiusKm:10,workloadTodayMinutes:170,rating:4.7,maxDailyMinutes:480,minRestMinutes:30},
+    {id:"W08",name:"Kavita Bhosale",cooperativeId:"coop-viman",skills:["electrician"],certifications:["Electrical Safety L2"],verified:true,active:true,available:true,radiusKm:8,workloadTodayMinutes:500,rating:4.9,maxDailyMinutes:420,minRestMinutes:60},
+    {id:"W09",name:"Manoj Patil",cooperativeId:"coop-hadapsar",skills:["plumbing","cleaning"],certifications:["Plumbing & Leak Safety L2"],verified:true,active:true,available:true,radiusKm:10,workloadTodayMinutes:260,rating:4.6,maxDailyMinutes:480,minRestMinutes:30},
+    {id:"W10",name:"Anil Kulkarni",cooperativeId:"coop-viman",skills:["plumbing","appliance"],certifications:["Plumbing & Leak Safety L1","Appliance Repair L1"],verified:true,active:true,available:true,radiusKm:8,workloadTodayMinutes:185,rating:4.8,maxDailyMinutes:480,minRestMinutes:30}
+  ];
   return {
     schema:1,revision:0,locale:"en",session:null,policy:{...POLICY},
     cooperatives:[
@@ -106,18 +146,8 @@ export function initialState():AppState{
       {id:"coop-hadapsar",name:"Hadapsar Labour Cooperative",locality:"Hadapsar",lat:18.5089,lng:73.9259,active:true,serviceRadiusKm:11,policyVersion:POLICY.version},
       {id:"coop-viman",name:"Viman Nagar Labour Cooperative",locality:"Viman Nagar",lat:18.5679,lng:73.9143,active:true,serviceRadiusKm:9,policyVersion:POLICY.version}
     ],
-    workers:[
-      {id:"W01",name:"Meena Jadhav",cooperativeId:"coop-yerawada",skills:["electrician"],certifications:["Electrical Safety L2"],verified:true,active:true,available:true,radiusKm:9,workloadTodayMinutes:160,rating:4.8,maxDailyMinutes:480,minRestMinutes:30},
-      {id:"W02",name:"Ravi Shinde",cooperativeId:"coop-kharadi",skills:["electrician","appliance"],certifications:["Electrical Safety L2","Appliance Repair L1"],verified:true,active:true,available:true,radiusKm:8,workloadTodayMinutes:210,rating:4.7,maxDailyMinutes:480,minRestMinutes:30},
-      {id:"W03",name:"Asha Kamble",cooperativeId:"coop-kharadi",skills:["cleaning"],certifications:["Home Hygiene L2"],verified:true,active:true,available:true,radiusKm:7,workloadTodayMinutes:130,rating:4.9,maxDailyMinutes:420,minRestMinutes:30},
-      {id:"W04",name:"Sagar Pawar",cooperativeId:"coop-hadapsar",skills:["plumbing"],certifications:["Plumbing & Leak Safety L1"],verified:true,active:true,available:true,radiusKm:10,workloadTodayMinutes:95,rating:4.8,maxDailyMinutes:480,minRestMinutes:30},
-      {id:"W05",name:"Nikita More",cooperativeId:"coop-yerawada",skills:["carpentry"],certifications:["Home Carpentry L1"],verified:true,active:true,available:true,radiusKm:9,workloadTodayMinutes:115,rating:4.9,maxDailyMinutes:420,minRestMinutes:30},
-      {id:"W06",name:"Priya Gaikwad",cooperativeId:"coop-yerawada",skills:["electrician","appliance"],certifications:["Electrical Safety L2"],verified:true,active:true,available:true,radiusKm:9,workloadTodayMinutes:240,rating:4.8,maxDailyMinutes:480,minRestMinutes:30},
-      {id:"W07",name:"Imran Shaikh",cooperativeId:"coop-hadapsar",skills:["electrician","cleaning"],certifications:["Electrical Safety L1"],verified:true,active:true,available:true,radiusKm:10,workloadTodayMinutes:170,rating:4.7,maxDailyMinutes:480,minRestMinutes:30},
-      {id:"W08",name:"Kavita Bhosale",cooperativeId:"coop-viman",skills:["electrician"],certifications:["Electrical Safety L2"],verified:true,active:true,available:true,radiusKm:8,workloadTodayMinutes:500,rating:4.9,maxDailyMinutes:420,minRestMinutes:60},
-      {id:"W09",name:"Manoj Patil",cooperativeId:"coop-hadapsar",skills:["plumbing","cleaning"],certifications:["Plumbing & Leak Safety L2"],verified:true,active:true,available:true,radiusKm:10,workloadTodayMinutes:260,rating:4.6,maxDailyMinutes:480,minRestMinutes:30}
-    ],
-    jobs:[],receipts:[],opportunities:[],settlements:[],cancellations:[],safeDeclines:[],feedback:[],challenges:[],issues:[],suggestions:[],
+    workers,
+    jobs:[],receipts:[],opportunities:[],settlements:[],cancellations:[],earningsHistory:seededEarnings(workers),safeDeclines:[],feedback:[],challenges:[],issues:[],suggestions:[],
     proposals:[{id:proposalId,title:"Raise the protected payout floor to ₹860",description:"Increase the minimum protected payout from ₹760 to ₹860 and reduce the maximum fair-work added wait from 12 to 10 minutes.",proposedMinimumPayout:860,proposedMaxAddedWaitMinutes:10,status:"voting",createdAt:seedTime,simulation:{currentFloor:760,proposedFloor:860,currentMaxWait:12,proposedMaxWait:10,workerProtectionDelta:100,affectedJobs:0,note:"Counterfactual only. Past receipts and settlements remain frozen."}}],
     policyReviews:seededVoters.map(memberId=>({proposalId,memberId,reviewedAt:seedTime})),
     votes:seededVoters.map(memberId=>({proposalId,memberId,choice:"yes" as const})),
