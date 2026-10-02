@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import * as Haptics from "expo-haptics";
-import MapView, { Marker, Polyline } from "react-native-maps";
+import { ServiceMap } from "./service-map";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { BrandHeader, Card, Divider, Metric, Pill, PrimaryButton, Screen, SecondaryButton, SectionTitle } from "./components";
 import { earnings, federationCandidates, services, workers } from "./data";
@@ -126,11 +126,7 @@ function CustomerBooking({ assignedName }: { assignedName?: string }) {
         <Text style={styles.muted}>Verified cooperative member · protected payout ₹{booking.protectedFloor}</Text>
       </Card>
       <Card style={{ padding: 0, overflow: "hidden" }}>
-        <MapView style={styles.map} initialRegion={{ ...kharadi, latitudeDelta: 0.07, longitudeDelta: 0.07 }} scrollEnabled={false} zoomEnabled={false}>
-          <Marker coordinate={kharadi} title="Service location" />
-          <Marker coordinate={yerawada} title="Worker service position" />
-          <Polyline coordinates={[kharadi, yerawada]} strokeWidth={4} strokeColor={colors.green700} />
-        </MapView>
+        <ServiceMap variant="booking" />
         <View style={styles.mapFooter}><Text style={styles.mapTitle}>Route preview</Text><Text style={styles.muted}>Approximate demo position · 18 min</Text></View>
       </Card>
       <Card>
@@ -283,7 +279,7 @@ function AdminCases() {
 function Federation() {
   const { state, dispatch } = useStore();
   return <>
-    <Card style={{ padding: 0, overflow: "hidden" }}><MapView style={styles.mapLarge} initialRegion={{ latitude: 18.54, longitude: 73.91, latitudeDelta: 0.16, longitudeDelta: 0.16 }}><Marker coordinate={kharadi} title="Kharadi" description="Electrical shortage" /><Marker coordinate={yerawada} title="Yerawada" description="2 safe workers" /></MapView><View style={styles.mapFooter}><Text style={styles.mapTitle}>Federation control map</Text><Text style={styles.muted}>Choose a receiving cooperative, never an individual cross-network worker.</Text></View></Card>
+    <Card style={{ padding: 0, overflow: "hidden" }}><ServiceMap variant="federation" /><View style={styles.mapFooter}><Text style={styles.mapTitle}>Federation control map</Text><Text style={styles.muted}>Choose a receiving cooperative, never an individual cross-network worker.</Text></View></Card>
     <Card><SectionTitle title="Electrical shortage · Kharadi" note="0 safe local workers · customer SLA 35 min" />
       {federationCandidates.map((c) => <View key={c.cooperative} style={styles.candidate}><View style={{ flex: 1 }}><Text style={styles.bodyStrong}>{c.locality}</Text><Text style={styles.muted}>{c.safeWorkers} safe · {c.eta} min {c.reason ? `· ${c.reason}` : ""}</Text></View>{c.eligible ? <PrimaryButton label={state.federationReceiver === c.cooperative ? "Selected ✓" : "Select"} onPress={() => dispatch({ type: "federate", receiver: c.cooperative })} /> : <Pill text="Blocked" tone="warning" />}</View>)}
       {state.federationReceiver ? <><Divider /><Text style={styles.bodyStrong}>Federation Receipt</Text><Text style={styles.muted}>{state.federationReceiver} selected first. Its own constitution must select its worker second.</Text></> : null}
