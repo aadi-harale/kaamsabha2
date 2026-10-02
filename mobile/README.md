@@ -2,6 +2,21 @@
 
 Expo / React Native mobile prototype for KaamSabha, derived from `aadi-harale/kaamsabha2`.
 
+## App preview
+
+<p align="center">
+  <img src="docs/screenshots/01-customer-home.png" width="230" alt="KaamSabha customer home" />
+  <img src="docs/screenshots/02-active-booking-scope-lock.png" width="230" alt="KaamSabha active booking and Scope Lock" />
+  <img src="docs/screenshots/03-worker-earnings.png" width="230" alt="KaamSabha worker earnings" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/04-governance-policy-twin.png" width="230" alt="KaamSabha governance and Policy Twin" />
+  <img src="docs/screenshots/05-federation-exchange.png" width="230" alt="KaamSabha Federation Opportunity Exchange" />
+</p>
+
+**Customer convenience · Worker due process · Cooperative control**
+
 ## Current branch
 
 This mobile project is isolated on the `mobile-expo` branch so the production web app on `main` is not disturbed.
