@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { ProductApp } from "@/components/product-app";
 import { signIn } from "@/lib/commands";
 import type { AppState, Role } from "@/lib/domain";
@@ -23,7 +23,7 @@ function DemoLogin({state,onLogin}:{state:AppState;onLogin:(role:Role,identity:s
     setError("");
   }
 
-  function submit(event:React.FormEvent<HTMLFormElement>){
+  function submit(event:FormEvent<HTMLFormElement>){
     event.preventDefault();
     const account=authenticateDemoAccount(state,username,password);
     if(!account){
