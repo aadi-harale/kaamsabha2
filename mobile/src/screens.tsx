@@ -6,6 +6,7 @@ import { BrandHeader, Card, Divider, Metric, Pill, PrimaryButton, Screen, Second
 import { earnings, federationCandidates, services, workers } from "./data";
 import { colors, radius, spacing } from "./theme";
 import { useStore } from "./store";
+import { authenticateDemoUser, DEMO_PASSWORD, FEATURED_DEMO_ACCOUNTS, ROLE_LABELS, ROLE_PERMISSIONS, demoAccounts } from "./auth";
 import type { Role, Service } from "./types";
 
 const kharadi = { latitude: 18.5515, longitude: 73.9348 };
@@ -13,49 +14,115 @@ const yerawada = { latitude: 18.5529, longitude: 73.8868 };
 
 export function LoginScreen() {
   const { dispatch } = useStore();
-  const [role, setRole] = useState<Role>("customer");
-  const [worker, setWorker] = useState("Ravi Shinde");
+  const [username, setUsername] = useState("customer");
+  const [password, setPassword] = useState(DEMO_PASSWORD);
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
 
-  const selectRole = async (next: Role) => {
+  const chooseAccount = async (nextUsername: string) => {
     await Haptics.selectionAsync();
-    setRole(next);
+    setUsername(nextUsername);
+    setPassword(DEMO_PASSWORD);
+    setError("");
+  };
+
+  const signIn = async () => {
+    const account = authenticateDemoUser(username, password);
+    if (!account) {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      setError("Incorrect username or password. Demo password is 12345.");
+      return;
+    }
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setError("");
+    dispatch({
+      type: "login",
+      role: account.role,
+      identity: account.displayName,
+      accountId: account.id,
+    });
   };
 
   return (
     <Screen style={styles.loginScreen}>
-      <View style={styles.loginBrandPanel}>
-        <Text style={styles.loginWordmark}>KAAMSABHA</Text>
-        <View style={styles.loginLogo}><Text style={styles.loginLogoText}>K</Text></View>
-      </View>
-      <View style={styles.loginCard}>
-        <Text style={styles.loginTitle}>Sign in</Text>
-        <Text style={styles.loginSubtitle}>Choose how you use KaamSabha.</Text>
-        <View style={styles.roleGrid}>
-          {([
-            ["customer", "Customer", "Book and track services"],
-            ["worker", "Worker member", "Jobs, earnings and fair work"],
-            ["admin", "Cooperative admin", "Operations and governance"],
-          ] as const).map(([value, title, note]) => (
-            <Pressable key={value} onPress={() => selectRole(value)} style={[styles.roleCard, role === value && styles.roleCardActive]}>
-              <Text style={styles.roleTitle}>{title}</Text>
-              <Text style={styles.roleNote}>{note}</Text>
-            </Pressable>
-          ))}
+      <ScrollView contentContainerStyle={styles.loginScroll} keyboardShouldPersistTaps="handled">
+        <View style={styles.loginBrandPanel}>
+          <View style={styles.loginLogo}><Text style={styles.loginLogoText}>K</Text></View>
+          <View style={{ alignItems: "center", gap: 6 }}>
+            <Text style={styles.loginWordmark}>KAAMSABHA</Text>
+            <Text style={styles.loginBrandNote}>Fair work. Trusted service. Cooperative control.</Text>
+          </View>
         </View>
-        {role === "worker" ? (
-          <View style={{ gap: 8 }}>
-            <Text style={styles.fieldLabel}>Member</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-              {workers.map((item) => (
-                <Pressable key={item.id} onPress={() => setWorker(item.name)} style={[styles.workerChip, worker === item.name && styles.workerChipActive]}>
-                  <Text style={[styles.workerChipText, worker === item.name && styles.workerChipTextActive]}>{item.name}</Text>
+
+        <View style={styles.loginCard}>
+          <View>
+            <Text style={styles.loginEyebrow}>SECURE DEMO ACCESS</Text>
+            <Text style={styles.loginTitle}>Welcome back</Text>
+            <Text style={styles.loginSubtitle}>Sign in with your KaamSabha account. Your role is assigned by the account and cannot be changed after login.</Text>
+          </View>
+
+          <View style={styles.quickAccess}>
+            <Text style={styles.fieldLabel}>Quick demo accounts</Text>
+            <View style={styles.quickGrid}>
+              {FEATURED_DEMO_ACCOUNTS.map((account) => (
+                <Pressable
+                  key={account.id}
+                  onPress={() => chooseAccount(account.username)}
+                  style={[styles.quickCard, username.toLowerCase() === account.username && styles.quickCardActive]}
+                >
+                  <Text style={styles.quickRole}>{ROLE_LABELS[account.role]}</Text>
+                  <Text style={styles.quickName}>{account.displayName}</Text>
+                  <Text style={styles.quickUsername}>@{account.username}</Text>
                 </Pressable>
               ))}
-            </ScrollView>
+            </View>
           </View>
-        ) : null}
-        <PrimaryButton label="Continue" onPress={() => dispatch({ type: "login", role, identity: role === "worker" ? worker : role === "customer" ? "Customer 01" : "Cooperative Admin" })} />
-      </View>
+
+          <View style={styles.loginFields}>
+            <View style={{ gap: 7 }}>
+              <Text style={styles.fieldLabel}>Username</Text>
+              <TextInput
+                value={username}
+                onChangeText={(value) => { setUsername(value); setError(""); }}
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholder="customer, ravi, admin…"
+                style={styles.loginInput}
+                returnKeyType="next"
+              />
+            </View>
+            <View style={{ gap: 7 }}>
+              <Text style={styles.fieldLabel}>Password</Text>
+              <View style={styles.passwordRow}>
+                <TextInput
+                  value={password}
+                  onChangeText={(value) => { setPassword(value); setError(""); }}
+                  secureTextEntry={!showPassword}
+                  keyboardType="number-pad"
+                  placeholder="Enter password"
+                  style={styles.passwordInput}
+                  onSubmitEditing={signIn}
+                />
+                <Pressable onPress={() => setShowPassword((value) => !value)} hitSlop={10}>
+                  <Text style={styles.showPassword}>{showPassword ? "Hide" : "Show"}</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+
+          {error ? <View style={styles.loginError}><Text style={styles.loginErrorText}>{error}</Text></View> : null}
+
+          <PrimaryButton label="Sign in securely" onPress={signIn} />
+
+          <View style={styles.demoHint}>
+            <Text style={styles.demoHintTitle}>Demo credentials</Text>
+            <Text style={styles.demoHintText}>Password for every demo account: <Text style={styles.demoPassword}>12345</Text></Text>
+            <Text style={styles.demoHintText}>Worker usernames: {demoAccounts.filter((account) => account.role === "worker").map((account) => account.username).join(", ")}</Text>
+          </View>
+        </View>
+
+        <Text style={styles.securityFootnote}>Demo-only local authentication. Production deployment must use server-side authentication, hashed credentials, secure sessions and backend authorization.</Text>
+      </ScrollView>
     </Screen>
   );
 }
@@ -133,7 +200,7 @@ function CustomerBooking({ assignedName }: { assignedName?: string }) {
         <SectionTitle title="Scope Lock" note="Extra work cannot begin until you approve it." />
         <Text style={styles.bodyStrong}>Original</Text><Text style={styles.muted}>{booking.originalScope}</Text>
         {booking.addedScope ? <><Divider /><Text style={styles.bodyStrong}>Requested addition</Text><Text style={styles.muted}>{booking.addedScope} · +₹{booking.addedAmount}</Text></> : null}
-        {booking.status === "scope_pending" ? <View style={styles.buttonStack}><PrimaryButton label="Approve added scope" onPress={() => dispatch({ type: "scope_approve" })} /><SecondaryButton label="Keep original scope" onPress={() => dispatch({ type: "advance", status: "arrived" })} /></View> : null}
+        {booking.status === "scope_pending" ? <View style={styles.buttonStack}><PrimaryButton label="Approve added scope" onPress={() => dispatch({ type: "scope_approve" })} /><SecondaryButton label="Keep original scope" onPress={() => dispatch({ type: "scope_decline" })} /></View> : null}
       </Card>
       <Card>
         <SectionTitle title="Start confirmation" note="Pending scope changes block the Start OTP." />
@@ -143,7 +210,7 @@ function CustomerBooking({ assignedName }: { assignedName?: string }) {
         <SectionTitle title="Completion" note="Completion OTP is available only after proof is submitted." />
         {booking.completionOtp ? <Otp code={booking.completionOtp} label="Completion OTP" /> : <PrimaryButton disabled={!booking.proofReady} label={booking.proofReady ? "Generate Completion OTP" : "Waiting for work proof"} onPress={() => dispatch({ type: "issue_completion_otp" })} />}
       </Card>
-      {booking.status === "completed" || booking.completionOtp ? (
+      {booking.status === "completed" || booking.status === "paid" ? (
         <Card>
           <SectionTitle title="Checkout" note="Razorpay-style checkout · Demo payment" />
           <View style={styles.paymentRow}><Text style={styles.paymentLabel}>Total</Text><Text style={styles.paymentValue}>₹{booking.amount}</Text></View>
@@ -308,7 +375,36 @@ function Governance() {
 
 function Profile({ role, onLogout }: { role: string; onLogout: () => void }) {
   const { state } = useStore();
-  return <Card><SectionTitle title={state.identity ?? role} note={role} /><Text style={styles.muted}>English · हिन्दी · मराठी ready architecture</Text><Divider /><SecondaryButton label="Sign out" onPress={onLogout} /></Card>;
+  const activeRole = state.role;
+  return <>
+    <Card>
+      <View style={styles.profileTop}>
+        <View style={styles.avatar}><Text style={styles.avatarText}>{(state.identity ?? role).slice(0, 1).toUpperCase()}</Text></View>
+        <View style={{ flex: 1 }}>
+          <SectionTitle title={state.identity ?? role} note={activeRole ? ROLE_LABELS[activeRole] : role} />
+          <Text style={styles.muted}>Account ID {state.accountId ?? "—"} · Verified demo session</Text>
+        </View>
+      </View>
+      <Divider />
+      <Text style={styles.bodyStrong}>Language & accessibility</Text>
+      <Text style={styles.muted}>English · हिन्दी · मराठी ready architecture</Text>
+    </Card>
+    {activeRole ? <Card>
+      <SectionTitle title="Your access" note="Role-based permissions enforced by the shared app state." />
+      {ROLE_PERMISSIONS[activeRole].map((permission) => (
+        <View key={permission} style={styles.permissionRow}>
+          <Text style={styles.permissionCheck}>✓</Text>
+          <Text style={styles.permissionText}>{permission}</Text>
+        </View>
+      ))}
+    </Card> : null}
+    <Card>
+      <SectionTitle title="Account security" note="This prototype uses one shared demo password." />
+      <Text style={styles.muted}>Signing out removes the active role session but preserves the shared demo workflow so judges can switch between customer, worker and admin views.</Text>
+      <Divider />
+      <SecondaryButton label="Sign out" onPress={onLogout} />
+    </Card>
+  </>;
 }
 
 function Otp({ code, label }: { code: string; label: string }) {
@@ -322,14 +418,36 @@ function BottomTabs({ tabs, active, onChange }: { tabs: string[]; active: string
 }
 
 const styles = StyleSheet.create({
-  loginScreen: { justifyContent: "center", padding: 18 },
+  loginScreen: { flex: 1 },
+  loginScroll: { flexGrow: 1, justifyContent: "center", padding: 18, paddingVertical: 28 },
   loginBrandPanel: { backgroundColor: colors.green900, minHeight: 230, borderRadius: radius.xl, alignItems: "center", justifyContent: "center", gap: 22, padding: 24 },
   loginWordmark: { color: "white", letterSpacing: 3, fontWeight: "900", fontSize: 24 },
+  loginBrandNote: { color: "#CFE3DA", fontSize: 11, textAlign: "center" },
+  loginEyebrow: { color: colors.green700, fontSize: 10, letterSpacing: 1.5, fontWeight: "900", marginBottom: 5 },
   loginLogo: { width: 96, height: 96, borderRadius: 28, backgroundColor: "white", alignItems: "center", justifyContent: "center" },
   loginLogoText: { color: colors.green900, fontSize: 42, fontWeight: "900" },
   loginCard: { marginTop: -22, marginHorizontal: 12, backgroundColor: "white", borderRadius: radius.xl, padding: 22, gap: 18, borderWidth: 1, borderColor: colors.border },
   loginTitle: { color: colors.ink, fontSize: 26, fontWeight: "900" },
-  loginSubtitle: { color: colors.muted, marginTop: -12 },
+  loginSubtitle: { color: colors.muted, marginTop: 5, lineHeight: 18 },
+  quickAccess: { gap: 9 },
+  quickGrid: { flexDirection: "row", gap: 8 },
+  quickCard: { flex: 1, minHeight: 84, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, padding: 10, backgroundColor: "#FAFCFB" },
+  quickCardActive: { borderColor: colors.green700, backgroundColor: colors.green050 },
+  quickRole: { color: colors.green700, fontWeight: "900", fontSize: 9, textTransform: "uppercase", letterSpacing: 0.5 },
+  quickName: { color: colors.ink, fontWeight: "800", fontSize: 11, marginTop: 5 },
+  quickUsername: { color: colors.muted, fontSize: 10, marginTop: 3 },
+  loginFields: { gap: 13 },
+  loginInput: { height: 50, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 14, color: colors.ink, backgroundColor: "white" },
+  passwordRow: { height: 50, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", backgroundColor: "white" },
+  passwordInput: { flex: 1, color: colors.ink },
+  showPassword: { color: colors.green700, fontWeight: "800", fontSize: 12 },
+  loginError: { borderRadius: radius.md, borderWidth: 1, borderColor: "#E7B8B8", backgroundColor: "#FFF4F4", padding: 11 },
+  loginErrorText: { color: "#9A3030", fontWeight: "700", fontSize: 12, lineHeight: 17 },
+  demoHint: { backgroundColor: colors.green050, borderRadius: radius.md, padding: 12, gap: 4 },
+  demoHintTitle: { color: colors.green900, fontWeight: "900", fontSize: 11 },
+  demoHintText: { color: colors.muted, fontSize: 10, lineHeight: 15 },
+  demoPassword: { color: colors.green900, fontWeight: "900" },
+  securityFootnote: { color: colors.muted, fontSize: 9, lineHeight: 14, textAlign: "center", paddingHorizontal: 16, marginTop: 12 },
   roleGrid: { gap: 10 },
   roleCard: { minHeight: 72, padding: 14, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: "white" },
   roleCardActive: { borderColor: colors.green700, backgroundColor: colors.green050 },
@@ -356,6 +474,12 @@ const styles = StyleSheet.create({
   servicePrice: { color: colors.green700, fontWeight: "800", fontSize: 12, marginTop: 9 },
   trustCard: { backgroundColor: colors.green050 }, trustTitle: { color: colors.green900, fontWeight: "900", marginBottom: 6 },
   personName: { color: colors.ink, fontSize: 18, fontWeight: "900" },
+  profileTop: { flexDirection: "row", alignItems: "center", gap: 12 },
+  avatar: { width: 52, height: 52, borderRadius: 18, backgroundColor: colors.green900, alignItems: "center", justifyContent: "center" },
+  avatarText: { color: "white", fontSize: 22, fontWeight: "900" },
+  permissionRow: { flexDirection: "row", alignItems: "center", gap: 9, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border },
+  permissionCheck: { color: colors.success, fontWeight: "900" },
+  permissionText: { color: colors.ink, fontWeight: "700", fontSize: 12, flex: 1 },
   map: { height: 190, width: "100%" }, mapLarge: { height: 260, width: "100%" }, mapFooter: { padding: 14 }, mapTitle: { color: colors.ink, fontWeight: "800", marginBottom: 3 },
   bodyStrong: { color: colors.ink, fontWeight: "800", fontSize: 14 },
   buttonStack: { gap: 9, marginTop: 14 },
