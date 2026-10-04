@@ -1,4 +1,4 @@
-import type { AppState, Role } from "@/lib/domain";
+import type { AppState, Role } from "./domain";
 
 export const DEMO_PASSWORD = "12345";
 
