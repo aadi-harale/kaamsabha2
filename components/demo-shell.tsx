@@ -6,12 +6,97 @@ import { signIn } from "@/lib/commands";
 import type { AppState, Role } from "@/lib/domain";
 import { stateRepository } from "@/lib/repository";
 import { summarizeWorkerEarnings, weeklyWorkerEarnings, workerEarningEntries } from "@/lib/earnings";
+import { authenticateDemoAccount, DEMO_PASSWORD, demoAccounts, rolePermissions, roleTitle } from "@/lib/demo-auth";
 
 function DemoLogin({state,onLogin}:{state:AppState;onLogin:(role:Role,identity:string)=>void}){
-  const[role,setRole]=useState<Role>("customer");
-  const[workerName,setWorkerName]=useState("Ravi Shinde");
-  const workers=[...state.workers].sort((a,b)=>a.name.localeCompare(b.name));
-  return <main className="namedLoginShell"><section className="namedLoginCard"><div className="namedLoginIntro"><div className="namedBrand">K</div><p className="eyebrow">SIH26089 · KAAMSABHA</p><h1>Choose who you want to demo.</h1><p>Worker accounts use real member names in the interface. Internal IDs stay hidden and are used only to keep records deterministic.</p><div className="namedProof"><span>✓ {workers.length} seeded worker members</span><span>✓ Historical earnings for every member</span><span>✓ One shared customer-worker-admin register</span></div></div><div className="namedLoginForm"><p className="eyebrow">DEMO WORKSPACE</p><div className="namedRoleGrid"><button className={role==="customer"?"active":""} onClick={()=>setRole("customer")}><strong>Customer</strong><span>Book and track work</span></button><button className={role==="worker"?"active":""} onClick={()=>setRole("worker")}><strong>Worker member</strong><span>Work, earnings and voice</span></button><button className={role==="admin"?"active":""} onClick={()=>setRole("admin")}><strong>Cooperative admin</strong><span>Operate and govern</span></button></div>{role==="worker"?<label className="field namedWorkerSelect"><span>Login as worker</span><select value={workerName} onChange={e=>setWorkerName(e.target.value)}>{workers.map(worker=>{const coop=state.cooperatives.find(c=>c.id===worker.cooperativeId);return <option key={worker.id} value={worker.name}>{worker.name} · {coop?.locality??"Cooperative"} · {worker.skills.map(s=>s.replaceAll("_"," ")).join(", ")}</option>})}</select><small>Pick the same member name shown on the assigned customer booking.</small></label>:<div className="namedIdentityPreview"><span>{role==="customer"?"Demo customer":"Cooperative administrator"}</span><strong>{role==="customer"?"Customer 01":"Admin 01"}</strong></div>}<button className="namedOpen" onClick={()=>onLogin(role,role==="worker"?workerName:role==="customer"?"customer01":"admin01")}>Open {role==="worker"?workerName:role==="customer"?"customer workspace":"admin workspace"} →</button></div></section></main>;
+  const[username,setUsername]=useState("customer");
+  const[password,setPassword]=useState(DEMO_PASSWORD);
+  const[showPassword,setShowPassword]=useState(false);
+  const[error,setError]=useState("");
+  const accounts=demoAccounts(state);
+  const featured=accounts.filter(account=>["customer","ravi","admin"].includes(account.username));
+  const active=accounts.find(account=>account.username===username.trim().toLowerCase());
+
+  function choose(next:string){
+    setUsername(next);
+    setPassword(DEMO_PASSWORD);
+    setError("");
+  }
+
+  function submit(event:React.FormEvent<HTMLFormElement>){
+    event.preventDefault();
+    const account=authenticateDemoAccount(state,username,password);
+    if(!account){
+      setError("Incorrect username or password. Demo password is 12345.");
+      return;
+    }
+    setError("");
+    onLogin(account.role,account.userId);
+  }
+
+  return <main className="namedLoginShell">
+    <section className="namedLoginCard">
+      <div className="namedLoginIntro">
+        <div className="namedBrand">K</div>
+        <div className="namedLoginBrandCopy">
+          <span>KAAMSABHA</span>
+          <small>Fair work · trusted service · cooperative control</small>
+        </div>
+        <div className="namedLoginTrust">
+          <span>✓ Account-bound roles</span>
+          <span>✓ Shared cooperative register</span>
+          <span>✓ Protected worker rules</span>
+        </div>
+      </div>
+      <form className="namedLoginForm" onSubmit={submit}>
+        <div className="namedLoginHeading">
+          <p className="eyebrow">SECURE DEMO ACCESS</p>
+          <h1>Welcome back</h1>
+          <p>Sign in with a KaamSabha account. The account decides the workspace and permissions automatically.</p>
+        </div>
+
+        <div className="namedQuickAccess">
+          <span className="namedFieldLabel">Quick demo accounts</span>
+          <div className="namedQuickGrid">
+            {featured.map(account=><button type="button" key={account.username} className={username===account.username?"namedQuickCard active":"namedQuickCard"} onClick={()=>choose(account.username)}>
+              <small>{roleTitle(account.role)}</small>
+              <strong>{account.displayName}</strong>
+              <span>@{account.username}</span>
+            </button>)}
+          </div>
+        </div>
+
+        <label className="namedField">
+          <span>Username</span>
+          <input value={username} onChange={event=>{setUsername(event.target.value);setError("");}} autoComplete="username" placeholder="customer, ravi, admin…" />
+        </label>
+
+        <label className="namedField">
+          <span>Password</span>
+          <div className="namedPasswordInput">
+            <input type={showPassword?"text":"password"} value={password} onChange={event=>{setPassword(event.target.value);setError("");}} autoComplete="current-password" inputMode="numeric" placeholder="Enter password" />
+            <button type="button" onClick={()=>setShowPassword(value=>!value)}>{showPassword?"Hide":"Show"}</button>
+          </div>
+        </label>
+
+        {error&&<p className="namedLoginError" role="alert">{error}</p>}
+
+        <button className="namedOpen" type="submit">Sign in securely →</button>
+
+        {active&&<div className="namedAccessPreview">
+          <div><span>{roleTitle(active.role)}</span><strong>{active.displayName}</strong><small>{active.subtitle}</small></div>
+          <ul>{rolePermissions[active.role].slice(0,3).map(item=><li key={item}>✓ {item}</li>)}</ul>
+        </div>}
+
+        <div className="namedDemoHint">
+          <strong>Demo credentials</strong>
+          <span>Every account uses password <b>12345</b>.</span>
+          <small>Workers can sign in with their first name in lowercase.</small>
+        </div>
+      </form>
+    </section>
+    <p className="namedSecurityNote">Demo-only authentication for the SIH prototype. Production requires server-side identity, hashed credentials, secure sessions and backend authorization.</p>
+  </main>;
 }
 
 function EarningsWorkspace({state,onClose}:{state:AppState;onClose:()=>void}){
