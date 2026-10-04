@@ -13,11 +13,20 @@ async function openFresh(page) {
   await page.waitForTimeout(700);
 }
 
+async function signIn(page, username) {
+  const input = page.getByPlaceholder("customer, ravi, admin…");
+  await input.fill(username);
+  await page.getByPlaceholder("Enter password").fill("12345");
+  await page.getByText("Sign in securely", { exact: true }).click();
+  await page.waitForTimeout(450);
+}
+
 test("capture KaamSabha mobile product screens", async ({ page }) => {
   await openFresh(page);
+  await expect(page.getByText("Welcome back", { exact: true })).toBeVisible();
+  await page.screenshot({ path: shot("00-secure-login.png"), fullPage: true });
 
-  await page.getByText("Continue", { exact: true }).click();
-  await page.waitForTimeout(400);
+  await signIn(page, "customer");
   await expect(page.getByText("Popular services", { exact: true })).toBeVisible();
   await page.screenshot({ path: shot("01-customer-home.png"), fullPage: true });
 
@@ -28,16 +37,14 @@ test("capture KaamSabha mobile product screens", async ({ page }) => {
   await page.screenshot({ path: shot("02-active-booking-scope-lock.png"), fullPage: true });
 
   await openFresh(page);
-  await page.getByText("Worker member", { exact: true }).click();
-  await page.getByText("Continue", { exact: true }).click();
+  await signIn(page, "ravi");
   await page.getByText("Earnings", { exact: true }).last().click();
   await page.waitForTimeout(350);
   await expect(page.getByText("6-week earnings trend", { exact: true })).toBeVisible();
   await page.screenshot({ path: shot("03-worker-earnings.png"), fullPage: true });
 
   await openFresh(page);
-  await page.getByText("Cooperative admin", { exact: true }).click();
-  await page.getByText("Continue", { exact: true }).click();
+  await signIn(page, "admin");
   await page.getByText("Governance", { exact: true }).last().click();
   await page.waitForTimeout(350);
   await page.screenshot({ path: shot("04-governance-policy-twin.png"), fullPage: true });
