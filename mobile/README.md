@@ -5,6 +5,7 @@ Expo / React Native mobile prototype for KaamSabha, derived from `aadi-harale/ka
 ## App preview
 
 <p align="center">
+  <img src="docs/screenshots/00-secure-login.png" width="230" alt="KaamSabha secure role login" />
   <img src="docs/screenshots/01-customer-home.png" width="230" alt="KaamSabha customer home" />
   <img src="docs/screenshots/02-active-booking-scope-lock.png" width="230" alt="KaamSabha active booking and Scope Lock" />
   <img src="docs/screenshots/03-worker-earnings.png" width="230" alt="KaamSabha worker earnings" />
@@ -16,6 +17,20 @@ Expo / React Native mobile prototype for KaamSabha, derived from `aadi-harale/ka
 </p>
 
 **Customer convenience · Worker due process · Cooperative control**
+
+## Demo login & RBAC
+
+Every demo account uses password **`12345`**.
+
+| Role | Username | Access |
+|---|---|---|
+| Customer | `customer` | Booking, Scope Lock approval, OTP confirmation, payment, support |
+| Worker | `ravi` (or the first name of any seeded worker) | Job lifecycle, safe decline, work proof, Replay Court, policy suggestions |
+| Cooperative admin | `admin` | Operations, cases, governance, policy activation, federation |
+
+The role comes from the authenticated account; it is not chosen after login. The shared state reducer also blocks actions outside that role's permission set, so hiding a screen is not the only RBAC control in the prototype.
+
+**Security boundary:** this is hackathon/demo authentication with a hard-coded shared password. It is intentionally labelled as such. A production deployment must move authentication and authorization server-side with hashed credentials/tokens and backend policy enforcement.
 
 ## Current branch
 
@@ -51,7 +66,7 @@ This cannot be installed through GitHub file APIs; it must be run in the local/c
 git clone -b mobile-expo https://github.com/aadi-harale/kaamsabha2.git
 cd kaamsabha2/mobile
 npm install
-npx expo start --tunnel
+npx expo start --lan
 ```
 
 Install **Expo Go** on the phone and scan the QR code shown by Expo CLI.
