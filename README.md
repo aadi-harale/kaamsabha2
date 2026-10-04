@@ -26,3 +26,10 @@ The role is derived from the account rather than selected after login. Critical 
 Run locally with `npm install && npm run dev`. Verification is `npm run verify`.
 
 See `AGENTS.md`, `AGENT_STATE.md`, `FINAL_DEMO_CHECKLIST.md`, and `VERCEL_DEPLOY.md` before modifying the application.
+
+## Before deploying
+
+Read [`PRODUCTION_READINESS.md`](PRODUCTION_READINESS.md). It states plainly what is real, what
+is a demo stand-in, and what must be built before real workers or customers rely on this. The
+short version: every rule the product guarantees is currently enforced in the browser against a
+`localStorage` register, so this is fit to demonstrate, not to operate.

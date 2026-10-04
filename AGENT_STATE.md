@@ -141,6 +141,41 @@ has exactly one eligible electrician, so W02 still wins and a safe decline still
 - **`next dev` appended its own block to `AGENTS.md` on every run.** `agentRules: false` in
   `next.config.ts` stops the project's own build standards from being a permanently dirty file.
 
+# Deployment hardening pass
+
+`PRODUCTION_READINESS.md` is the authoritative answer to "is this ready for production". The
+short version, stated there plainly: it is not, and configuration cannot make it so. Every rule
+the product guarantees is enforced in the browser against a `localStorage` register, so anyone
+with developer tools can rewrite it. Making it real needs a server that owns the register and
+re-runs `lib/commands.ts` behind real identity. The domain layer is already shaped for that
+move; nothing else can substitute for it.
+
+Real defects closed in this pass:
+
+- **`/api/state` accepted anonymous writes and persisted them with the Supabase service-role
+  key**, which bypasses row-level security. Any deployment that enabled the mirror was shipping
+  a world-writable, world-readable database. It now fails closed (`403`) unless
+  `KAAMSABHA_ALLOW_ANONYMOUS_STATE_WRITES=true` is set deliberately, and even then the payload
+  must be a schema-1 register under 512 KB targeting the single workspace the deployment names
+  (`lib/remote-sync-policy.ts`). This is a mitigation, not a fix: a browser holds no secret, so
+  a browser-authored write can never be authenticated, and the refusal message says so.
+- **The AI routes proxied to OpenRouter on the deployer's key with no throttle.** All API routes
+  are now rate-limited with body-size ceilings and `Retry-After` (`lib/rate-limit.ts`). The
+  limiter is per-instance memory and is documented as a speed bump, not a control.
+- **No security headers.** CSP, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`,
+  `Permissions-Policy`, `Cross-Origin-Opener-Policy`, HSTS, and `Cache-Control: no-store` on
+  `/api/*`. Verified against the production build: no CSP violations, maps and OSRM routing
+  still work. `'unsafe-inline'` remains for styles (Leaflet tile transforms) and scripts (Next
+  bootstrap); nonce adoption is the next step and is recorded in the readiness doc.
+- **A critical RCE advisory in Next.js 16.2.0-16.3.5** (GHSA-vcvr-r3jv-pc5j, `next/og`
+  ImageResponse). Upgraded to 16.3.8; `npm audit --omit=dev` reports zero vulnerabilities.
+- **One render error blanked the whole app**, which on a device-local register looks exactly
+  like lost data. `components/error-boundary.tsx` offers reload first and a confirmed
+  destructive reset second; verified by forcing a real render throw.
+
+CI now installs from the lockfile with `npm ci`, runs an advisory production audit, and fails
+if a credential-shaped value is committed outside `.env.example`.
+
 # Freeze
 
 Feature work beyond this pass remains frozen. Remaining work is deployment/browser

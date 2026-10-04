@@ -6,7 +6,7 @@ const STORAGE_KEY="kaamsabha2:state:v1";
 const SESSION_KEY="kaamsabha2:session:v1";
 const REMOTE_WORKSPACE="shared-demo";
 
-export interface StateRepository { load():AppState; loadRemote():Promise<AppState|null>; save(next:AppState):void; clearSession():void; }
+export interface StateRepository { load():AppState; loadRemote():Promise<AppState|null>; save(next:AppState):void; clearSession():void; clearAll():void; }
 
 function isState(value:unknown):value is AppState{if(!value||typeof value!=="object")return false;const v=value as Partial<AppState>;return v.schema===1&&Array.isArray(v.workers)&&Array.isArray(v.jobs)&&Array.isArray(v.receipts);}
 
@@ -43,6 +43,8 @@ export class BrowserStateRepository implements StateRepository{
  async loadRemote():Promise<AppState|null>{if(!remoteEnabled())return null;try{const response=await fetch(`/api/state?workspace=${encodeURIComponent(REMOTE_WORKSPACE)}`,{cache:"no-store"});if(!response.ok)return null;const payload=await response.json() as {state?:unknown};return isState(payload.state)?normalizeState(payload.state):null;}catch{return null;}}
  save(next:AppState){if(typeof window==="undefined")return;const persisted={...next,session:null};window.localStorage.setItem(STORAGE_KEY,JSON.stringify(persisted));if(next.session)window.sessionStorage.setItem(SESSION_KEY,JSON.stringify(next.session));else window.sessionStorage.removeItem(SESSION_KEY);if(remoteEnabled()){void fetch("/api/state",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({workspace:REMOTE_WORKSPACE,state:persisted})}).catch(()=>undefined);}}
  clearSession(){if(typeof window!=="undefined")window.sessionStorage.removeItem(SESSION_KEY);}
+ /** Last-resort recovery. Erases the register stored in this browser; the caller confirms first. */
+ clearAll(){this.resetCorruptState();}
  private resetCorruptState(){if(typeof window==="undefined")return;window.localStorage.removeItem(STORAGE_KEY);window.sessionStorage.removeItem(SESSION_KEY);}
 }
 

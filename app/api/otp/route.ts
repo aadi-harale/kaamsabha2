@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { issueOtp, verifyOtp } from "@/lib/otp";
 import type { OtpPurpose } from "@/lib/otp";
 import { OTP_MAX_ATTEMPTS, OTP_TTL_MS, resolveOtpRuntimeConfig } from "@/lib/otp-config";
+import { clientKey, rateLimit, rateLimitHeaders, readJsonBody } from "@/lib/rate-limit";
 
 export const runtime="nodejs";
 
@@ -13,8 +14,13 @@ export async function GET(){
 }
 
 export async function POST(request:Request){
-  let body:Record<string,unknown>;
-  try{body=await request.json() as Record<string,unknown>;}catch{return NextResponse.json({error:"Invalid JSON"},{status:400});}
+  // The per-challenge attempt budget is held in the browser's register, so the only thing
+  // standing between an attacker and an unlimited guessing loop is this ceiling.
+  const limit=rateLimit(clientKey(request,"otp"),30,60_000);
+  if(!limit.ok)return NextResponse.json({error:"Too many code requests. Wait a moment and try again."},{status:429,headers:rateLimitHeaders(limit,30)});
+  const parsed=await readJsonBody(request,8*1024);
+  if(!parsed.ok)return NextResponse.json({error:parsed.error},{status:parsed.status});
+  const body=parsed.body;
   const jobId=typeof body.jobId==="string"?body.jobId:"",purpose=body.purpose;
   if(!jobId||!validPurpose(purpose))return NextResponse.json({error:"jobId and purpose are required"},{status:400});
   const config=resolveOtpRuntimeConfig(process.env);

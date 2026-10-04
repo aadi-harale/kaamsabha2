@@ -211,3 +211,19 @@ select,input,textarea{max-width:100%}
   .governanceHero,.governanceHero.admin{flex-direction:column;gap:14px}
   .governancePage p,.governancePage strong,.governancePage span,.governancePage small{overflow-wrap:anywhere}
 }
+
+/* ---------- crash recovery ---------- */
+.crashShell{min-height:100dvh;display:grid;place-items:center;padding:24px;background:#f7f7f5}
+.crashCard{width:min(560px,100%);display:grid;gap:12px;padding:26px;border:1px solid #dde2de;border-left:4px solid #9c382f;border-radius:16px;background:#fff}
+.crashCard .eyebrow{margin:0;font-size:9px;letter-spacing:.1em;font-weight:850;color:#7d332a}
+.crashCard h1{margin:0;font-size:25px;letter-spacing:-.02em;color:#17231d}
+.crashCard>p{margin:0;color:#4f5b55;font-size:13px;line-height:1.6}
+.crashActions{display:grid;gap:9px;margin-top:4px}
+.crashActions>button{justify-self:start}
+.crashConfirm{display:grid;gap:6px;padding:12px;border:1px solid #dcb8b2;border-radius:11px;background:#fbefed}
+.crashConfirm strong{font-size:12px;color:#7d332a}
+.crashConfirm span{font-size:11px;line-height:1.55;color:#6b4a45}
+.crashConfirmActions{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.crashDetail{margin-top:4px}
+.crashDetail summary{cursor:pointer;color:#5f6b65;font-size:11px;font-weight:800}
+.crashDetail pre{margin:8px 0 0;padding:10px;border:1px solid #e4e8e4;border-radius:9px;background:#fbfcfb;color:#4a564f;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere}

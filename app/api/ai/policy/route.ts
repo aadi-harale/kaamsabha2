@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { clientKey, rateLimit, rateLimitHeaders, readJsonBody } from "@/lib/rate-limit";
 
 export const runtime="nodejs";
 
@@ -39,7 +40,7 @@ function validate(value:unknown,count:number){
 }
 
 export async function POST(request:Request){
- let body:Record<string,unknown>;try{body=await request.json() as Record<string,unknown>;}catch{return NextResponse.json({error:"Invalid JSON"},{status:400});}
+ const limit=rateLimit(clientKey(request,"ai-policy"),6,60_000);if(!limit.ok)return NextResponse.json({error:"Too many requests. This endpoint calls a paid AI provider, so it is throttled."},{status:429,headers:rateLimitHeaders(limit,6)});const parsed=await readJsonBody(request,32*1024);if(!parsed.ok)return NextResponse.json({error:parsed.error},{status:parsed.status});const body=parsed.body;
  const items=normalizeItems(body);if(!items.length)return NextResponse.json({error:"No worker issues or suggestions to analyze"},{status:400});
  const key=process.env.OPENROUTER_API_KEY,model=process.env.OPENROUTER_MODEL;if(!key||!model)return NextResponse.json(fallback(items));
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000);

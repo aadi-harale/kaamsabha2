@@ -2,7 +2,9 @@
   "name": "kaamsabha2",
   "version": "0.3.0",
   "private": true,
-  "engines": { "node": ">=22.13.0" },
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -14,7 +16,7 @@
   },
   "dependencies": {
     "leaflet": "^1.9.4",
-    "next": "16.3.4",
+    "next": "^16.3.8",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },

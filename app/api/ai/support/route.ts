@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { clientKey, rateLimit, rateLimitHeaders, readJsonBody } from "@/lib/rate-limit";
 
 export const runtime="nodejs";
 
@@ -35,8 +36,11 @@ function valid(value:unknown,category:string,text:string,attachmentName:string):
 }
 
 export async function POST(request:Request){
-  let body:Record<string,unknown>;
-  try{body=await request.json() as Record<string,unknown>;}catch{return NextResponse.json({error:"Invalid JSON"},{status:400});}
+  const limit=rateLimit(clientKey(request,"ai-support"),15,60_000);
+  if(!limit.ok)return NextResponse.json({error:"Too many requests. This endpoint calls a paid AI provider, so it is throttled."},{status:429,headers:rateLimitHeaders(limit,15)});
+  const parsed=await readJsonBody(request,32*1024);
+  if(!parsed.ok)return NextResponse.json({error:parsed.error},{status:parsed.status});
+  const body=parsed.body;
   const category=sanitize(body.category,80),text=sanitize(body.text),attachmentName=sanitize(body.attachmentName,180),jobSummary=sanitize(body.jobSummary,500);
   if(!category||!text)return NextResponse.json({error:"Choose a help topic and describe what happened"},{status:400});
   const manual=fallback(category,text,attachmentName);

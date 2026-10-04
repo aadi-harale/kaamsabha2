@@ -1,8 +1,12 @@
 name: Verify
+
 on:
   push:
     branches: [main]
   pull_request:
+
+permissions:
+  contents: read
 
 jobs:
   verify:
@@ -12,7 +16,31 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22.19.0
-      - run: npm install --no-audit --no-fund
-      - run: npm test
-      - run: npm run typecheck
-      - run: npm run build
+          cache: npm
+
+      # `npm ci` installs exactly what package-lock.json pins, so CI cannot silently drift onto
+      # a different dependency tree than a developer or a deploy gets.
+      - run: npm ci --no-audit --no-fund
+
+      - name: Tests
+        run: npm test
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Production build
+        run: npm run build
+
+      # Advisory: a known vulnerability should be visible in the log without failing the build
+      # over a transitive dev-only advisory nobody can act on today.
+      - name: Dependency audit (advisory)
+        run: npm audit --omit=dev --audit-level=high || true
+
+      # The one secret-shaped mistake that would actually matter here.
+      - name: Check no real credentials were committed
+        run: |
+          if git grep -nE 'SUPABASE_SERVICE_ROLE_KEY=[A-Za-z0-9._-]{20,}|OPENROUTER_API_KEY=sk-[A-Za-z0-9._-]{10,}' -- . ':!.env.example'; then
+            echo "::error::A credential-shaped value is committed. Rotate it and remove it from history."
+            exit 1
+          fi
+          echo "No committed credentials found."
