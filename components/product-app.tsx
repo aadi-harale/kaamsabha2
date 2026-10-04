@@ -18,6 +18,7 @@ import { AdminGovernance } from "@/components/admin-governance";
 import { AdminReplayCourt, WorkerReplayCourt } from "@/components/replay-court";
 import { DemoPaymentSheet } from "@/components/demo-payment-sheet";
 import { CustomerHelp } from "@/components/customer-help";
+import { authenticateDemoAccount, DEMO_PASSWORD, demoAccounts, rolePermissions, roleTitle } from "@/lib/demo-auth";
 
 type Run=(fn:()=>AppState,message?:string)=>void;
 type DemoOtp={jobId:string;purpose:"start"|"completion";code:string}|null;
