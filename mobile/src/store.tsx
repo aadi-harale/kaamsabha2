@@ -4,6 +4,7 @@ import type { Booking, GovernanceProposal, Role, Service } from "./types";
 
 type State = {
   role: Role | null;
+  accountId: string | null;
   identity: string | null;
   booking: Booking | null;
   supportCases: number;
@@ -11,15 +12,17 @@ type State = {
   suggestionSubmitted: boolean;
   proposal: GovernanceProposal;
   federationReceiver: string | null;
+  lastDeniedAction: string | null;
 };
 
 type Action =
-  | { type: "login"; role: Role; identity: string }
+  | { type: "login"; role: Role; identity: string; accountId: string }
   | { type: "logout" }
   | { type: "book"; service: Service }
   | { type: "advance"; status: Booking["status"] }
   | { type: "scope_propose" }
   | { type: "scope_approve" }
+  | { type: "scope_decline" }
   | { type: "issue_start_otp" }
   | { type: "submit_proof" }
   | { type: "issue_completion_otp" }
@@ -29,10 +32,12 @@ type Action =
   | { type: "suggest" }
   | { type: "vote_sim"; yes: number; no: number }
   | { type: "activate_policy" }
-  | { type: "federate"; receiver: string };
+  | { type: "federate"; receiver: string }
+  | { type: "clear_denied" };
 
 const initialState: State = {
   role: null,
+  accountId: null,
   identity: null,
   booking: null,
   supportCases: 0,
@@ -50,12 +55,45 @@ const initialState: State = {
     active: false,
   },
   federationReceiver: null,
+  lastDeniedAction: null,
 };
 
+const permissions: Record<Role, Action["type"][]> = {
+  customer: ["logout", "book", "scope_approve", "scope_decline", "issue_start_otp", "issue_completion_otp", "pay", "support", "clear_denied"],
+  worker: ["logout", "advance", "scope_propose", "submit_proof", "replay", "suggest", "clear_denied"],
+  admin: ["logout", "vote_sim", "activate_policy", "federate", "clear_denied"],
+};
+
+function allowed(state: State, action: Action) {
+  if (action.type === "login" || action.type === "logout" || action.type === "clear_denied") return true;
+  if (!state.role) return false;
+  return permissions[state.role].includes(action.type);
+}
+
 function reducer(state: State, action: Action): State {
+  if (!allowed(state, action)) {
+    return { ...state, lastDeniedAction: action.type };
+  }
+
   switch (action.type) {
-    case "login": return { ...state, role: action.role, identity: action.identity };
-    case "logout": return { ...state, role: null, identity: null };
+    case "login":
+      return {
+        ...state,
+        role: action.role,
+        accountId: action.accountId,
+        identity: action.identity,
+        lastDeniedAction: null,
+      };
+    case "logout":
+      return {
+        ...state,
+        role: null,
+        accountId: null,
+        identity: null,
+        lastDeniedAction: null,
+      };
+    case "clear_denied":
+      return { ...state, lastDeniedAction: null };
     case "book": {
       const worker = workers.find((w) => w.skills.includes(action.service) && w.available) ?? workers[0];
       return {
@@ -75,24 +113,85 @@ function reducer(state: State, action: Action): State {
         },
       };
     }
-    case "advance": return state.booking ? { ...state, booking: { ...state.booking, status: action.status } } : state;
-    case "scope_propose": return state.booking ? { ...state, booking: { ...state.booking, status: "scope_pending", addedScope: "Replace damaged socket", addedAmount: 240, startOtp: undefined } } : state;
-    case "scope_approve": return state.booking ? { ...state, booking: { ...state.booking, status: "scope_approved", amount: state.booking.amount + (state.booking.addedAmount ?? 0), startOtp: undefined } } : state;
-    case "issue_start_otp": return state.booking ? { ...state, booking: { ...state.booking, startOtp: "482913" } } : state;
-    case "submit_proof": return state.booking ? { ...state, booking: { ...state.booking, status: "proof_ready", proofReady: true } } : state;
-    case "issue_completion_otp": return state.booking?.proofReady ? { ...state, booking: { ...state.booking, completionOtp: "731204" } } : state;
-    case "pay": return state.booking ? { ...state, booking: { ...state.booking, status: "paid", paid: true } } : state;
-    case "support": return { ...state, supportCases: state.supportCases + 1 };
-    case "replay": return { ...state, replayCases: state.replayCases + 1 };
-    case "suggest": return { ...state, suggestionSubmitted: true };
-    case "vote_sim": return { ...state, proposal: { ...state.proposal, yes: action.yes, no: action.no } };
+    case "advance":
+      return state.booking ? { ...state, booking: { ...state.booking, status: action.status } } : state;
+    case "scope_propose":
+      return state.booking
+        ? {
+            ...state,
+            booking: {
+              ...state.booking,
+              status: "scope_pending",
+              addedScope: "Replace damaged socket",
+              addedAmount: 240,
+              startOtp: undefined,
+            },
+          }
+        : state;
+    case "scope_approve":
+      return state.booking
+        ? {
+            ...state,
+            booking: {
+              ...state.booking,
+              status: "scope_approved",
+              amount: state.booking.amount + (state.booking.addedAmount ?? 0),
+              startOtp: undefined,
+            },
+          }
+        : state;
+    case "scope_decline":
+      return state.booking
+        ? {
+            ...state,
+            booking: {
+              ...state.booking,
+              status: "arrived",
+              addedScope: undefined,
+              addedAmount: undefined,
+              startOtp: undefined,
+            },
+          }
+        : state;
+    case "issue_start_otp":
+      return state.booking ? { ...state, booking: { ...state.booking, startOtp: "482913" } } : state;
+    case "submit_proof":
+      return state.booking ? { ...state, booking: { ...state.booking, status: "proof_ready", proofReady: true } } : state;
+    case "issue_completion_otp":
+      return state.booking?.proofReady ? { ...state, booking: { ...state.booking, completionOtp: "731204" } } : state;
+    case "pay":
+      return state.booking?.status === "completed"
+        ? { ...state, booking: { ...state.booking, status: "paid", paid: true } }
+        : state;
+    case "support":
+      return { ...state, supportCases: state.supportCases + 1 };
+    case "replay":
+      return { ...state, replayCases: state.replayCases + 1 };
+    case "suggest":
+      return { ...state, suggestionSubmitted: true };
+    case "vote_sim":
+      return { ...state, proposal: { ...state.proposal, yes: action.yes, no: action.no } };
     case "activate_policy": {
       const participation = state.proposal.yes + state.proposal.no;
-      const valid = participation >= state.proposal.quorum && state.proposal.yes >= state.proposal.approval && state.proposal.proposedFloor >= 760;
-      return valid ? { ...state, proposal: { ...state.proposal, active: true, currentFloor: state.proposal.proposedFloor } } : state;
+      const valid =
+        participation >= state.proposal.quorum &&
+        state.proposal.yes >= state.proposal.approval &&
+        state.proposal.proposedFloor >= 760;
+      return valid
+        ? {
+            ...state,
+            proposal: {
+              ...state.proposal,
+              active: true,
+              currentFloor: state.proposal.proposedFloor,
+            },
+          }
+        : state;
     }
-    case "federate": return { ...state, federationReceiver: action.receiver };
-    default: return state;
+    case "federate":
+      return { ...state, federationReceiver: action.receiver };
+    default:
+      return state;
   }
 }
 
