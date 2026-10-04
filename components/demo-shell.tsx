@@ -100,6 +100,13 @@ function DemoLogin({state,onLogin}:{state:AppState;onLogin:(role:Role,identity:s
 }
 
 function EarningsWorkspace({state,onClose}:{state:AppState;onClose:()=>void}){
+  // This panel covers the workspace, so Escape has to get out of it. On a phone it also used
+  // to cover the fixed bottom navigation; the stylesheet now leaves room for that bar.
+  useEffect(()=>{
+    const onKey=(event:KeyboardEvent)=>{if(event.key==="Escape")onClose();};
+    window.addEventListener("keydown",onKey);
+    return()=>window.removeEventListener("keydown",onKey);
+  },[onClose]);
   const worker=state.workers.find(w=>w.id===state.session?.userId);
   const summary=worker?summarizeWorkerEarnings(state,worker.id):null;
   const entries=worker?workerEarningEntries(state,worker.id):[];
@@ -125,7 +132,18 @@ export function DemoShell(){
 
   useEffect(()=>{
     const current=stateRepository.load();setLoginState(current);setSession(current.session);setLoaded(true);
-    const timer=window.setInterval(()=>{const next=stateRepository.load();setSession(next.session);if(!next.session){setLoginState(next);setEarningsOpen(false);}},350);
+    // The poll watches for a sign-out that happened in another part of the app. It must
+    // compare by value: handing React a freshly parsed object every tick re-rendered the
+    // whole workspace several times a second and tore down the observers below with it.
+    let lastKey=current.session?`${current.session.role}:${current.session.userId}`:"";
+    const timer=window.setInterval(()=>{
+      const next=stateRepository.load();
+      const key=next.session?`${next.session.role}:${next.session.userId}`:"";
+      if(key===lastKey)return;
+      lastKey=key;
+      setSession(next.session);
+      if(!next.session){setLoginState(next);setEarningsOpen(false);}
+    },700);
     return()=>window.clearInterval(timer);
   },[]);
 
@@ -134,11 +152,15 @@ export function DemoShell(){
     const decorateProductUi=()=>{
       const root=document.querySelector(".productShell");if(!root)return;
       const state=stateRepository.load(),names=new Map(state.workers.map(w=>[w.id,w.name]));
-      const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node=walker.nextNode();
+      // Leaflet rewrites its own DOM constantly while a map pans or re-measures. Walking
+      // into it would make this run on every tile move for no benefit, so it is skipped.
+      const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{
+        acceptNode:node=>(node.parentElement?.closest(".leafletHost")?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT)
+      });let node=walker.nextNode();
       while(node){
         const value=node.nodeValue??"";
         const replaced=value
-          .replace(/\bW(?:0[1-9]|10)\b/g,id=>names.get(id)??id)
+          .replace(/\bW\d{2}\b/g,id=>names.get(id)??id)
           .replace(/\bpolicy-ai\b/g,"Policy Signal Monitor")
           .replace(/\bcustomer01\b/g,"Customer 01")
           .replace(/\badmin01\b/g,"Cooperative Admin");
@@ -154,7 +176,14 @@ export function DemoShell(){
       });
     };
     decorateProductUi();
-    const observer=new MutationObserver(()=>decorateProductUi());
+    const observer=new MutationObserver(records=>{
+      // Ignore mutations that came from inside a map; they never carry member names.
+      const relevant=records.some(record=>{
+        const target=record.target.nodeType===Node.ELEMENT_NODE?record.target as Element:record.target.parentElement;
+        return !target?.closest(".leafletHost");
+      });
+      if(relevant)decorateProductUi();
+    });
     const root=document.querySelector(".productShell");if(root)observer.observe(root,{subtree:true,childList:true,characterData:true});
     const click=(event:MouseEvent)=>{
       const button=(event.target as HTMLElement|null)?.closest("button.navItem");if(!button)return;

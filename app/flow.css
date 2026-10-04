@@ -1,0 +1,213 @@
+/* Job progress, next step, allocation reasons and OTP panels.
+   Deliberately quiet: flat fills, one accent, no gradients, no glass, no decoration. */
+
+/* ---------- progress track ---------- */
+.flowTrack{margin:0 0 12px;padding:12px 14px;border:1px solid #dde2de;border-radius:14px;background:#fff}
+.flowTrackHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.flowTrackHead .eyebrow{margin:0;font-size:9px;letter-spacing:.1em;font-weight:850;color:#5a6b63}
+.flowWaiting{padding:4px 9px;border:1px solid #cfd8d2;border-radius:999px;background:#f3f6f4;color:#3c4b44;font-size:10px;font-weight:800;white-space:nowrap}
+.flowWaiting.customer{border-color:#b8d0c3;background:#eef6f1;color:#1d5c46}
+.flowWaiting.worker{border-color:#cdc0a4;background:#fbf4e4;color:#6d5620}
+.flowWaiting.cooperative{border-color:#c3cbd6;background:#eff2f7;color:#39485c}
+.flowWaiting.nobody{border-color:#d7dad7;background:#f5f6f5;color:#5d655f}
+
+.flowSteps{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none;counter-reset:flowstep}
+.flowStep{display:flex;align-items:center;gap:6px;min-height:30px;padding:5px 10px 5px 6px;border:1px solid #e0e5e1;border-radius:999px;background:#f8faf9;color:#5f6b65;font-size:11px}
+.flowStep .flowDot{display:grid;place-items:center;width:18px;height:18px;flex:0 0 18px;border:1px solid #c9d1cb;border-radius:50%;background:#fff;font-size:10px;font-weight:850;line-height:1;counter-increment:flowstep}
+.flowStep .flowDot:empty::before{content:counter(flowstep)}
+.flowStep.done{border-color:#bcd7c8;background:#eef6f1;color:#1f5c47}
+.flowStep.done .flowDot{border-color:#2d7a5e;background:#2d7a5e;color:#fff}
+.flowStep.current{border-color:#1d5c46;background:#fff;color:#133a2d;font-weight:800;box-shadow:0 0 0 2px rgba(29,92,70,.14)}
+.flowStep.current .flowDot{border-color:#1d5c46;background:#fff;color:#1d5c46}
+.flowStep.stopped{border-color:#d9b4ae;background:#fbefed;color:#7d332a}
+.flowStep.stopped .flowDot{border-color:#9c382f;background:#9c382f;color:#fff}
+
+/* ---------- the one next action ---------- */
+.nextStep{display:grid;gap:4px;margin:0 0 12px;padding:13px 15px;border:1px solid #dde2de;border-left-width:4px;border-radius:12px;background:#fff}
+.nextStep .eyebrow{margin:0;font-size:9px;letter-spacing:.1em;font-weight:850;color:#5a6b63}
+.nextStep strong{font-size:15px;line-height:1.4;color:#17231d}
+.nextStep span{font-size:12px;line-height:1.5;color:#5f6b65}
+.nextStep.yours{border-left-color:#1d5c46;background:#f4faf6}
+.nextStep.yours strong{color:#113827}
+.nextStep.waiting{border-left-color:#b6bfb9}
+.nextStep.finished{border-left-color:#2d7a5e;background:#f4faf6}
+.nextStep.closed{border-left-color:#9c382f;background:#fcf4f2}
+.softNote{margin:8px 0 0;padding:10px 12px;border:1px dashed #cfd6d1;border-radius:10px;background:#f8faf9;color:#54605a;font-size:12px;line-height:1.5}
+
+/* ---------- allocation reasons ---------- */
+.whySection{display:grid;gap:12px;margin-bottom:16px}
+.whySectionHead{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:14px;padding:15px 16px;border:1px solid #dde2de;border-radius:16px;background:#fff}
+.whySectionHead h2{margin:4px 0 6px;font-size:19px;letter-spacing:-.02em;color:#15271f}
+.whySectionHead p{margin:0;max-width:62ch;color:#5d6a63;font-size:12px;line-height:1.6}
+.whyList{display:grid;gap:10px}
+.whyCard{display:grid;gap:9px;padding:14px 15px;border:1px solid #dde2de;border-left-width:4px;border-radius:14px;background:#fff}
+.whyCard.won{border-left-color:#2d7a5e}
+.whyCard.turn{border-left-color:#5b7f96}
+.whyCard.declined{border-left-color:#8a7a4e}
+.whyCard.blocked{border-left-color:#9c382f}
+.whyCardTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.whyCardTop small{display:block;margin-bottom:3px;color:#7a847e;font-size:10px}
+.whyCardTop strong{font-size:15px;line-height:1.4;color:#17231d}
+.whyTag{padding:4px 9px;border:1px solid #cfd8d2;border-radius:999px;background:#f3f6f4;color:#3c4b44;font-size:10px;font-weight:800;white-space:nowrap}
+.whyTag.won{border-color:#b4d4c3;background:#edf6f1;color:#1c5a44}
+.whyTag.turn{border-color:#bfcfda;background:#eef3f7;color:#2f4d60}
+.whyTag.declined{border-color:#d6cba8;background:#f9f4e6;color:#6a5720}
+.whyTag.blocked{border-color:#dcb8b2;background:#fbefed;color:#7d332a}
+.whyDetail{margin:0;color:#3f4b45;font-size:13px;line-height:1.65}
+.whyBlocked{margin:0;padding-left:18px;display:grid;gap:5px;color:#7d332a;font-size:12px;line-height:1.55}
+.whyConsequence{margin:0;padding:9px 11px;border:1px solid #e2e6e2;border-radius:10px;background:#f7f9f7;color:#4c5952;font-size:12px;line-height:1.55}
+.whyToggle{justify-self:start;min-height:34px;padding:7px 11px;border:1px solid #cdd6d0;border-radius:10px;background:#fff;color:#1d5c46;box-shadow:none;font-size:11px;font-weight:800}
+.whyToggle:hover{background:#f2f7f4}
+.whyProof{display:grid;gap:12px;padding:12px;border:1px solid #e4e8e4;border-radius:12px;background:#fbfcfb}
+.whyFacts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:0}
+.whyFacts>div{display:grid;gap:2px}
+.whyFacts dt{color:#7a847e;font-size:10px}
+.whyFacts dd{margin:0;color:#23302a;font-size:12px;font-weight:700}
+.whyOrder{display:grid;gap:7px}
+.whyOrderHead{margin:0;color:#4c5952;font-size:11px;font-weight:800}
+.whyOrder table{width:100%;border-collapse:collapse;font-size:11px}
+.whyOrder th,.whyOrder td{padding:7px 8px;border-bottom:1px solid #e6eae6;text-align:left;color:#3f4b45}
+.whyOrder th{color:#6f7a74;font-size:10px;font-weight:800}
+.whyOrder tr.isViewer{background:#eef6f1}
+.whyOrder tr.isViewer td{font-weight:800;color:#17402f}
+.whyOrderNote,.whyRouting{margin:0;color:#6b766f;font-size:11px;line-height:1.55}
+
+/* ---------- worker standing (idle screen) ---------- */
+.standingPanel{display:grid;gap:13px;margin-bottom:16px;padding:16px;border:1px solid #dde2de;border-radius:16px;background:#fff}
+.standingHead{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:14px}
+.standingHead h2{margin:4px 0 6px;font-size:19px;letter-spacing:-.02em;color:#15271f}
+.standingHead p{margin:0;max-width:62ch;color:#5d6a63;font-size:12px;line-height:1.6}
+.standingBadge{padding:5px 10px;border:1px solid #cfd8d2;border-radius:999px;font-size:10px;font-weight:800;white-space:nowrap}
+.standingBadge.ok{border-color:#b4d4c3;background:#edf6f1;color:#1c5a44}
+.standingBadge.hold{border-color:#d6cba8;background:#f9f4e6;color:#6a5720}
+.standingChecks{display:grid;gap:7px;margin:0;padding:0;list-style:none}
+.standingChecks li{display:flex;align-items:flex-start;gap:9px;padding:10px 12px;border:1px solid #e4e8e4;border-radius:11px;background:#fbfcfb}
+.standingChecks li.hold{border-color:#dcd0ad;background:#fdf9ef}
+.standingChecks li>div{display:grid;gap:3px}
+.standingChecks strong{font-size:12px;color:#23302a}
+.standingChecks span{font-size:11px;line-height:1.55;color:#5f6b65}
+.standingMark{display:grid;place-items:center;width:20px;height:20px;flex:0 0 20px;border-radius:50%;background:#2d7a5e;color:#fff;font-size:11px;font-weight:850;line-height:1}
+.standingChecks li.hold .standingMark{background:#8a6d1f}
+.standingMisses{display:grid;gap:7px;padding:12px;border:1px solid #e4e8e4;border-radius:12px;background:#f8faf9}
+.standingMissesHead{margin:0;color:#4c5952;font-size:11px;font-weight:800}
+.standingMisses>div{display:grid;gap:3px}
+.standingMisses>div strong{font-size:11px;color:#23302a}
+.standingMisses>div span{font-size:11px;line-height:1.55;color:#5a6660}
+.standingMisses small{color:#7a847e;font-size:10px}
+
+/* ---------- customer match reason ---------- */
+.matchReason{margin:10px 0 0;padding:11px 13px;border:1px solid #dfe4e0;border-radius:12px;background:#fbfcfb}
+.matchReason>summary{cursor:pointer;color:#1d5c46;font-size:12px;font-weight:800}
+.matchReason>summary:focus-visible{outline:3px solid #b7d65a;outline-offset:2px}
+.matchReason ul{margin:9px 0 0;padding-left:18px;display:grid;gap:6px;color:#4c5952;font-size:12px;line-height:1.6}
+.matchReason.unassigned{display:grid;gap:6px;border-left:4px solid #5b7f96}
+.matchReason.unassigned .eyebrow{margin:0;font-size:9px;letter-spacing:.1em;font-weight:850;color:#5a6b63}
+.matchReason.unassigned strong{font-size:14px;color:#17231d}
+.matchReason.unassigned>span{color:#5f6b65;font-size:11px;line-height:1.55}
+
+/* ---------- OTP panels ---------- */
+.otpPanel{display:grid;gap:8px;margin:10px 0 0;padding:13px 14px;border:1px solid #dde2de;border-left-width:4px;border-left-color:#1d5c46;border-radius:12px;background:#f7faf8}
+.otpPanel .eyebrow{margin:0;font-size:9px;letter-spacing:.1em;font-weight:850;color:#5a6b63}
+.otpPanel>span{color:#4f5b55;font-size:12px;line-height:1.55}
+.otpPanel>strong{font-size:14px;line-height:1.4;color:#17231d}
+.otpPanel.waiting{border-left-color:#b6bfb9;background:#f8f9f8}
+.otpPanel.done{border-left-color:#2d7a5e}
+.otpCodeLine{margin:0}
+.otpCode{display:inline-block;padding:7px 14px;border:1px solid #c6d3cb;border-radius:10px;background:#fff;color:#123a2c;font-size:27px;font-weight:850;letter-spacing:.22em;font-variant-numeric:tabular-nums}
+.otpDemoNote{display:block;padding:8px 10px;border:1px dashed #cdd6d0;border-radius:9px;background:#fff;color:#6b766f;font-size:10px;line-height:1.55}
+.otpPanel.otpForm button{justify-self:start}
+.otpPanel.otpForm input{font-size:18px;letter-spacing:.2em;font-variant-numeric:tabular-nums}
+.otpPanel small{color:#6b766f;font-size:11px;line-height:1.5}
+
+/* ---------- admin allocation ledger ---------- */
+.ledgerContext{margin:0 0 10px;color:#5f6b65;font-size:11px;line-height:1.6}
+.ledgerTable{border:1px solid #e2e6e2;border-radius:12px;overflow:hidden}
+.ledgerHead,.ledgerRow{display:grid;grid-template-columns:1.3fr .9fr 1fr 2fr;gap:10px;padding:10px 12px;align-items:center}
+.ledgerHead{background:#f3f6f4;color:#6f7a74;font-size:10px;font-weight:800}
+.ledgerRow{border-top:1px solid #e8ebe8;font-size:11px;color:#4a564f}
+.ledgerRow>div{display:grid;gap:2px}
+.ledgerRow strong{font-size:12px;color:#23302a}
+.ledgerRow small{color:#7a847e;font-size:10px}
+.ledgerRow.won{background:#f6fbf8}
+.ledgerRouting{margin:10px 0 0;color:#6b766f;font-size:11px;line-height:1.6}
+.compactField{max-width:260px}
+
+@media (max-width:760px){
+  .flowSteps{gap:5px}
+  .flowStep{font-size:10px;padding:4px 9px 4px 5px}
+  .whyFacts{grid-template-columns:1fr}
+  .whyCardTop{flex-direction:column;align-items:flex-start}
+  .whyOrder table{font-size:10px}
+  .whyOrder th,.whyOrder td{padding:6px}
+  .ledgerHead{display:none}
+  .ledgerRow{grid-template-columns:1fr;gap:5px}
+  .otpCode{font-size:23px;letter-spacing:.16em}
+  .compactField{max-width:none}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .flowStep,.nextStep,.whyCard,.otpPanel{transition:none!important}
+}
+
+/* ---------- narrow-screen integrity (320px floor) ----------
+   The register is used on cheap phones. Three things used to push the page sideways:
+   a <select> sizes itself to its widest option, grid children default to a min-content
+   floor they refuse to go below, and the three-up rule strip never collapsed. */
+.field>select,.field>input,.field>textarea,.otpPanel input{max-width:100%;min-width:0}
+select,input,textarea{max-width:100%}
+.appGrid>*,.workspace>*,.panel>*,.whySection>*,.standingPanel>*,.flowTrack>*,.nextStep>*{min-width:0}
+.whyCardTop>div,.whySectionHead>div,.standingHead>div,.ledgerRow>div{min-width:0}
+.whyDetail,.whyConsequence,.standingChecks span,.nextStep strong,.nextStep span{overflow-wrap:anywhere}
+.topbar>*{min-width:0}
+
+@media (max-width:460px){
+  .ruleCompare{grid-template-columns:1fr}
+  .whyOrder{overflow-x:auto}
+  .whyOrder table{min-width:300px}
+  .whySectionHead,.standingHead{flex-direction:column}
+  .whySectionHead .segment,.standingHead .standingBadge{align-self:flex-start}
+  .sectionTitle.roomy{flex-wrap:wrap}
+}
+
+/* The operations register row now carries a third item (who the job waits on), so it has to
+   be allowed to wrap on a phone instead of pushing the page sideways. */
+.ticket{flex-wrap:wrap}
+.ticket>div{min-width:0;flex:1 1 auto}
+@media (max-width:460px){
+  .ticket .flowWaiting{flex:0 0 auto}
+}
+
+/* Pass/fail is carried by the word, not just the colour or the glyph. */
+.standingChecks li{justify-content:space-between}
+.standingMark{font-size:13px}
+.standingState{flex:0 0 auto;padding:3px 9px;border:1px solid #bcd3c5;border-radius:999px;background:#eef6f1;color:#1c5a44;font-size:10px;font-weight:800;white-space:nowrap}
+.standingChecks li.hold .standingState{border-color:#d8c79c;background:#fbf3e3;color:#6a5720}
+@media (max-width:460px){
+  .standingChecks li{flex-wrap:wrap}
+  .standingState{order:3;margin-left:29px}
+}
+
+/* The member's last closed job, so finishing one does not end on a blank screen. */
+.standingLastJob{display:grid;gap:3px;padding:11px 12px;border:1px solid #bcd3c5;border-radius:11px;background:#f1f8f4}
+.standingLastJob strong{font-size:12px;color:#17402f}
+.standingLastJob span{font-size:11px;line-height:1.55;color:#3f5a4e}
+
+/* The member earnings panel is fixed over the workspace. On phones the primary navigation is
+   a fixed bar at the bottom of the screen, so the panel has to stop above it — otherwise
+   opening earnings hid every other tab and the only way out was one close button. */
+@media (max-width:820px){
+  .earningsWorkspace{bottom:88px}
+}
+@media (max-width:560px){
+  .earningsWorkspace{bottom:80px}
+}
+
+/* Governance panels sit in grids whose children default to a min-content floor, so one long
+   unbreakable token (a constitution version, a long member note) stretched the whole column
+   past the viewport on a phone. */
+.governancePage>*,.governanceTwoCol>*,.policyIntel>*,.policyTwin>*{min-width:0}
+.governancePage,.governanceTwoCol{min-width:0}
+@media (max-width:460px){
+  .governanceHero,.governanceHero.admin{flex-direction:column;gap:14px}
+  .governancePage p,.governancePage strong,.governancePage span,.governancePage small{overflow-wrap:anywhere}
+}

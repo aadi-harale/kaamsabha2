@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { issueOtp, verifyOtp } from "@/lib/otp";
 import type { OtpPurpose } from "@/lib/otp";
-import { resolveOtpRuntimeConfig } from "@/lib/otp-config";
+import { OTP_MAX_ATTEMPTS, OTP_TTL_MS, resolveOtpRuntimeConfig } from "@/lib/otp-config";
 
 export const runtime="nodejs";
 
@@ -21,12 +21,18 @@ export async function POST(request:Request){
   if(!config)return NextResponse.json({error:"KAAMSABHA_OTP_SECRET is not configured and demo fallback is disabled"},{status:503});
 
   if(body.action==="issue"){
-    const issued=issueOtp(jobId,purpose,config.secret,Date.now(),5*60_000,crypto.randomUUID());
+    const issuedAt=Date.now();
+    const issued=issueOtp(jobId,purpose,config.secret,issuedAt,OTP_TTL_MS,crypto.randomUUID());
     return NextResponse.json({
       token:issued.token,
+      issuedAt,
       expiresAt:issued.expiresAt,
-      attemptsLeft:5,
+      attemptsLeft:OTP_MAX_ATTEMPTS,
+      // Only returned when the deployment is explicitly in demo mode. It stands in for the
+      // SMS a real customer would read off their phone; the check itself is still the
+      // server-side HMAC below.
       demoCode:config.demo?issued.code:undefined,
+      demo:config.demo,
       mode:config.source
     });
   }

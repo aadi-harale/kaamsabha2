@@ -79,6 +79,69 @@ GitHub Actions after the operational federation/AI pass runs the expanded test s
 
 `FINAL_DEMO_CHECKLIST.md` is the authoritative judge walkthrough. Verify the exact final production Vercel deployment before claiming the public alias is current.
 
+# Allocation explainability and flow legibility pass
+
+A member can now ask "why did I not get that job?" and get an answer in plain words.
+
+`lib/allocation-explain.ts` reconstructs one outcome per member per frozen receipt: selected,
+safely declined, passed over on turn order, blocked by a named protection, not certified, in a
+cooperative the job never reached, or a receipt that predates candidate recording. Every answer
+is rebuilt from the receipt's frozen candidate snapshot, so it does not drift as today's
+register changes, and every answer states the rating and opportunity consequence. Turn-order
+comparisons are stated with the actual minute figures and the actual margin; an exact tie is
+described as the fixed member-ID tie-break rather than a judgement. The module keeps two
+voices for the same check — one addressed to the member it is about, one for the operations
+register, which is about other people — and tests pin that the operations wording never says
+"you".
+
+`DecisionReceipt` now also freezes `homeCooperativeId` and `homeCandidateSnapshot`. Without it,
+a member whose own cooperative lost a job to federation appeared in no candidate set and could
+be told nothing at all. With it, they are told their cooperative had no safe local capacity and
+that federation compared cooperatives, never individual workers across cooperatives.
+
+Surfaces: worker Fair Work (full record, filterable to "Didn't get"), the worker idle screen
+(*Why you have no job right now*, the five dispatch checks with a pass/needs-attention word so
+meaning is never carried by colour alone, and the last jobs that went elsewhere), the customer
+booking card (a short *why this member* summary with no internal ranking, and a reason when
+nobody is assigned yet), and admin Overview (*Allocation record*: the whole considered set with
+a reason per member).
+
+`lib/job-flow.ts` is one nine-step model shared by all three roles. It decides whose move it is
+and what that person should do, in their own vocabulary, and tests assert a job is never
+waiting on both sides at once. It closed the dead ends at `arrived`, `started`, `completed` and
+after settlement, where neither side was told who was holding the job up.
+
+Seed members W11 Sunita Rathod (Kharadi electrician at her own daily limit), W12 Farhan Qureshi
+and W13 Leela Waghmare (both Kharadi plumbers, different workloads) exist so both shapes of
+"why not me" appear in a default demo run. They preserve the existing fixtures: Kharadi still
+has exactly one eligible electrician, so W02 still wins and a safe decline still federates out.
+
+# Fixes in the same pass
+
+- **OTP was unusable across a role switch.** The demo code lived only in React state, so a
+  reload or a sign-out destroyed it and the worker could never be given the code the job needed
+  to proceed. It is now held on the challenge in the shared register, with a countdown and the
+  attempts remaining on both sides. A code is still only returned when the deployment is in
+  demo mode; with a real `KAAMSABHA_OTP_SECRET` and demo off, nothing is stored or shown and
+  the panel says plainly that no delivery channel is wired rather than claiming an SMS was sent.
+- **An expired code used to consume an attempt.** Expiry is the clock running out, not a failed
+  guess, and must cost the member nothing.
+- **Leaflet was torn down and rebuilt whenever the route arrived, and never re-measured.** The
+  map is now created once per host, redraws its pins and route line in place, and watches its
+  container with a `ResizeObserver`, so a layout change around it (a job moving from `arrived`
+  to `started` swaps a whole panel in and out) no longer leaves tiles painted for a stale size.
+- **`DemoShell` re-rendered the whole workspace several times a second.** Its poll handed React
+  a freshly parsed session object every tick, tearing down and rebuilding the MutationObserver
+  and the click listener with it. It now compares by value and fires only on a real session
+  change, and the text rewriter skips Leaflet subtrees, which mutate constantly.
+- **320px had horizontal page scroll**, which the quality floor forbids. Root causes were
+  `<select>` elements sizing to their widest option, grid children refusing to go below their
+  min-content floor, and the three-up rule strip never collapsing. The turn-order table scrolls
+  inside its own container rather than moving the page.
+- **`next dev` appended its own block to `AGENTS.md` on every run.** `agentRules: false` in
+  `next.config.ts` stops the project's own build standards from being a permanently dirty file.
+
 # Freeze
 
-Product feature work is frozen after this operational parity pass. Remaining work is deployment/browser verification, bug fixing, provider credential wiring or deeper Hindi/Marathi copy coverage—not another feature expansion.
+Feature work beyond this pass remains frozen. Remaining work is deployment/browser
+verification, bug fixing, provider credential wiring or deeper Hindi/Marathi copy coverage.

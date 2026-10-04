@@ -1,3 +1,7 @@
+/** One shared definition of the code budget so the API, the register and the UI agree. */
+export const OTP_TTL_MS=5*60_000;
+export const OTP_MAX_ATTEMPTS=5;
+
 export type OtpRuntimeConfig={secret:string;demo:boolean;source:"configured"|"demo-fallback"};
 
 export function resolveOtpRuntimeConfig(env:Record<string,string|undefined>):OtpRuntimeConfig|null{
