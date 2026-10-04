@@ -4,6 +4,16 @@ Active SIH26089 implementation: a cooperative household/community services platf
 
 This repository is the writable implementation workspace. `aadi-harale/KaamSabha` is reference-only.
 
+## Demo credentials
+
+The web app now uses account-based demo authentication with RBAC.
+
+- Customer: `customer` / `12345`
+- Worker: `ravi` / `12345` (or any seeded worker's first name in lowercase)
+- Cooperative admin: `admin` / `12345`
+
+The role is derived from the account rather than selected after login. Critical domain commands also enforce role checks. This remains demo authentication; production requires server-side identity, hashed credentials, secure sessions and backend authorization.
+
 ## Product coverage
 - Native Next.js 16 / React 19 runtime for Vercel.
 - Customer / worker / admin session isolation over one deterministic shared register.
