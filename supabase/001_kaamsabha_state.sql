@@ -1,4 +1,4 @@
--- Optional KaamSabha2 shared-state mirror for SIH demonstrations.
+-- Optional KaamSabha2 shared-state mirror for local demonstrations.
 -- Apply manually to the configured Supabase project. The app remains local-first if absent.
 create table if not exists public.kaamsabha_state (
   workspace text primary key,

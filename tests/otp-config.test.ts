@@ -9,7 +9,7 @@ test("OTP runtime uses explicit configured secret when available",()=>{
   assert.equal(config?.demo,false);
 });
 
-test("SIH deployment gets demo OTP fallback when no secret is configured",()=>{
+test("Demo deployment gets demo OTP fallback when no secret is configured",()=>{
   const config=resolveOtpRuntimeConfig({VERCEL_PROJECT_ID:"prj_demo"});
   assert.equal(config?.source,"demo-fallback");
   assert.equal(config?.demo,true);

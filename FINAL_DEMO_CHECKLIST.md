@@ -1,4 +1,4 @@
-# KaamSabha final SIH judge walkthrough
+# KaamSabha product walkthrough
 
 Use the same browser profile so the deterministic register persists across logouts. The strongest story is: familiar customer marketplace -> pre-start Scope Lock -> worker protections and voice -> AI-assisted collective policy review -> executable member governance -> operational federation transfer.
 

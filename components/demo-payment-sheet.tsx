@@ -86,7 +86,7 @@ export function DemoPaymentSheet({
 
                 <div className="paymentProtection">
                   <span>🔒</span>
-                  <div><strong>Demo payment only</strong><small>This UI simulates checkout for the SIH flow. No money, card data, UPI request, or Razorpay transaction is created.</small></div>
+                  <div><strong>Demo payment only</strong><small>This UI simulates checkout for the local demo. No money, card data, UPI request, or Razorpay transaction is created.</small></div>
                 </div>
                 <button className="paymentConfirm">Simulate payment of ₹{amount}</button>
               </form>

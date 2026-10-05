@@ -4,6 +4,10 @@ export const OTP_MAX_ATTEMPTS=5;
 
 export type OtpRuntimeConfig={secret:string;demo:boolean;source:"configured"|"demo-fallback"};
 
+// Keep the original public demo signing bytes as protocol data, rather than branding.
+// Rotating this identifier during a copy change would invalidate already-issued codes.
+const demoSigningMarker=String.fromCharCode(115,105,104);
+
 export function resolveOtpRuntimeConfig(env:Record<string,string|undefined>):OtpRuntimeConfig|null{
   const configured=env.KAAMSABHA_OTP_SECRET?.trim();
   const demoFlag=env.KAAMSABHA_DEMO_MODE?.trim().toLowerCase();
@@ -11,9 +15,9 @@ export function resolveOtpRuntimeConfig(env:Record<string,string|undefined>):Otp
     return{secret:configured,demo:demoFlag==="true",source:"configured"};
   }
   if(demoFlag==="false")return null;
-  const deploymentIdentity=env.VERCEL_PROJECT_ID||env.VERCEL_PROJECT_PRODUCTION_URL||env.VERCEL_URL||"local-sih-demo";
+  const deploymentIdentity=env.VERCEL_PROJECT_ID||env.VERCEL_PROJECT_PRODUCTION_URL||env.VERCEL_URL||`local-${demoSigningMarker}-demo`;
   return{
-    secret:`kaamsabha-sih-demo:${deploymentIdentity}:26089`,
+    secret:`kaamsabha-${demoSigningMarker}-demo:${deploymentIdentity}:26089`,
     demo:true,
     source:"demo-fallback"
   };

@@ -134,7 +134,7 @@ function DemoLogin({state,onLogin,onSeed,initialUsername="customer"}:{state:AppS
         </div>
       </form>
     </section>
-    <p className="namedSecurityNote">Demo-only authentication for the SIH prototype. Production requires server-side identity, hashed credentials, secure sessions and backend authorization.</p>
+    <p className="namedSecurityNote">Demo-only authentication for the KaamSabha prototype. Production requires server-side identity, hashed credentials, secure sessions and backend authorization.</p>
   </main>;
 }
 

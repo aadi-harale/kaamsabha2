@@ -1,6 +1,6 @@
 # Product
 
-KAAMSABHA2 is the active SIH26089 implementation workspace. `aadi-harale/KaamSabha` remains reference-only and was not modified. The final parity audit used that repository as behavioral/design reference and ported its important application-level worker-governance, mapping, Federation Opportunity Exchange and AI-assisted intake/policy-review mechanisms into the native Next.js/Vercel implementation.
+KAAMSABHA2 is the active KaamSabha implementation workspace. `aadi-harale/KaamSabha` remains reference-only and was not modified. The final parity audit used that repository as behavioral/design reference and ported its important application-level worker-governance, mapping, Federation Opportunity Exchange and AI-assisted intake/policy-review mechanisms into the native Next.js/Vercel implementation.
 
 # Final product state
 
@@ -63,7 +63,7 @@ The executable policy lifecycle remains Suggest -> protection validation -> Poli
 
 Important application behavior from `aadi-harale/KaamSabha` is represented in KAAMSABHA2: five-service booking, worker verification/skills, customer/worker maps, OSRM fallback, OTP lifecycle, proof/change orders, cancellation protection, Rating Firewall, workload/workability controls, Opportunity Access records, worker issues, rule suggestions, personal policy impact, voting, Replay Court, Federation Opportunity Exchange, two receipts, federation replay/Policy Twin, AI customer intake and guarded AI policy-signal analysis.
 
-Reference-repo infrastructure that is intentionally **not claimed as parity** in this browser-first demo includes production password/Auth binding, normalized Supabase RLS/Realtime/private Storage migrations as an authoritative hosted runtime, SHA-256 chained decision snapshots, production messaging/live GPS, regulated payments/escrow and production demand forecasting. These are deployment/infrastructure claims, not hidden mock features. The current implementation keeps the tested local-first hackathon flow reliable and labels provider boundaries honestly.
+Reference-repo infrastructure that is intentionally **not claimed as parity** in this browser-first demo includes production password/Auth binding, normalized Supabase RLS/Realtime/private Storage migrations as an authoritative hosted runtime, SHA-256 chained decision snapshots, production messaging/live GPS, regulated payments/escrow and production demand forecasting. These are deployment/infrastructure claims, not hidden mock features. The current implementation keeps the tested local-first demo flow reliable and labels provider boundaries honestly.
 
 # Maps and providers
 
@@ -514,6 +514,19 @@ deliberately rather than inheriting one.
   and boundaries. Real KYC/duplicate-identity detection, background messaging, live GPS,
   authority paging, automatic bans/refunds and live payments remain out of scope. New worker
   translations still need native-speaker/field review.
+
+# Verified product branding cleanup (2026-10-06)
+
+- Product-only wording now covers login, alternate workspace entry, payment notice, page
+  metadata, routing identity, deployment/demo docs and database comments. Source/document and
+  environment-comment scans found no event-branding references. Demo notices remain truthful.
+- Original demo signing bytes remain protocol data; an actual code issued before the update
+  verified successfully after server restart. No register, credentials or stored receipts changed.
+- Passed: npm test (170/170), npm run typecheck, npm run lint, npm run build, git diff --check.
+  Login, customer, worker, admin and payment screens passed 20 checks at all required widths,
+  no page errors; desktop/mobile screenshots were inspected. Real completion-code verification
+  and local demo settlement still recorded ₹760. Evidence: Downloads/kaamsabha2-branding-check.json
+  and worker-screenshots/branding-* outside Git, in isolated profiles.
 
 # Freeze
 

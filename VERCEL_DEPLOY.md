@@ -6,7 +6,7 @@ This repository is native Next.js and has no Cloudflare/Vinext/Wrangler runtime 
 1. Import **aadi-harale/kaamsabha2** into Vercel. Do not import the reference repository `aadi-harale/KaamSabha`.
 2. Framework preset: **Next.js**. Root directory: repository root. Build command: `npm run build` (or Vercel default). Node.js: 22.x.
 3. Add `KAAMSABHA_OTP_SECRET` as a server-only secret. Use a long random value. Never prefix it with `NEXT_PUBLIC_`.
-4. For the SIH self-contained demo, set `KAAMSABHA_DEMO_MODE=true`. In a real deployment, omit/disable it and deliver OTP out-of-band.
+4. For the self-contained KaamSabha demo, set `KAAMSABHA_DEMO_MODE=true`. In a real deployment, omit/disable it and deliver OTP out-of-band.
 5. Optional Supabase variables are listed in `.env.example`. The current deterministic demo repository remains explicit when Supabase is not configured.
 
 ## Required smoke test after linking
