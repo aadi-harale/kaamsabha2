@@ -45,7 +45,7 @@ test("no message leaves an unfilled placeholder on screen", () => {
         position: 1, total: 1, gap: 1, theirId: "x", myId: "x", cooperative: "x",
         used: 1, limit: 1, amount: 1, left: 1, time: "x", code: "x", n: 1,
         name: "x", floor: 1, jobs: 1, members: 1, coop: 1, alt: 1, rule: "x",
-        minutes: 1, rating: "4.8",
+        minutes: 1, rating: "4.8", status: "x", voted: 1, needed: 9, choice: "x",
       });
       assert.ok(!/\{\w+\}/.test(rendered), `${locale}/${key} left a placeholder: ${rendered}`);
       assert.ok(rendered.trim().length > 0, `${locale}/${key} is empty`);

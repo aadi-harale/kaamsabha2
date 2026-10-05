@@ -325,3 +325,6 @@ select,input,textarea{max-width:100%}
 .ruleBar{grid-template-columns:66px minmax(0,1fr) 54px}
 .ruleBarCount{white-space:nowrap}
 @media (max-width:460px){ .ruleBar{grid-template-columns:56px minmax(0,1fr) 48px} }
+
+/* The one-line "what this page is for" above each member tab. */
+.pageIntro{margin:0 0 14px;padding:11px 14px;border:1px solid #dde2de;border-left:4px solid #176b52;border-radius:11px;background:#f7faf8;color:#3f4b45;font-size:13px;line-height:1.6;max-width:70ch}
