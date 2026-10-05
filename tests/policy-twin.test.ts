@@ -4,6 +4,7 @@ import { initialState } from "../lib/domain.ts";
 import { activatePolicyProposal, castVote, createBooking, declineJobSafely, reviewPolicyImpact, signIn } from "../lib/commands.ts";
 import { comparePolicyProposal, memberPolicyTwin } from "../lib/policy-twin.ts";
 import { workerSpokenSummary } from "../lib/worker-guidance.ts";
+import { workerPayExample } from "../lib/worker-copy.ts";
 
 const booking = (state: ReturnType<typeof initialState>, service = "electrician", amount = 760) =>
   createBooking(signIn(state, "customer01", "customer"), { customerId: "customer01", service, locality: "Kharadi, Pune", scheduledAt: "2026-10-05T15:00:00.000Z", amount });
@@ -95,4 +96,23 @@ test("Listen includes personal counterfactual amounts in all three languages", (
     assert.ok(!/[{}]/.test(text));
     if (locale !== "en") assert.match(text, /[ऀ-ॿ]/);
   }
+});
+
+test("a simpler personal explanation keeps a high quote unchanged and does not promise work with no saved example", () => {
+  const state = booking(initialState(), "appliance", 1000);
+  const worker = state.workers.find(w => w.id === "W02")!;
+  const twin = memberPolicyTwin(state, state.proposals[0], worker);
+  const before = JSON.stringify(state);
+  for (const locale of ["en", "hi", "mr"] as const) {
+    const text = workerPayExample(locale, twin.mine[0], 860);
+    assert.match(text, /1,000/);
+    assert.ok(!text.includes("860"), "an above-floor job cannot be explained as falling to the new minimum");
+    assert.ok(!/[{}]/.test(text));
+    assert.match(workerPayExample(locale, undefined, 860), /860/);
+    if (locale === "en") {
+      assert.match(text, /stay the same/);
+      assert.match(workerPayExample(locale, undefined, 860), /does not guarantee a job/);
+    }
+  }
+  assert.equal(JSON.stringify(state), before);
 });

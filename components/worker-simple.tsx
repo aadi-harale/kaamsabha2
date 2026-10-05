@@ -10,6 +10,7 @@ import { WorkerDecisionReasons } from "@/components/allocation-reasons";
 import { workerChallengeProgress } from "@/lib/worker-guidance";
 import { WorkerPolicyTwin } from "@/components/worker-policy-twin";
 import { WorkerVoteOutcome } from "@/components/worker-vote-outcome";
+import { memberBallotOutcome } from "@/lib/ballot-outcome";
 
 type Run = (fn: () => AppState, message?: string) => boolean;
 type WorkerProps = { state: AppState; worker: Worker; run: Run };
@@ -55,7 +56,7 @@ function Choices<T extends string>({ name, legend, choices, value, onChange, loc
     <legend className={hideLegend ? "srOnly" : undefined}>{legend}</legend>
     <div className="workerChoiceGrid">{choices.map(choice => <label key={choice.value} className={value === choice.value ? "workerChoice selected" : "workerChoice"}>
       <input type="radio" name={name} value={choice.value} checked={value === choice.value} onChange={() => onChange(choice.value)} required />
-      <span className="workerChoiceIcon" aria-hidden="true">{choice.icon}</span>
+      {choice.icon && <span className="workerChoiceIcon" aria-hidden="true">{choice.icon}</span>}
       <span>{workerText(locale, choice.label)}</span>
     </label>)}</div>
   </fieldset>;
@@ -300,7 +301,7 @@ export function WorkerEarnings({ state, worker }: { state: AppState; worker: Wor
 export function WorkerGovernance({ state, worker, run }: WorkerProps) {
   // Keying the ballot to its proposal prevents a previous choice carrying into a new vote.
   const proposal = state.proposals.find(p => p.status === "voting") ?? state.proposals[0];
-  return <div className="workerSimple"><p className="workerIntro">{workerText(state.locale, "votesIntro")}</p>
+  return <div className="workerSimple workerSimpleVoting">
     {proposal ? <WorkerBallot key={proposal.id} state={state} worker={worker} run={run} proposal={proposal} /> : <p className="workerEmpty">{workerText(state.locale, "noVote")}</p>}
   </div>;
 }
@@ -310,28 +311,34 @@ function WorkerBallot({ state, worker, run, proposal }: WorkerProps & { proposal
   const [reason, setReason] = useState("");
   const locale = state.locale;
   const reviewed = state.policyReviews.some(r => r.proposalId === proposal.id && r.memberId === worker.id);
-  const votes = state.votes.filter(v => v.proposalId === proposal.id);
-  const voted = votes.find(v => v.memberId === worker.id);
-  const sim = proposal.simulation;
+  const [understood, setUnderstood] = useState(reviewed);
+  const result = memberBallotOutcome(state, proposal, worker.id);
+  const voted = result.mine;
   const open = proposal.status === "voting";
+  const canVote = open && !voted && result.stage !== "blocked";
+  const ready = canVote && reviewed && understood && !!choice && (choice !== "no" || !!reason.trim());
+  const hintId = `vote-hint-${proposal.id}`;
+  const heading = voted ? "simpleSavedHeading" : result.stage === "active" ? "simpleActiveHeading"
+    : open ? proposal.proposedMinimumPayout > state.policy.minimumPayout ? "simplePayQuestion" : "simpleRuleQuestion" : "simpleClosedHeading";
 
-  return <section className="workerPaper workerBallot">
-    <h2>{workerText(locale, "rulesChange")}</h2>{open && !voted && <p>{workerText(locale, "votesNote")}</p>}
-    {open && <WorkerPolicyTwin state={state} proposal={proposal} worker={worker} />}
-    <WorkerVoteOutcome state={state} proposal={proposal} worker={worker} />
-    {!open && <details className="workerMore"><summary>{workerText(locale, "ballotCompareAgain")}</summary><WorkerPolicyTwin state={state} proposal={proposal} worker={worker} /></details>}
-    {open && !voted && (!reviewed ? <button type="button" className="workerPrimary" onClick={() => run(() => reviewPolicyImpact(state, proposal.id, worker.id), workerText(locale, "readyVote"))}>{workerText(locale, "understood")}</button>
-      : <form className="workerForm" onSubmit={e => { e.preventDefault(); if (choice) run(() => castVote(state, proposal.id, worker.id, choice, reason), workerText(locale, "voteSent")); }}>
-        <p>{workerText(locale, "ballotChoiceNote")}</p>
-        <Choices name="ballot" legend={workerText(locale, "choice")} choices={[{ value: "yes", label: "yes", icon: "✓" }, { value: "no", label: "no", icon: "×" }]} value={choice} onChange={setChoice} locale={locale} />
+  const ballotForm = canVote ? <form className="workerForm workerVoteForm" onSubmit={e => { e.preventDefault(); if (ready && choice) run(() => castVote(state, proposal.id, worker.id, choice, choice === "no" ? reason : undefined), workerText(locale, "voteSent")); }}>
+        <Choices name="ballot" legend={workerText(locale, "choice")} choices={[{ value: "yes", label: "yes", icon: "" }, { value: "no", label: "no", icon: "" }]} value={choice} onChange={setChoice} locale={locale} hideLegend />
         {choice && <p className="workerChoiceEffect" role="status">{workerText(locale, choice === "yes" ? "ballotYesEffect" : "ballotNoEffect", { amount: choice === "yes" ? proposal.proposedMinimumPayout : state.policy.minimumPayout })}</p>}
         {choice === "no" && <label className="field"><span>{workerText(locale, "whyNo")}</span><textarea rows={2} value={reason} onChange={e => setReason(e.target.value)} required maxLength={1200} placeholder={workerText(locale, "whyNoHint")} /></label>}
-        <button className="workerPrimary" disabled={!choice || (choice === "no" && !reason.trim())}>{workerText(locale, choice === "no" ? "confirmNo" : "confirmYes")}</button>
-      </form>)}
-    {voted && <p className="workerDemoNote">{workerText(locale, "voteOnce")}</p>}
-    <details className="workerMore"><summary>{workerText(locale, "moreVote")}</summary>
-      <p><b>{proposal.title}</b></p><p>{proposal.description}</p><p>{sim.note}</p>
-      <dl className="workerFacts"><div><dt>{workerText(locale, "yes")}</dt><dd>{votes.filter(v => v.choice === "yes").length}</dd></div><div><dt>{workerText(locale, "no")}</dt><dd>{votes.filter(v => v.choice === "no").length}</dd></div></dl>
-    </details>
+        <label className="workerVoteUnderstand"><input type="checkbox" checked={understood} onChange={e => {
+          if (!e.target.checked) setUnderstood(false);
+          else if (reviewed || run(() => reviewPolicyImpact(state, proposal.id, worker.id))) setUnderstood(true);
+        }} required /><span>{workerText(locale, "simpleUnderstand")}</span></label>
+        <button className="workerPrimary" disabled={!ready} aria-describedby={hintId}>{workerText(locale, "simpleSaveVote")}</button>
+        <small id={hintId}>{workerText(locale, !choice ? "simpleChoose" : !understood ? "simpleReadFirst" : choice === "no" && !reason.trim() ? "whyNoHint" : "simpleVoteOnce")}</small>
+      </form> : null;
+  return <section className="workerPaper workerBallot">
+    <h2>{workerText(locale, heading)}</h2>
+    {open && !voted ? <WorkerPolicyTwin state={state} proposal={proposal} worker={worker}>
+      {ballotForm}<WorkerVoteOutcome state={state} proposal={proposal} worker={worker} />
+    </WorkerPolicyTwin> : <>
+      <WorkerVoteOutcome state={state} proposal={proposal} worker={worker} />
+      <details className="workerMore workerVoteComparison"><summary>{workerText(locale, "simpleSeeChange")}</summary><WorkerPolicyTwin state={state} proposal={proposal} worker={worker} /></details>
+    </>}
   </section>;
 }

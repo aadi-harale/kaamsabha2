@@ -360,6 +360,31 @@ deliberately rather than inheriting one.
   `kaamsabha2-worker-screenshots/vote-result-*.png`. New translations remain unreviewed by native
   speakers; the visible Listen transcript was tested, not native audible playback.
 
+# Verified simpler Our votes (2026-10-05)
+
+- The main ballot is one minimum-pay comparison, one original-job example, visible Yes/No
+  choices, an understanding checkbox, Save my vote, and a short vote update. The Policy Twin,
+  all saved-job/cooperative totals, protections, stored wait-setting limitation, voting thresholds
+  and full proposal remain under Check the details. Saved/activated outcomes stay visible.
+- The checkbox invokes the existing personal-impact review command. Saving still requires review,
+  understanding, an explicit choice and a reason for No. Unchecking understanding disables saving;
+  no answer is preselected. Changing a draft No to Yes no longer attaches the discarded reason.
+  A ₹1,000 original quote stays ₹1,000 in the explanation; missing examples do not promise work.
+- Production browser proof: Ravi's original KMS-00004 example showed ₹760 → ₹860; his Yes
+  produced 9/9/0 while ₹760 remained active. Leela's No/reason produced 10/9/1. Admin activation
+  enabled v3 and Ravi's new KMS-00027 used ₹860/v3. The original receipt stayed identical;
+  choices, jobs and policy survived refresh. Farhan received no invented personal job proof.
+- Thirty-six layout checks passed: open/saved/active × en/hi/mr × 320/768/1024/1440px. In the
+  English 320px waiting case, the unexpanded full page fell from 2,620px to 1,693px (35%).
+  Desktop/mobile screenshots were inspected; duplicate vote glyphs were removed and the Hindi/
+  Marathi service wording corrected. Checkbox keyboard focus was solid 3px; reduced motion passed.
+  Three ballot axe WCAG A/AA audits returned zero violations/incomplete findings. No page errors.
+- Passed: `npm test` (139/139), `npm run typecheck`, `npm run lint` (existing TypeScript alias),
+  `npm run build`, `git diff --check`. Evidence outside Git:
+  `C:/Users/AADI/Downloads/kaamsabha2-simple-votes-check.json` and
+  `kaamsabha2-worker-screenshots/simple-votes-*.png`. Native-speaker/worker field review and
+  native audible playback remain unverified; the shorter Listen transcript was checked.
+
 # Freeze
 
 Feature work beyond this pass remains frozen. Remaining work is deployment/browser

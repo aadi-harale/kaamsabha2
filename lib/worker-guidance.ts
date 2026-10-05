@@ -1,7 +1,7 @@
 import type { AppState, Challenge, Job, Worker } from "./domain.ts";
 import { summarizeWorkerEarnings } from "./earnings.ts";
 import { jobFlow, otpIsLive } from "./job-flow.ts";
-import { workerService, workerText } from "./worker-copy.ts";
+import { workerPayExample, workerService, workerText } from "./worker-copy.ts";
 import { memberPolicyTwin } from "./policy-twin.ts";
 import { memberBallotOutcome, memberBallotResultText } from "./ballot-outcome.ts";
 
@@ -66,13 +66,14 @@ export function workerSpokenSummary(state: AppState, worker: Worker, tab: string
     const proposal = state.proposals.find(p => p.status === "voting") ?? state.proposals[0];
     if (proposal) {
       const result = memberBallotOutcome(state, proposal, worker.id);
-      const ownVote = result.mine ? `${workerText(locale, "voteRecorded")}: ${workerText(locale, result.mine.choice)}.` : "";
+      const ownVote = result.mine ? workerText(locale, result.mine.choice === "yes" ? "simpleMyYes" : "simpleMyNo") : "";
       const count = workerText(locale, "voteResult", { count: result.participants, yes: result.yes, no: result.no });
       const outcome = `${ownVote} ${count} ${memberBallotResultText(state, proposal, worker.id)}`.trim();
       if (proposal.status !== "voting") return outcome;
       const twin = memberPolicyTwin(state, proposal, worker);
-      const impact = twin.mine.length ? workerText(locale, "twinSpokenImpact", { count: twin.mine.length, before: twin.myCurrent, after: twin.myProposed }) : workerText(locale, "twinNoOwnJobs");
-      return `${workerText(locale, "spokenProposal", { before: twin.before.floor, after: twin.after.floor })} ${impact} ${outcome} ${workerText(locale, "twinSameOrder")}`;
+      const example = twin.mine.find(row => row.currentPay !== row.proposedPay) ?? twin.mine[0];
+      const impact = result.mine ? "" : `${workerPayExample(locale, example, twin.after.floor)} ${workerText(locale, "simplePreviewNote")}`;
+      return `${workerText(locale, "spokenProposal", { before: twin.before.floor, after: twin.after.floor })} ${impact} ${outcome}`;
     }
     return workerText(locale, "noVote");
   }
