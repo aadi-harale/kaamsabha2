@@ -1,7 +1,9 @@
 export type BallotSimulation={yes:number;no:number;participants:number;members:number;quorumThreshold:number;approvalThreshold:number;quorumMet:boolean;approvalMet:boolean;activationEligible:boolean;summary:string};
 
+export const BALLOT_REQUIREMENTS = { participants: 9, support: 7 } as const;
+
 export function simulateBallot(input:{yes:number;no:number;members?:number;quorumThreshold?:number;approvalThreshold?:number}):BallotSimulation{
-  const members=input.members??9,quorumThreshold=input.quorumThreshold??9,approvalThreshold=input.approvalThreshold??7;
+  const members=input.members??9,quorumThreshold=input.quorumThreshold??BALLOT_REQUIREMENTS.participants,approvalThreshold=input.approvalThreshold??BALLOT_REQUIREMENTS.support;
   const yes=Math.max(0,Math.floor(input.yes)),no=Math.max(0,Math.floor(input.no));
   if(yes+no>members)throw new Error("Simulated votes cannot exceed cooperative membership");
   const participants=yes+no,quorumMet=participants>=quorumThreshold,approvalMet=yes>=approvalThreshold,activationEligible=quorumMet&&approvalMet;

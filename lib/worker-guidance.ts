@@ -3,6 +3,7 @@ import { summarizeWorkerEarnings } from "./earnings.ts";
 import { jobFlow, otpIsLive } from "./job-flow.ts";
 import { workerService, workerText } from "./worker-copy.ts";
 import { memberPolicyTwin } from "./policy-twin.ts";
+import { memberBallotOutcome, memberBallotResultText } from "./ballot-outcome.ts";
 
 export type WorkerAction = "accept" | "travel" | "arrive" | "start-code" | "proof" | "finish-code" | "wait";
 
@@ -62,14 +63,17 @@ export function workerSpokenSummary(state: AppState, worker: Worker, tab: string
     return `${money} ${workerText(locale, "spokenPayments", { count: earnings.completedJobs, protection: earnings.cancellationProtection, pending: pending.reduce((sum, j) => sum + j.amount, 0) })}`;
   }
   if (tab === "governance") {
-    const proposal = state.proposals.find(p => p.status === "voting");
+    const proposal = state.proposals.find(p => p.status === "voting") ?? state.proposals[0];
     if (proposal) {
+      const result = memberBallotOutcome(state, proposal, worker.id);
+      const ownVote = result.mine ? `${workerText(locale, "voteRecorded")}: ${workerText(locale, result.mine.choice)}.` : "";
+      const count = workerText(locale, "voteResult", { count: result.participants, yes: result.yes, no: result.no });
+      const outcome = `${ownVote} ${count} ${memberBallotResultText(state, proposal, worker.id)}`.trim();
+      if (proposal.status !== "voting") return outcome;
       const twin = memberPolicyTwin(state, proposal, worker);
       const impact = twin.mine.length ? workerText(locale, "twinSpokenImpact", { count: twin.mine.length, before: twin.myCurrent, after: twin.myProposed }) : workerText(locale, "twinNoOwnJobs");
-      return `${workerText(locale, "spokenProposal", { before: twin.before.floor, after: twin.after.floor })} ${impact} ${workerText(locale, "twinSameOrder")}`;
+      return `${workerText(locale, "spokenProposal", { before: twin.before.floor, after: twin.after.floor })} ${impact} ${outcome} ${workerText(locale, "twinSameOrder")}`;
     }
-    const active = activeMemberChange(state, worker.id);
-    if (active) return workerText(locale, "spokenRule", { before: active.proposal.simulation.currentFloor, after: state.policy.minimumPayout, count: active.participants });
     return workerText(locale, "noVote");
   }
   if (tab === "fair") {

@@ -7,9 +7,9 @@ import { summarizeWorkerEarnings, workerEarningEntries } from "@/lib/earnings";
 import { t } from "@/lib/messages";
 import { workerService, workerStatus, workerText, type WorkerCopyKey } from "@/lib/worker-copy";
 import { WorkerDecisionReasons } from "@/components/allocation-reasons";
-import { WorkerRuleChange } from "@/components/worker-rule-change";
 import { workerChallengeProgress } from "@/lib/worker-guidance";
 import { WorkerPolicyTwin } from "@/components/worker-policy-twin";
+import { WorkerVoteOutcome } from "@/components/worker-vote-outcome";
 
 type Run = (fn: () => AppState, message?: string) => boolean;
 type WorkerProps = { state: AppState; worker: Worker; run: Run };
@@ -301,10 +301,7 @@ export function WorkerGovernance({ state, worker, run }: WorkerProps) {
   // Keying the ballot to its proposal prevents a previous choice carrying into a new vote.
   const proposal = state.proposals.find(p => p.status === "voting") ?? state.proposals[0];
   return <div className="workerSimple"><p className="workerIntro">{workerText(state.locale, "votesIntro")}</p>
-    <WorkerRuleChange state={state} worker={worker} />
-    {proposal ? proposal.status === "active"
-      ? <details className="workerMore"><summary>{workerText(state.locale, "moreVote")}</summary><WorkerBallot key={proposal.id} state={state} worker={worker} run={run} proposal={proposal} /></details>
-      : <WorkerBallot key={proposal.id} state={state} worker={worker} run={run} proposal={proposal} /> : <p className="workerEmpty">{workerText(state.locale, "noVote")}</p>}
+    {proposal ? <WorkerBallot key={proposal.id} state={state} worker={worker} run={run} proposal={proposal} /> : <p className="workerEmpty">{workerText(state.locale, "noVote")}</p>}
   </div>;
 }
 
@@ -320,17 +317,18 @@ function WorkerBallot({ state, worker, run, proposal }: WorkerProps & { proposal
 
   return <section className="workerPaper workerBallot">
     <h2>{workerText(locale, "rulesChange")}</h2>{open && !voted && <p>{workerText(locale, "votesNote")}</p>}
-    <WorkerPolicyTwin state={state} proposal={proposal} worker={worker} />
-    {proposal.status === "active" && <p className="workerFeedback">{workerText(locale, "ruleActive")}</p>}
-    {voted ? <div className="workerFeedback" role="status"><strong>{workerText(locale, "voteRecorded")}: {workerText(locale, voted.choice)}</strong><p>{workerText(locale, "voteOnce")}</p>{voted.reason && <p>{voted.reason}</p>}</div>
-      : !open ? proposal.status !== "active" && <p className="workerFeedback">{workerText(locale, proposal.status === "rejected" ? "voteClosed" : "noVote")}</p>
-      : !reviewed ? <button type="button" className="workerPrimary" onClick={() => run(() => reviewPolicyImpact(state, proposal.id, worker.id), workerText(locale, "readyVote"))}>{workerText(locale, "understood")}</button>
+    {open && <WorkerPolicyTwin state={state} proposal={proposal} worker={worker} />}
+    <WorkerVoteOutcome state={state} proposal={proposal} worker={worker} />
+    {!open && <details className="workerMore"><summary>{workerText(locale, "ballotCompareAgain")}</summary><WorkerPolicyTwin state={state} proposal={proposal} worker={worker} /></details>}
+    {open && !voted && (!reviewed ? <button type="button" className="workerPrimary" onClick={() => run(() => reviewPolicyImpact(state, proposal.id, worker.id), workerText(locale, "readyVote"))}>{workerText(locale, "understood")}</button>
       : <form className="workerForm" onSubmit={e => { e.preventDefault(); if (choice) run(() => castVote(state, proposal.id, worker.id, choice, reason), workerText(locale, "voteSent")); }}>
+        <p>{workerText(locale, "ballotChoiceNote")}</p>
         <Choices name="ballot" legend={workerText(locale, "choice")} choices={[{ value: "yes", label: "yes", icon: "✓" }, { value: "no", label: "no", icon: "×" }]} value={choice} onChange={setChoice} locale={locale} />
+        {choice && <p className="workerChoiceEffect" role="status">{workerText(locale, choice === "yes" ? "ballotYesEffect" : "ballotNoEffect", { amount: choice === "yes" ? proposal.proposedMinimumPayout : state.policy.minimumPayout })}</p>}
         {choice === "no" && <label className="field"><span>{workerText(locale, "whyNo")}</span><textarea rows={2} value={reason} onChange={e => setReason(e.target.value)} required maxLength={1200} placeholder={workerText(locale, "whyNoHint")} /></label>}
         <button className="workerPrimary" disabled={!choice || (choice === "no" && !reason.trim())}>{workerText(locale, choice === "no" ? "confirmNo" : "confirmYes")}</button>
-      </form>}
-    <p className="workerParticipation">{workerText(locale, open ? "participation" : "voteResult", { count: votes.length, yes: votes.filter(v => v.choice === "yes").length, no: votes.filter(v => v.choice === "no").length })}</p>
+      </form>)}
+    {voted && <p className="workerDemoNote">{workerText(locale, "voteOnce")}</p>}
     <details className="workerMore"><summary>{workerText(locale, "moreVote")}</summary>
       <p><b>{proposal.title}</b></p><p>{proposal.description}</p><p>{sim.note}</p>
       <dl className="workerFacts"><div><dt>{workerText(locale, "yes")}</dt><dd>{votes.filter(v => v.choice === "yes").length}</dd></div><div><dt>{workerText(locale, "no")}</dt><dd>{votes.filter(v => v.choice === "no").length}</dd></div></dl>

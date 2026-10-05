@@ -335,6 +335,31 @@ deliberately rather than inheriting one.
   and `kaamsabha2-worker-screenshots/policy-twin-*.png` outside Git. User browser records were
   not changed. New translations still need native-speaker review.
 
+# Verified worker ballot results (2026-10-05)
+
+- Our votes keeps the personal Policy Twin before voting and now shows each saved choice,
+  collective yes/no/participation counts, remaining requirements, and an explicit distinction
+  between approval and activation. Selecting yes/no explains its effect before confirmation.
+  Activated results and the member's own later receipt proof remain visible without expansion;
+  only the comparison/audit details fold away. Earlier-rule outcomes never claim to be current.
+- The read-only result uses saved ballots, protection validation and the same 9-member/7-support
+  constants as the activation command. English/Hindi/Marathi Listen transcripts include the
+  saved choice, real counts and outcome. Other members' free-text reasons are not displayed.
+- Production browser proof: Ravi's KMS-00002 compared ₹760 → ₹860; his no ballot recorded its
+  reason and showed 9 votes/8 yes/1 no while ₹760 stayed active. Leela's yes made 10/9/1.
+  Admin activation applied v3; Ravi's new KMS-00023 receipt used ₹860/v3, his saved no remained
+  visible, and the earlier receipt stayed identical. Refresh preserved ballots, jobs and policy.
+  Farhan saw the collective result with no invented personal job/payment.
+- Twenty-four layout checks passed: waiting/active × en/hi/mr × 320/768/1024/1440px. Desktop
+  and mobile screenshots were inspected and a redundant divider removed. Keyboard radio focus
+  showed a solid 3px outline; reduced motion passed. The activated ballot axe WCAG A/AA audit
+  returned zero violations/incomplete results. No browser page errors occurred.
+- Passed: `npm test` (138/138), `npm run typecheck`, `npm run lint` (existing TypeScript alias),
+  `npm run build`, `git diff --check`. Evidence outside Git: device-local
+  `C:/Users/AADI/Downloads/kaamsabha2-vote-results-check.json` and
+  `kaamsabha2-worker-screenshots/vote-result-*.png`. New translations remain unreviewed by native
+  speakers; the visible Listen transcript was tested, not native audible playback.
+
 # Freeze
 
 Feature work beyond this pass remains frozen. Remaining work is deployment/browser
