@@ -1,6 +1,6 @@
 # KaamSabha2
 
-Active SIH26089 implementation: a cooperative household/community services platform where workers collectively own the marketplace rules that decide access to work.
+A cooperative household/community services platform where workers collectively own the marketplace rules that decide access to work.
 
 This repository is the writable implementation workspace. `aadi-harale/KaamSabha` is reference-only.
 
