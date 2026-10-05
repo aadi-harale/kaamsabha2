@@ -74,7 +74,7 @@
 .workerPolicyTwin h3 { margin: 0 0 10px; font-size: 22px; line-height: 1.4; }
 .workerPolicyTwin h4 { margin: 0 0 10px; font-size: 18px; line-height: 1.5; }
 .workerTwinRules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 18px 0; border: 1px solid #dde3e8; border-radius: 8px; overflow: hidden; }
-.workerTwinRules > div { padding: 16px; display: grid; gap: 8px; background: #f6f8fa; }
+.workerTwinRules > div { padding: 16px; display: grid; grid-template-rows: 1fr auto; gap: 8px; background: #f6f8fa; }
 .workerTwinRules > div:last-child { border-left: 1px solid #dde3e8; background: #edf7f4; }
 .workerTwinRules span { font-size: 15px; }
 .workerTwinRules strong { font-size: 30px; line-height: 1.2; }
@@ -110,10 +110,33 @@
 .workerSimpleVoting .workerVoteCounts { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 360px; margin: 12px 0; }
 .workerSimpleVoting .workerVotesNeeded { padding: 0; margin: 12px 0 0; }
 .workerSimpleVoting .workerRuleProof small { display: block; margin-top: 8px; }
-.workerSimpleVoting .workerVoteComparison { margin-top: 16px; }
 .workerSimpleVoting .workerTwinEvidence[open] { border-top: 1px solid #dde3e8; }
 .workerSimpleVoting .workerTwinEvidence h4 { margin-top: 24px; }
 .workerSimpleVoting .workerTwinEvidence { margin-top: 16px; }
+.workerSimpleVoting .workerVotesBack { justify-self: start; min-height: 48px; }
+.workerVoteListIntro { max-width: 55ch; color: #44566c; }
+.workerVoteGroup { min-width: 0; }
+.workerVoteGroup h2 { color: #17324d; }
+.workerVoteGroupCount { font-size: 17px; font-weight: 500; color: #44566c; }
+.workerVoteList { list-style: none; padding: 0; margin: 16px 0 0; border: 1px solid #cfd8df; border-radius: 8px; overflow: hidden; }
+.workerVoteList li + li { border-top: 1px solid #cfd8df; }
+.workerEasyShell button.workerVoteRow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(120px, 190px); gap: 12px 24px; width: 100%; padding: 20px; background: #fff; color: #17324d; border: 0; border-radius: 0; box-shadow: none; text-align: left; font-weight: 400; line-height: 1.5; }
+.workerEasyShell button.workerVoteRow:hover { background: #f3f6f8; transform: none; }
+.workerEasyShell button.workerVoteRow:focus-visible { outline-offset: -4px; }
+.workerVoteRow, .workerBallot h2 { scroll-margin-top: 88px; }
+.workerVoteRowMain, .workerVoteRowSide { display: grid; gap: 8px; align-content: start; }
+.workerVoteRowMain strong { font-size: 18px; line-height: 1.5; overflow-wrap: anywhere; }
+.workerVoteRowMeta { display: flex; flex-wrap: wrap; gap: 4px 16px; color: #44566c; font-size: 15px; }
+.workerVoteRowStatus { font-size: 15px; color: #44566c; }
+.workerVoteRowStatus.active { color: #0f6b5c; font-weight: 650; }
+.workerVoteRowAction { font-size: 16px; color: #0f6b5c; font-weight: 650; text-decoration: underline; text-underline-offset: 3px; }
+.workerVoteListEmpty { padding: 12px 0; color: #44566c; }
+.workerVoteOtherChange { margin: 16px 0; }
+.workerSimpleVoting .workerVoteOtherChange p { margin-bottom: 6px; }
+@media (max-width: 560px) {
+  .workerEasyShell button.workerVoteRow { grid-template-columns: minmax(0, 1fr); padding: 18px; gap: 12px; }
+  .workerVoteRowSide { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+}
 .workerParticipation { margin-top: 24px !important; color: #52606d; font-size: 15px; }
 .workerComparison { margin-top: 32px; max-width: 850px; border-top: 1px solid #dde3e8; }
 .workerComparison .ruleComparison { margin-top: 16px; }

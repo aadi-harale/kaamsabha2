@@ -39,3 +39,33 @@ export function memberBallotResultText(state: AppState, proposal: PolicyProposal
   return workerText(state.locale, stageKeys[result.stage], { amount: state.policy.minimumPayout,
     before: proposal.simulation.currentFloor, after: proposal.proposedMinimumPayout });
 }
+
+export function memberBallotTitle(state: AppState, proposal: PolicyProposal) {
+  if (proposal.proposedMinimumPayout !== proposal.simulation.currentFloor) {
+    return workerText(state.locale, "voteListPayTitle", { amount: proposal.proposedMinimumPayout.toLocaleString("en-IN") });
+  }
+  if (proposal.proposedMaxAddedWaitMinutes !== proposal.simulation.currentMaxWait) {
+    return workerText(state.locale, "voteListWaitTitle", { minutes: proposal.proposedMaxAddedWaitMinutes });
+  }
+  return proposal.title;
+}
+
+const listStageKeys: Record<BallotStage, WorkerCopyKey> = {
+  waiting: "voteListWaiting", ready: "voteListReady", blocked: "voteListBlocked", active: "voteListActive",
+  superseded: "voteListEarlier", rejected: "voteListRejected", simulated: "voteListUpcoming",
+};
+
+/** A saved member vote or a met threshold never moves a still-open proposal into history. */
+export function memberBallotList(state: AppState, workerId: string) {
+  const rows = [...state.proposals].sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id)).map(proposal => {
+    const result = memberBallotOutcome(state, proposal, workerId);
+    const group = proposal.status === "voting" ? "open" as const
+      : proposal.status === "simulated" ? "upcoming" as const : "decided" as const;
+    const actionKey = group === "decided" ? "voteListResult" : group === "upcoming" || result.stage === "blocked" ? "voteListChange"
+      : result.mine ? "voteListUpdate" : "voteListRead";
+    return { proposal, result, group, title: memberBallotTitle(state, proposal),
+      statusText: workerText(state.locale, listStageKeys[result.stage]), actionText: workerText(state.locale, actionKey) };
+  });
+  return { open: rows.filter(row => row.group === "open"), decided: rows.filter(row => row.group === "decided"),
+    upcoming: rows.filter(row => row.group === "upcoming") };
+}

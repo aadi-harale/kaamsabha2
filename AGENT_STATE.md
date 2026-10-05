@@ -385,6 +385,33 @@ deliberately rather than inheriting one.
   `kaamsabha2-worker-screenshots/simple-votes-*.png`. Native-speaker/worker field review and
   native audible playback remain unverified; the shorter Listen transcript was checked.
 
+# Verified worker vote list (2026-10-05)
+
+- Our votes starts with Open votes and Decided votes, plus Not open yet when preparation
+  records exist. Every saved proposal is reachable. Rows show the actual target, status,
+  creation date and only the signed-in member's choice. No history records were invented.
+  A saved vote or met threshold stays open until actual activation.
+- Opening a row shows its pay comparison, personal frozen-job example, all changed settings,
+  and existing Yes/No/review/save controls. The wait setting is explicitly stored only, with
+  no selection/arrival-time effect. History shows the frozen earlier baseline. Listen follows
+  list/selected-proposal context; Back restores row focus and drafts do not cross proposals.
+  Screenshot critique removed a duplicate pay heading and aligned comparison amounts.
+- Production browser flow: Ravi's KMS-00008 showed ₹760 → ₹860. His Yes made 9/9/0;
+  Leela's No made 10/9/1 while ₹760 remained active. Admin activation moved the ballot
+  from Open (1)/Decided (0) to Open (0)/Decided (1). Ravi's new KMS-00031 used ₹860/v3;
+  the original receipt stayed identical. Refresh preserved jobs, receipts, policy, reviews,
+  votes and earnings history. Farhan saw no invented personal vote or new-job proof.
+- Sixty layout checks passed: five list/detail stages × en/hi/mr × 320/768/1024/1440px.
+  Desktop/mobile screenshots were inspected. Four scoped WCAG A/AA audits returned zero
+  violations/incomplete findings; keyboard focus, sticky-header clearance and reduced motion
+  passed. A separate synthetic six-proposal fixture checked all groups and selection isolation.
+  No browser page errors. Test records never changed the user's browser register.
+- Passed: `npm test` (144/144), `npm run typecheck`, `npm run lint` (existing TypeScript alias),
+  `npm run build`, `git diff --check`. Evidence outside Git:
+  `C:/Users/AADI/Downloads/kaamsabha2-vote-list-check.json` and
+  `kaamsabha2-worker-screenshots/vote-list-*.png`. Native-speaker/worker field review and
+  native audible playback remain unverified; readable Listen transcripts were checked.
+
 # Freeze
 
 Feature work beyond this pass remains frozen. Remaining work is deployment/browser

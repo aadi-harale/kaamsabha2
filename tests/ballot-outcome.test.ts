@@ -77,7 +77,7 @@ test("workers can read and hear their saved choice, real vote counts and pending
   for (const locale of ["en", "hi", "mr"] as const) {
     const localized = { ...state, locale };
     const resultText = memberBallotResultText(localized, localized.proposals[0], "W02");
-    const spoken = workerSpokenSummary(localized, worker, "governance");
+    const spoken = workerSpokenSummary(localized, worker, "governance", undefined, undefined, proposalId);
     assert.ok(spoken.includes(resultText));
     assert.match(spoken, /9/); assert.match(spoken, /8/); assert.match(spoken, /1/);
     assert.match(spoken, /760/); assert.match(spoken, /860/);

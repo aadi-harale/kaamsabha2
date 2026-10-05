@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type RefObject } from "react";
 import type { AppState, Challenge, ChallengeCategory, DecisionReceipt, Job, Locale, SuggestionCategory, Worker } from "@/lib/domain";
 import { addIssueNote, castVote, openChallenge, openIssue, reviewPolicyImpact, submitPolicySuggestion } from "@/lib/commands";
 import { summarizeWorkerEarnings, workerEarningEntries } from "@/lib/earnings";
@@ -10,7 +10,7 @@ import { WorkerDecisionReasons } from "@/components/allocation-reasons";
 import { workerChallengeProgress } from "@/lib/worker-guidance";
 import { WorkerPolicyTwin } from "@/components/worker-policy-twin";
 import { WorkerVoteOutcome } from "@/components/worker-vote-outcome";
-import { memberBallotOutcome } from "@/lib/ballot-outcome";
+import { memberBallotList, memberBallotOutcome, memberBallotTitle } from "@/lib/ballot-outcome";
 
 type Run = (fn: () => AppState, message?: string) => boolean;
 type WorkerProps = { state: AppState; worker: Worker; run: Run };
@@ -298,15 +298,57 @@ export function WorkerEarnings({ state, worker }: { state: AppState; worker: Wor
   </div>;
 }
 
-export function WorkerGovernance({ state, worker, run }: WorkerProps) {
-  // Keying the ballot to its proposal prevents a previous choice carrying into a new vote.
-  const proposal = state.proposals.find(p => p.status === "voting") ?? state.proposals[0];
+export function WorkerGovernance({ state, worker, run, selectedProposalId, onSelectProposal }: WorkerProps & {
+  selectedProposalId: string | null; onSelectProposal: (id: string | null) => void;
+}) {
+  const proposal = state.proposals.find(p => p.id === selectedProposalId);
+  const list = memberBallotList(state, worker.id);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const rowRefs = useRef(new Map<string, HTMLButtonElement>());
+  const lastOpened = useRef<string | null>(null);
+  useEffect(() => {
+    if (selectedProposalId) {
+      lastOpened.current = selectedProposalId;
+      headingRef.current?.focus({ preventScroll: true });
+      headingRef.current?.scrollIntoView({ block: "nearest" });
+    } else if (lastOpened.current) {
+      const row = rowRefs.current.get(lastOpened.current);
+      row?.focus({ preventScroll: true });
+      row?.scrollIntoView({ block: "nearest" });
+    }
+  }, [selectedProposalId]);
+  const groups = [
+    { id: "open", title: "voteListOpen", empty: "noVote", rows: list.open },
+    { id: "decided", title: "voteListDecided", empty: "voteListNoDecided", rows: list.decided },
+    { id: "upcoming", title: "voteListUpcoming", empty: "noVote", rows: list.upcoming },
+  ] as const;
   return <div className="workerSimple workerSimpleVoting">
-    {proposal ? <WorkerBallot key={proposal.id} state={state} worker={worker} run={run} proposal={proposal} /> : <p className="workerEmpty">{workerText(state.locale, "noVote")}</p>}
+    {proposal ? <>
+      <button type="button" className="secondary workerVotesBack" onClick={() => onSelectProposal(null)}>{workerText(state.locale, "voteListBack")}</button>
+      {/* Unmounting/keying each ballot keeps a draft choice attached only to the selected proposal. */}
+      <WorkerBallot key={proposal.id} state={state} worker={worker} run={run} proposal={proposal} headingRef={headingRef} />
+    </> : <>
+      <p className="workerVoteListIntro">{workerText(state.locale, "voteListIntro")}</p>
+      {groups.filter(group => group.id !== "upcoming" || group.rows.length > 0).map(group => <section className="workerVoteGroup" key={group.id} aria-labelledby={`vote-group-${group.id}`}>
+        <h2 id={`vote-group-${group.id}`}>{workerText(state.locale, group.title)} <span className="workerVoteGroupCount">({group.rows.length})</span></h2>
+        {!group.rows.length ? <p className="workerVoteListEmpty">{workerText(state.locale, group.empty)}</p> : <ul className="workerVoteList">
+          {group.rows.map(row => <li key={row.proposal.id}>
+            <button type="button" className="workerVoteRow" ref={node => { if (node) rowRefs.current.set(row.proposal.id, node); else rowRefs.current.delete(row.proposal.id); }} onClick={() => onSelectProposal(row.proposal.id)}>
+              <span className="workerVoteRowMain"><strong>{row.title}</strong>
+                <span className="workerVoteRowMeta"><time dateTime={row.proposal.createdAt}>{workerText(state.locale, "voteListAdded", { date: new Date(row.proposal.createdAt).toLocaleDateString(state.locale === "en" ? "en-IN" : `${state.locale}-IN`, { day: "numeric", month: "short", year: "numeric" }) })}</time>
+                  {row.result.mine && <span>{workerText(state.locale, row.result.mine.choice === "yes" ? "simpleMyYes" : "simpleMyNo")}</span>}
+                </span>
+              </span>
+              <span className="workerVoteRowSide"><span className={`workerVoteRowStatus ${row.result.stage}`}>{row.statusText}</span><span className="workerVoteRowAction">{row.actionText}</span></span>
+            </button>
+          </li>)}
+        </ul>}
+      </section>)}
+    </>}
   </div>;
 }
 
-function WorkerBallot({ state, worker, run, proposal }: WorkerProps & { proposal: AppState["proposals"][number] }) {
+function WorkerBallot({ state, worker, run, proposal, headingRef }: WorkerProps & { proposal: AppState["proposals"][number]; headingRef: RefObject<HTMLHeadingElement | null> }) {
   const [choice, setChoice] = useState<"yes" | "no" | "">("");
   const [reason, setReason] = useState("");
   const locale = state.locale;
@@ -318,8 +360,6 @@ function WorkerBallot({ state, worker, run, proposal }: WorkerProps & { proposal
   const canVote = open && !voted && result.stage !== "blocked";
   const ready = canVote && reviewed && understood && !!choice && (choice !== "no" || !!reason.trim());
   const hintId = `vote-hint-${proposal.id}`;
-  const heading = voted ? "simpleSavedHeading" : result.stage === "active" ? "simpleActiveHeading"
-    : open ? proposal.proposedMinimumPayout > state.policy.minimumPayout ? "simplePayQuestion" : "simpleRuleQuestion" : "simpleClosedHeading";
 
   const ballotForm = canVote ? <form className="workerForm workerVoteForm" onSubmit={e => { e.preventDefault(); if (ready && choice) run(() => castVote(state, proposal.id, worker.id, choice, choice === "no" ? reason : undefined), workerText(locale, "voteSent")); }}>
         <Choices name="ballot" legend={workerText(locale, "choice")} choices={[{ value: "yes", label: "yes", icon: "" }, { value: "no", label: "no", icon: "" }]} value={choice} onChange={setChoice} locale={locale} hideLegend />
@@ -333,12 +373,9 @@ function WorkerBallot({ state, worker, run, proposal }: WorkerProps & { proposal
         <small id={hintId}>{workerText(locale, !choice ? "simpleChoose" : !understood ? "simpleReadFirst" : choice === "no" && !reason.trim() ? "whyNoHint" : "simpleVoteOnce")}</small>
       </form> : null;
   return <section className="workerPaper workerBallot">
-    <h2>{workerText(locale, heading)}</h2>
-    {open && !voted ? <WorkerPolicyTwin state={state} proposal={proposal} worker={worker}>
+    <h2 ref={headingRef} tabIndex={-1}>{memberBallotTitle(state, proposal)}</h2>
+    <WorkerPolicyTwin state={state} proposal={proposal} worker={worker}>
       {ballotForm}<WorkerVoteOutcome state={state} proposal={proposal} worker={worker} />
-    </WorkerPolicyTwin> : <>
-      <WorkerVoteOutcome state={state} proposal={proposal} worker={worker} />
-      <details className="workerMore workerVoteComparison"><summary>{workerText(locale, "simpleSeeChange")}</summary><WorkerPolicyTwin state={state} proposal={proposal} worker={worker} /></details>
-    </>}
+    </WorkerPolicyTwin>
   </section>;
 }

@@ -11,20 +11,25 @@ export function WorkerPolicyTwin({ state, proposal, worker, children }: { state:
   const twin = useMemo(() => memberPolicyTwin(state, proposal, worker), [state, proposal, worker]);
   const money = (value: number) => `₹${value.toLocaleString("en-IN")}`;
   const approved = proposal.status === "active";
+  const historical = approved || proposal.status === "rejected";
   const example = twin.mine.find(row => row.currentPay !== row.proposedPay) ?? twin.mine[0];
   const exampleText = workerPayExample(locale, example, twin.after.floor);
   const increase = twin.after.floor - twin.before.floor;
   return <section className="workerPolicyTwin" aria-labelledby={`twin-${proposal.id}`}>
-    <h3 id={`twin-${proposal.id}`}>{workerText(locale, "minPay")}</h3>
+    <h3 className="srOnly" id={`twin-${proposal.id}`}>{workerText(locale, "minPay")}</h3>
     <div className="workerTwinRules" role="group" aria-label={workerText(locale, "minPay")}>
-      <div><span>{workerText(locale, approved ? "beforeChange" : "now")}</span><strong>{money(twin.before.floor)}</strong></div>
-      <div><span>{workerText(locale, approved ? "approvedRule" : "ifApproved")}</span><strong>{money(twin.after.floor)}</strong></div>
+      <div><span>{workerText(locale, historical ? "beforeChange" : "now")}</span><strong>{money(twin.before.floor)}</strong></div>
+      <div><span>{workerText(locale, approved ? "approvedRule" : historical ? "proposedRule" : "ifApproved")}</span><strong>{money(twin.after.floor)}</strong></div>
     </div>
     <p className="workerVoteGain">{workerText(locale, increase > 0 ? "simplePayGain" : increase === 0 ? "paySame" : "payDecrease", { amount: Math.abs(increase).toLocaleString("en-IN") })}</p>
     <div className="workerTwinPersonal">
       <p className="workerPersonalExample">{exampleText}</p>
       <p className="workerDemoNote">{workerText(locale, "simplePreviewNote")}</p>
     </div>
+    {twin.before.wait !== twin.after.wait && <div className="workerVoteOtherChange">
+      <p>{workerText(locale, "voteWaitSummary", { before: twin.before.wait, after: twin.after.wait })}</p>
+      <p className="workerDemoNote">{workerText(locale, "voteWaitStored")}</p>
+    </div>}
     {children}
     <details className="workerMore workerTwinEvidence"><summary>{workerText(locale, "simpleDetails")}</summary>
       <p>{workerText(locale, "twinIntro")}</p>
@@ -42,9 +47,6 @@ export function WorkerPolicyTwin({ state, proposal, worker, children }: { state:
       <p>{workerText(locale, "twinSameOrder")}</p>
       <p>{workerText(locale, "twinSameSafety")}</p>
       <p className="workerDemoNote">{workerText(locale, "olderRecordsUnchanged")}</p>
-      <h4>{workerText(locale, "simpleOtherSetting")}</h4>
-      <p>{workerText(locale, "twinWait", { before: twin.before.wait, after: twin.after.wait })}</p>
-      <p className="workerDemoNote">{workerText(locale, "twinWaitLimit")}</p>
       <h4>{workerText(locale, "simpleHowVoteWorks")}</h4>
       <p>{workerText(locale, "ballotRequirements", BALLOT_REQUIREMENTS)}</p>
       <p>{workerText(locale, "ballotChoiceNote")}</p>

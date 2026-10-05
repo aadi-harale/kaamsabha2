@@ -91,7 +91,7 @@ test("Listen includes personal counterfactual amounts in all three languages", (
   const state = booking(initialState());
   const worker = state.workers.find(w => w.id === "W02")!;
   for (const locale of ["en", "hi", "mr"] as const) {
-    const text = workerSpokenSummary({ ...state, locale }, worker, "governance");
+    const text = workerSpokenSummary({ ...state, locale }, worker, "governance", undefined, undefined, state.proposals[0].id);
     assert.match(text, /760/); assert.match(text, /860/);
     assert.ok(!/[{}]/.test(text));
     if (locale !== "en") assert.match(text, /[ऀ-ॿ]/);

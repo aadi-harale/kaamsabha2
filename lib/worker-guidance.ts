@@ -3,7 +3,7 @@ import { summarizeWorkerEarnings } from "./earnings.ts";
 import { jobFlow, otpIsLive } from "./job-flow.ts";
 import { workerPayExample, workerService, workerText } from "./worker-copy.ts";
 import { memberPolicyTwin } from "./policy-twin.ts";
-import { memberBallotOutcome, memberBallotResultText } from "./ballot-outcome.ts";
+import { memberBallotList, memberBallotOutcome, memberBallotResultText, memberBallotTitle } from "./ballot-outcome.ts";
 
 export type WorkerAction = "accept" | "travel" | "arrive" | "start-code" | "proof" | "finish-code" | "wait";
 
@@ -47,7 +47,7 @@ export function activeMemberChange(state: AppState, workerId: string) {
 }
 
 /** Authored summaries use the same register as the screen. Codes and other members' notes are never read. */
-export function workerSpokenSummary(state: AppState, worker: Worker, tab: string, job?: Job, now = Date.now()) {
+export function workerSpokenSummary(state: AppState, worker: Worker, tab: string, job?: Job, now = Date.now(), selectedProposalId?: string | null) {
   const locale = state.locale;
   const earnings = summarizeWorkerEarnings(state, worker.id);
   const name = locale === "en" ? worker.name : worker.nameDevanagari || worker.name;
@@ -63,17 +63,23 @@ export function workerSpokenSummary(state: AppState, worker: Worker, tab: string
     return `${money} ${workerText(locale, "spokenPayments", { count: earnings.completedJobs, protection: earnings.cancellationProtection, pending: pending.reduce((sum, j) => sum + j.amount, 0) })}`;
   }
   if (tab === "governance") {
-    const proposal = state.proposals.find(p => p.status === "voting") ?? state.proposals[0];
+    if (!selectedProposalId) {
+      const list = memberBallotList(state, worker.id);
+      return workerText(locale, "voteListSpoken", { open: list.open.length, decided: list.decided.length, upcoming: list.upcoming.length });
+    }
+    const proposal = state.proposals.find(p => p.id === selectedProposalId);
     if (proposal) {
       const result = memberBallotOutcome(state, proposal, worker.id);
       const ownVote = result.mine ? workerText(locale, result.mine.choice === "yes" ? "simpleMyYes" : "simpleMyNo") : "";
       const count = workerText(locale, "voteResult", { count: result.participants, yes: result.yes, no: result.no });
       const outcome = `${ownVote} ${count} ${memberBallotResultText(state, proposal, worker.id)}`.trim();
-      if (proposal.status !== "voting") return outcome;
       const twin = memberPolicyTwin(state, proposal, worker);
+      const wait = twin.before.wait !== twin.after.wait ? `${workerText(locale, "voteWaitSummary", { before: twin.before.wait, after: twin.after.wait })} ${workerText(locale, "voteWaitStored")}` : "";
+      const change = `${memberBallotTitle(state, proposal)} ${workerText(locale, "voteSpokenChange", { before: twin.before.floor, after: twin.after.floor })} ${wait}`;
+      if (proposal.status !== "voting") return `${change} ${outcome}`;
       const example = twin.mine.find(row => row.currentPay !== row.proposedPay) ?? twin.mine[0];
       const impact = result.mine ? "" : `${workerPayExample(locale, example, twin.after.floor)} ${workerText(locale, "simplePreviewNote")}`;
-      return `${workerText(locale, "spokenProposal", { before: twin.before.floor, after: twin.after.floor })} ${impact} ${outcome}`;
+      return `${change} ${impact} ${outcome}`;
     }
     return workerText(locale, "noVote");
   }
