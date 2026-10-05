@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { AppState, Job, Locale, Worker } from "@/lib/domain";
 import { t } from "@/lib/messages";
+import { workerText } from "@/lib/worker-copy";
 import {
   allocationLedger, customerMatchSummary, explanationsForWorker, unassignedReason,
   type AllocationExplanation, type AllocationOutcome,
@@ -41,9 +42,17 @@ function outcomeTone(outcome: AllocationOutcome) {
   return "blocked";
 }
 
-function ExplanationCard({ explanation, onChallenge, locale }: { explanation: AllocationExplanation; onChallenge?: (jobId: string) => void; locale: Locale }) {
+function ExplanationCard({ explanation, onChallenge, canChallenge, locale, simple = false }: { explanation: AllocationExplanation; onChallenge?: (jobId: string) => void; canChallenge?: (jobId: string) => boolean; locale: Locale; simple?: boolean }) {
   const [open, setOpen] = useState(false);
   const mine = explanation.fairOrder.find((row) => row.isViewer);
+  const selected = explanation.fairOrder.find(row => row.selected);
+  const other = explanation.fairOrder.find(row => !row.isViewer);
+  const compared = explanation.outcome === "selected" ? other : selected;
+  const ordered = explanation.outcome === "selected" || explanation.outcome === "passed-over";
+  const headline = simple && ordered ? workerText(locale, explanation.outcome === "selected" ? "wonJob" : "missedJob", { name: selected?.workerName ?? explanation.selectedWorkerId }) : explanation.headline;
+  const reason = simple && ordered && mine
+    ? workerText(locale, compared ? compared.workloadTodayMinutes === mine.workloadTodayMinutes ? "sameWork" : explanation.outcome === "selected" ? "lessWorkYou" : "lessWorkThem" : "onlyMember")
+    : undefined;
   return (
     <article className={`whyCard ${outcomeTone(explanation.outcome)}`}>
       <div className="whyCardTop">
@@ -51,12 +60,13 @@ function ExplanationCard({ explanation, onChallenge, locale }: { explanation: Al
           <small>
             {explanation.jobId} · {new Date(explanation.decidedAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
           </small>
-          <strong>{explanation.headline}</strong>
+          <strong>{headline}</strong>
         </div>
-        <span className={`whyTag ${outcomeTone(explanation.outcome)}`}>{memberLabel(explanation.outcome, locale)}</span>
+        {!simple && <span className={`whyTag ${outcomeTone(explanation.outcome)}`}>{memberLabel(explanation.outcome, locale)}</span>}
       </div>
 
-      <p className="whyDetail">{explanation.detail}</p>
+      {!simple && <p className="whyDetail">{explanation.detail}</p>}
+      {reason && <p className="whyDetail">{reason}</p>}
 
       {explanation.blockedBy.length > 0 && (
         <ul className="whyBlocked">
@@ -66,14 +76,15 @@ function ExplanationCard({ explanation, onChallenge, locale }: { explanation: Al
         </ul>
       )}
 
-      <p className="whyConsequence">{explanation.consequence}</p>
+      {!simple && <p className="whyConsequence">{explanation.consequence}</p>}
 
       <button className="whyToggle" type="button" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
-        {open ? t(locale, "why.hideFigures") : t(locale, "why.showFigures")}
+        {simple ? workerText(locale, open ? "close" : "more") : open ? t(locale, "why.hideFigures") : t(locale, "why.showFigures")}
       </button>
 
       {open && (
         <div className="whyProof">
+          {simple && <><p className="whyDetail">{explanation.detail}</p><p className="whyConsequence">{explanation.consequence}</p></>}
           <dl className="whyFacts">
             {explanation.facts.map((fact) => (
               <div key={fact.label}>
@@ -116,9 +127,9 @@ function ExplanationCard({ explanation, onChallenge, locale }: { explanation: Al
         </div>
       )}
 
-      {explanation.challengeable && onChallenge && (
+      {explanation.challengeable && onChallenge && (!canChallenge || canChallenge(explanation.jobId)) && (
         <button className="secondary compact" type="button" onClick={() => onChallenge(explanation.jobId)}>
-          {t(locale, "why.challenge")}
+          {simple ? workerText(locale, "checkJob") : t(locale, "why.challenge")}
         </button>
       )}
     </article>
@@ -127,9 +138,9 @@ function ExplanationCard({ explanation, onChallenge, locale }: { explanation: Al
 
 /** Worker view: every decision that involved them, with the reason, newest first. */
 export function WorkerDecisionReasons({
-  state, worker, onChallenge, locale = "en",
+  state, worker, onChallenge, canChallenge, locale = "en", simple = false,
 }: {
-  state: AppState; worker: Worker; onChallenge?: (jobId: string) => void; locale?: Locale;
+  state: AppState; worker: Worker; onChallenge?: (jobId: string) => void; canChallenge?: (jobId: string) => boolean; locale?: Locale; simple?: boolean;
 }) {
   const explanations = explanationsForWorker(state, worker, locale);
   const [filter, setFilter] = useState<"all" | "missed">("all");
@@ -139,19 +150,19 @@ export function WorkerDecisionReasons({
   return (
     <section className="whySection">
       <div className="whySectionHead">
-        <div>
+        {!simple && <div>
           <p className="eyebrow">{t(locale, "why.sectionTitle")}</p>
           <h2>{t(locale, "why.sectionHeading")}</h2>
           <p>
             {t(locale, "why.sectionBody")}
           </p>
-        </div>
-        <div className="segment" role="group" aria-label="Filter decisions">
-          <button type="button" className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>
-            {t(locale, "why.filterAll", { count: explanations.length })}
+        </div>}
+        <div className="segment" role="group" aria-label={workerText(locale, "jobChoices")}>
+          <button type="button" className={filter === "all" ? "active" : ""} aria-pressed={filter === "all"} onClick={() => setFilter("all")}>
+            {simple ? workerText(locale, "allJobs") : t(locale, "why.filterAll", { count: explanations.length })}
           </button>
-          <button type="button" className={filter === "missed" ? "active" : ""} onClick={() => setFilter("missed")}>
-            {t(locale, "why.filterMissed", { count: missed.length })}
+          <button type="button" className={filter === "missed" ? "active" : ""} aria-pressed={filter === "missed"} onClick={() => setFilter("missed")}>
+            {simple ? workerText(locale, "missedJobs") : t(locale, "why.filterMissed", { count: missed.length })}
           </button>
         </div>
       </div>
@@ -160,13 +171,13 @@ export function WorkerDecisionReasons({
         <div className="empty">
           <span aria-hidden="true">○</span>
           <p>
-            {t(locale, "why.empty")}
+            {simple ? workerText(locale, filter === "missed" && explanations.length > 0 ? "noMissedJobs" : "noJobsHelp") : t(locale, "why.empty")}
           </p>
         </div>
       ) : (
         <div className="whyList">
           {shown.map((explanation) => (
-            <ExplanationCard key={explanation.receiptId} explanation={explanation} onChallenge={onChallenge} locale={locale} />
+            <ExplanationCard key={explanation.receiptId} explanation={explanation} onChallenge={onChallenge} canChallenge={canChallenge} locale={locale} simple={simple} />
           ))}
         </div>
       )}

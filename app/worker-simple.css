@@ -1,0 +1,109 @@
+/* Worker pages use a readable work slip: one question, large choices, then the record. */
+.workerEasyShell { color: #17212b; }
+.workerEasyShell .workspace { min-width: 0; }
+.workerMobileName { display: none; }
+.workerEasyShell .pageHead .eyebrow:empty { display: none; }
+.workerEasyShell .pageHead h1 { font-size: clamp(28px, 3vw, 38px); line-height: 1.2; letter-spacing: -.025em; }
+.workerEasyShell .navItem { font-size: 15px; min-height: 48px; }
+.workerEasyShell .navItem.active { color: #0f6b5c; }
+.workerRuleNote { margin-top: 24px; padding: 12px; border-top: 1px solid #dde3e8; font-size: 14px; line-height: 1.6; color: #394854; }
+.workerRuleNote summary { cursor: pointer; color: #0f6b5c; font-weight: 650; min-height: 44px; display: list-item; padding-top: 8px; }
+.workerRuleNote p { overflow-wrap: anywhere; }
+.workerSimple { max-width: 850px; display: grid; gap: 20px; font-size: 17px; line-height: 1.6; }
+.workerSimple h2 { margin: 0 0 10px; font-size: 24px; line-height: 1.35; letter-spacing: -.015em; }
+.workerSimple p { margin: 0 0 12px; max-width: 70ch; }
+.workerSimple small, .workerDemoNote { font-size: 14px; color: #52606d; line-height: 1.6; }
+.workerIntro { font-size: 18px; color: #394854; }
+.workerPaper { padding: 26px; border: 1px solid #dde3e8; background: #fff; border-radius: 16px; }
+.workerForm { display: grid; gap: 20px; margin-top: 20px; }
+.workerSimple .field { display: grid; gap: 8px; margin: 0; }
+.workerSimple .field > span, .workerChoices legend { color: #17212b; font-size: 17px; font-weight: 650; line-height: 1.5; }
+.workerSimple .field input, .workerSimple .field select, .workerSimple .field textarea { width: 100%; max-width: 100%; min-width: 0; font-size: 17px; padding: 12px; min-height: 50px; border: 1px solid #9aa6b1; border-radius: 8px; background: #fff; color: #17212b; }
+.workerSimple .field textarea { resize: vertical; line-height: 1.6; }
+.workerSimple .field textarea::placeholder { color: #63717b; opacity: 1; }
+.workerChoices { min-width: 0; border: 0; padding: 0; margin: 0; }
+.workerChoices legend { margin-bottom: 12px; }
+.workerChoiceGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.workerChoice { display: flex; align-items: center; gap: 12px; min-height: 68px; padding: 14px; border: 1px solid #a8b4bd; border-radius: 10px; background: #fff; cursor: pointer; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
+.workerChoice.selected { border: 2px solid #0f6b5c; padding: 13px; background: #edf7f4; }
+.workerChoice input { flex: 0 0 auto; width: 20px; height: 20px; margin: 0; accent-color: #0f6b5c; }
+.workerChoiceIcon { flex: 0 0 26px; color: #0f6b5c; font-size: 23px; text-align: center; }
+.workerEasyShell button.workerPrimary { padding: 14px 22px; min-height: 54px; font-size: 18px; background: #0f6b5c; color: #fff; border: 1px solid #0f6b5c; border-radius: 9px; width: fit-content; max-width: 100%; line-height: 1.5; }
+.workerEasyShell button:disabled { opacity: 1; background: #edf0f2; color: #52606d; border: 1px solid #a8b4bd; cursor: not-allowed; }
+.workerSimple button.secondary, .workerSimple button.whyToggle { font-size: 16px; padding: 12px 16px; min-height: 48px; }
+.workerSimple .workerBack { background: transparent; border: 0; color: #0f6b5c; padding: 10px 0; margin-bottom: 10px; font-size: 17px; min-height: 44px; text-decoration: underline; }
+.workerAssurance { display: flex; align-items: flex-start; gap: 10px; color: #35594c; padding: 6px 0; }
+.workerRecords { display: grid; gap: 12px; }
+.workerRecord { display: grid; gap: 8px; padding: 22px 0; border-top: 1px solid #dde3e8; }
+.workerRecord > strong { font-size: 18px; }
+.workerRecord p { margin-bottom: 0; overflow-wrap: anywhere; }
+.workerStatus { width: fit-content; font-size: 15px; padding: 4px 10px; color: #23584d; background: #edf7f4; border-radius: 6px; font-weight: 650; }
+.workerNote { padding-left: 12px; border-left: 3px solid #dde3e8; }
+.workerEmpty { color: #52606d; padding: 16px 0; }
+.workerMore { color: #394854; }
+.workerMore summary { padding: 12px 0; min-height: 48px; cursor: pointer; color: #0f6b5c; font-size: 16px; font-weight: 650; line-height: 1.5; }
+.workerMore[open] summary { margin-bottom: 12px; }
+.workerMore.workerPaper > summary { padding: 0; min-height: 24px; }
+.workerMore p { overflow-wrap: anywhere; }
+.workerFacts { display: grid; gap: 12px; margin: 0; }
+.workerFacts > div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid #dde3e8; }
+.workerFacts dd { margin: 0; font-weight: 700; text-align: right; overflow-wrap: anywhere; }
+.workerFeedback { padding: 18px; border-left: 4px solid #0f6b5c; background: #edf7f4; }
+.workerFeedback p:last-child { margin-bottom: 0; }
+.workerMoney { background: #0f6b5c; color: #fff; padding: 28px; border-radius: 18px; display: grid; gap: 12px; }
+.workerMoney > strong { font-size: clamp(38px, 5vw, 56px); line-height: 1.1; letter-spacing: -.025em; }
+.workerMoney > div { display: flex; flex-wrap: wrap; gap: 12px 24px; padding-top: 12px; border-top: 1px solid #79a99e; font-size: 16px; }
+.workerPayments { list-style: none; padding: 0; margin: 0 0 20px; }
+.workerPayments li { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 18px 0; border-bottom: 1px solid #dde3e8; }
+.workerPayments li > div { display: grid; gap: 4px; }
+.workerPayments span { font-size: 15px; color: #52606d; }
+.workerPayments li > b { font-size: 20px; white-space: nowrap; }
+.workerPayChange { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 24px 0 12px; border: 1px solid #dde3e8; border-radius: 10px; overflow: hidden; }
+.workerPayChange > div { padding: 18px; display: grid; gap: 8px; background: #f6f8fa; }
+.workerPayChange > div:last-child { border-left: 1px solid #dde3e8; background: #edf7f4; }
+.workerPayChange strong { font-size: 32px; line-height: 1.2; }
+.workerParticipation { margin-top: 24px !important; color: #52606d; font-size: 15px; }
+.workerComparison { margin-top: 32px; max-width: 850px; border-top: 1px solid #dde3e8; }
+.workerComparison .ruleComparison { margin-top: 16px; }
+.workerSimple .whySection { border: 0; background: transparent; padding: 0; }
+.workerSimple .whySectionHead { padding: 0; border: 0; background: transparent; margin-bottom: 6px; }
+.workerSimple .segment { flex-wrap: wrap; }
+.workerSimple .segment button { font-size: 16px; min-height: 48px; }
+.workerSimple .whyList { gap: 16px; }
+.workerSimple .whyCard { padding: 22px; background: #fff; border: 1px solid #dde3e8; border-left: 4px solid #9aa6b1; box-shadow: none; }
+.workerSimple .whyCard.won { border-left-color: #0f6b5c; }
+.workerSimple .whyCardTop strong { font-size: 21px; line-height: 1.4; }
+.workerSimple .whyCardTop small { font-size: 14px; }
+.workerSimple .whyTag { font-size: 14px; }
+.workerSimple .whyDetail, .workerSimple .whyConsequence, .workerSimple .whyBlocked, .workerSimple .whyRouting { font-size: 16px; line-height: 1.6; }
+.workerSimple .whyFacts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.workerSimple .whyFacts dt, .workerSimple .whyOrder table { font-size: 14px; }
+.workerSimple .whyProof { min-width: 0; }
+.workerSimple .whyOrder { overflow-x: auto; }
+.workerEasyShell :is(button, input, select, textarea, summary, a):focus-visible { outline: 3px solid #0f6b5c; outline-offset: 3px; }
+
+@media (max-width: 820px) {
+  .workerEasyShell .pageHead .workerMobileName { display: block; color: #52606d; font-size: 16px; font-weight: 500; letter-spacing: normal; margin: 0 0 6px; }
+  .workerRuleNote { display: none; }
+  .workerEasyShell .sideNav nav { position: static; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-flow: row; gap: 6px; overflow: visible; padding: 8px; border-radius: 12px; box-shadow: none; margin-top: 12px; }
+  .workerEasyShell .navItem { min-width: 0; min-height: 64px; font-size: 14px; padding: 8px 4px; white-space: normal; }
+  .workerEasyShell .navItem span:last-child { max-width: none; overflow: visible; white-space: normal; text-overflow: clip; line-height: 1.3; text-align: center; }
+  .workerEasyShell .workspace { padding-top: 22px; }
+}
+@media (max-width: 560px) {
+  .workerSimple { gap: 16px; font-size: 16px; }
+  .workerPaper { padding: 18px; }
+  .workerSimple h2 { font-size: 22px; }
+  .workerChoiceGrid { grid-template-columns: 1fr; gap: 10px; }
+  .workerEasyShell button.workerPrimary { width: 100%; }
+  .workerSimple .whyCard { padding: 16px; }
+  .workerSimple .whyCardTop { display: grid; gap: 10px; }
+  .workerSimple .whyTag { width: fit-content; }
+  .workerSimple .whyFacts { grid-template-columns: 1fr; }
+  .workerMoney { padding: 22px; }
+  .workerPayChange > div { padding: 12px; }
+  .workerPayChange span { font-size: 14px; }
+}
+@media (max-width: 380px) {
+  .workerEasyShell .brandButton > span:last-child { display: none; }
+}

@@ -6,7 +6,7 @@ KAAMSABHA2 is the active SIH26089 implementation workspace. `aadi-harale/KaamSab
 
 Customer flow is service-first: discover/search five service categories -> configure location/schedule/emergency -> structured problem intake and optional reference filename -> home-cooperative-first dispatch -> protected federation fallback only when local safe capacity fails -> in-browser OpenStreetMap/OSRM tracking -> start OTP -> work proof -> Scope Lock/change approval -> completion OTP -> settlement/invoice -> 1–5 feedback/support. Low ratings create a cooperative review case through the Rating Firewall and do not alter worker activation or opportunity access. Accepted/travelling cancellations create an auditable worker-protection payment.
 
-Worker flow is task-first: protected payout and scope before commitment, in-browser route, safe decline with zero penalty, configurable workability limits, OTP verification, evidence, change orders, earnings, Fair Work Decision Receipt, persisted Opportunity Access ledger, Replay Court challenge, Issues, Speak-up policy suggestions, personal Policy Twin impact review, dissent-aware one-member/one-vote governance and visible proposal status.
+Worker flow is task-first. Today retains payout/scope, maps, safe decline, workability, OTPs, evidence and change orders. The five secondary tabs are now **Why this job?**, **Get help**, **Share an idea**, **My money** and **Our votes**. They use larger controls and plain English/Hindi/Marathi; frozen decision details remain expandable. Existing commands and repository persistence still create help requests, receipt-backed checks, suggestions, earnings records, policy reviews and ballots.
 
 Admin flow is operations-first: live jobs, verified members/certifications/workability, shared issues and Rating Firewall cases, Replay Court execution, worker suggestion review, money/cancellation ledger, executable Cooperative Dispatch Constitution governance, Worker Protection Validator, Counterfactual Policy Twin, quorum/approval-controlled activation, Collective Pattern Court / Policy Signal Monitor, synthetic demand planning, and an operational Federation Opportunity Exchange.
 
@@ -251,6 +251,18 @@ for you. A test asserts every receipt a scenario leaves carries a frozen candida
 as a hand-driven booking would, that scenarios are idempotent, that one does not leave the
 previous one's jobs behind, and that each ends signed out so a judge chooses a role
 deliberately rather than inheriting one.
+
+# Verified worker simplification (2026-10-05)
+
+- Worker-only styles and `lib/worker-copy.ts` supply simpler labels, readable text, large radio choices and optional details. Phone navigation shows all six tabs in two rows rather than hiding labels in a scrolling bottom bar. The compact header was inspected and corrected at 320px.
+- Help takes a familiar problem, a job (or general request) and optional details. Real notes persist. Ideas use one short message; the title is derived from that message for the existing admin register. Legacy help categories still display familiar labels.
+- Earnings is a normal tab rather than a click-intercepted overlay. It reconciles seeded history with actual settlements/cancellation payments, labels sample versus live demo entries and exposes all payments/breakdown.
+- Voting shows the actual saved before/proposed pay and wait values, requires impact review, offers no preselected vote, requires a reason for disagreement, and locks an existing ballot. Activated proposals display their approved state. Quorum and activation commands are unchanged.
+- Sign-out now passes the saved signed-out state directly to DemoShell. Fast account switches no longer depend on its 700ms session poll.
+- Production browser walkthrough: electrical job KMS-00002 dispatched to Ravi/W02 under constitution-v2 at ₹760; worker accepted and inspected the frozen receipt. Help ISS-00006 gained two notes; a safety idea appeared in admin and returned as under-review. Customer cancellation posted ₹190, moving Ravi's recorded earnings ₹7,160 → ₹7,350. Ravi reviewed/voted; the nine stored votes permitted admin activation of constitution-v3 at ₹860. New plumbing job KMS-00025 selected Leela/W13 under v3. Farhan/W12 challenged that receipt, admin replayed/confirmed/closed it, and Farhan saw the recorded answer. Refresh preserved both jobs, request/notes, idea, earnings, ballot/review, policy and closed challenge. No browser page errors occurred.
+- All five tabs passed 60 layout checks: English, Hindi, Marathi × 320/768/1024/1440px, with no horizontal page scroll or clipped navigation. Fourteen desktop/mobile screenshots were captured outside Git and representative screens visually inspected. Keyboard radio selection, 3px visible focus and reduced-motion preference were checked. Scoped axe WCAG A/AA audits reported zero violations; governance's generic-div ARIA label was fixed and rechecked with zero incomplete results. Decorative-symbol contrast exceptions were visually checked.
+- Final commands passed: `npm test` (118/118), `npm run typecheck`, `npm run lint` (the existing TypeScript alias), `npm run build`, `git diff --check`. New UI translations still need native-speaker and real worker usability review; this pass establishes simpler flows, not evidence of field validation.
+- Verification artifacts on this device: `C:/Users/AADI/Downloads/kaamsabha2-worker-walkthrough.json` and `C:/Users/AADI/Downloads/kaamsabha2-worker-screenshots/`. No test records or credentials were added to the repository.
 
 # Freeze
 
