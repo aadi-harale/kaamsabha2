@@ -5,6 +5,7 @@ import { initialState } from "../lib/domain.ts";
 import type { AppState, Job, Locale, Worker } from "../lib/domain.ts";
 import { explainAllocation } from "../lib/allocation-explain.ts";
 import { jobFlow, waitingOnLabel } from "../lib/job-flow.ts";
+import { compareRulebooks, RULEBOOKS, rulebookText } from "../lib/rule-comparison.ts";
 import { ALL_MESSAGE_KEYS, missingKeys, t } from "../lib/messages.ts";
 
 const LOCALES: Locale[] = ["en", "hi", "mr"];
@@ -43,7 +44,8 @@ test("no message leaves an unfilled placeholder on screen", () => {
         service: "x", count: 1, mine: 1, theirs: 1, other: "x", payout: 1, reason: "x",
         position: 1, total: 1, gap: 1, theirId: "x", myId: "x", cooperative: "x",
         used: 1, limit: 1, amount: 1, left: 1, time: "x", code: "x", n: 1,
-        name: "x", floor: 1,
+        name: "x", floor: 1, jobs: 1, members: 1, coop: 1, alt: 1, rule: "x",
+        minutes: 1, rating: "4.8",
       });
       assert.ok(!/\{\w+\}/.test(rendered), `${locale}/${key} left a placeholder: ${rendered}`);
       assert.ok(rendered.trim().length > 0, `${locale}/${key} is empty`);
@@ -167,4 +169,50 @@ test("every seeded member has a Devanagari name", () => {
     assert.ok(w.nameDevanagari, `${w.name} has no Devanagari form`);
     assert.match(w.nameDevanagari!, DEVANAGARI);
   });
+});
+
+test("the rule comparison argues in the reader's language, numbers intact", () => {
+  for (const locale of INDIC) {
+    const comparison = compareRulebooks(initialState(), 32, undefined, locale);
+    assert.match(comparison.lead, DEVANAGARI, `lead untranslated: ${comparison.lead}`);
+    assert.ok(comparison.proof.length >= 2, "both proof lines should fire on the seeded register");
+    comparison.proof.forEach((line) => assert.match(line, DEVANAGARI, `proof untranslated: ${line}`));
+
+    // The figures are the whole point of the panel; they must survive translation.
+    assert.match(comparison.lead, /32/);
+    assert.match(comparison.lead, /13/);
+    assert.match(comparison.proof.join(" "), /10/);
+    assert.match(comparison.proof.join(" "), /11/);
+
+    RULEBOOKS.forEach((rule) => {
+      const words = rulebookText(rule, locale);
+      assert.match(words.name, DEVANAGARI, `${rule.id} name untranslated`);
+      assert.match(words.rule, DEVANAGARI, `${rule.id} rule untranslated`);
+      assert.match(words.consequence, DEVANAGARI, `${rule.id} consequence untranslated`);
+    });
+
+    // Every member told they earned nothing is told why, in their own language.
+    comparison.outcomes.forEach((outcome) => {
+      outcome.shares.filter((share) => share.jobs === 0).forEach((share) => {
+        assert.match(share.shutOutReason, DEVANAGARI, `shut-out reason untranslated: ${share.shutOutReason}`);
+      });
+      // And names in the distribution follow the reader's script.
+      outcome.shares.forEach((share) => {
+        assert.ok(!/^[A-Za-z ]+$/.test(share.name), `Latin name in bars: ${share.name}`);
+      });
+    });
+  }
+});
+
+test("the comparison reaches the same verdict whatever language it is read in", () => {
+  // Translation must not change the arithmetic.
+  const en = compareRulebooks(initialState(), 32);
+  for (const locale of INDIC) {
+    const other = compareRulebooks(initialState(), 32, undefined, locale);
+    assert.deepEqual(
+      other.outcomes.map((o) => [o.membersWithWork, o.jobsPastSafeLimit, o.unfilled, o.busiestMemberJobs]),
+      en.outcomes.map((o) => [o.membersWithWork, o.jobsPastSafeLimit, o.unfilled, o.busiestMemberJobs]),
+      `${locale} produced different numbers`,
+    );
+  }
 });

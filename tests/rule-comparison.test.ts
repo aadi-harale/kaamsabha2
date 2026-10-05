@@ -3,7 +3,7 @@ import test from "node:test";
 import { initialState, workerDailyLimit } from "../lib/domain.ts";
 import type { AppState } from "../lib/domain.ts";
 import {
-  compareRulebooks, DEMAND_SEED, JOB_MINUTES, RULEBOOKS, runRulebook, simulateDemand,
+  compareRulebooks, DEMAND_SEED, JOB_MINUTES, RULEBOOKS, rulebookText, runRulebook, simulateDemand,
 } from "../lib/rule-comparison.ts";
 
 function coop(state: AppState, n = 32) {
@@ -159,10 +159,18 @@ test("workload accumulates equally for every rule, so no rule is handed an advan
   }
 });
 
-test("the alternative rulebooks are described as rules, not as named companies", () => {
-  const text = RULEBOOKS.map((r) => `${r.name} ${r.rule} ${r.consequence}`).join(" ").toLowerCase();
-  for (const brand of ["uber", "ola", "swiggy", "zomato", "urban company", "urbanclap", "amazon"]) {
-    assert.ok(!text.includes(brand), `must not name ${brand}; these are rule definitions`);
+test("the alternative rulebooks are described as rules, not as named companies, in every language", () => {
+  for (const locale of ["en", "hi", "mr"] as const) {
+    const text = RULEBOOKS.map((rule) => {
+      const words = rulebookText(rule, locale);
+      assert.ok(words.name.length > 5, `${locale}/${rule.id} has no name`);
+      assert.ok(words.rule.length > 20, `${locale}/${rule.id} has no rule text`);
+      assert.ok(words.consequence.length > 20, `${locale}/${rule.id} has no consequence text`);
+      return `${words.name} ${words.rule} ${words.consequence}`;
+    }).join(" ").toLowerCase();
+    for (const brand of ["uber", "ola", "swiggy", "zomato", "urban company", "urbanclap", "amazon", "रैपिडो", "स्विगी", "उबर"]) {
+      assert.ok(!text.includes(brand), `${locale} must not name ${brand}; these are rule definitions`);
+    }
   }
   // Exactly one rulebook is the one actually in force.
   assert.equal(RULEBOOKS.filter((r) => r.active).length, 1);

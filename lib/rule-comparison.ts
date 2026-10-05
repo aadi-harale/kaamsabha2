@@ -1,4 +1,5 @@
-import type { AppState, Worker } from "./domain.ts";
+import type { AppState, Locale, Worker } from "./domain.ts";
+import { t } from "./messages.ts";
 import { workerDailyLimit } from "./domain.ts";
 
 /**
@@ -31,11 +32,12 @@ export interface SimulatedJob {
 
 export interface Rulebook {
   id: string;
-  name: string;
-  /** What it optimises, in one line a judge can read at a glance. */
-  rule: string;
+  /** Message keys, so each language writes the rule in its own words. */
+  nameKey: string;
+  /** What it optimises, in one line a reader can take in at a glance. */
+  ruleKey: string;
   /** The member-facing consequence of that rule. */
-  consequence: string;
+  consequenceKey: string;
   guaranteedFloor: boolean;
   respectsDailyLimit: boolean;
   refusalIsFree: boolean;
@@ -46,9 +48,9 @@ export interface Rulebook {
 export const RULEBOOKS: Rulebook[] = [
   {
     id: "cooperative",
-    name: "This cooperative's constitution",
-    rule: "Among members who pass every safety and certification check, the one with the least work booked today goes first.",
-    consequence: "Work rotates. A quiet week is not a penalty, and nobody can be worked past the limit they set.",
+    nameKey: "rule.coop.name",
+    ruleKey: "rule.coop.rule",
+    consequenceKey: "rule.coop.consequence",
     guaranteedFloor: true,
     respectsDailyLimit: true,
     refusalIsFree: true,
@@ -56,15 +58,24 @@ export const RULEBOOKS: Rulebook[] = [
   },
   {
     id: "rating-ranked",
-    name: "Rating-ranked dispatch",
-    rule: "Among certified members who are free, the highest-rated one goes first, with no daily limit.",
-    consequence: "Work concentrates on whoever is already ahead. A slightly lower score can mean no work at all.",
+    nameKey: "rule.ranked.name",
+    ruleKey: "rule.ranked.rule",
+    consequenceKey: "rule.ranked.consequence",
     guaranteedFloor: false,
     respectsDailyLimit: false,
     refusalIsFree: false,
     active: false,
   },
 ];
+
+/** The rulebook's visible wording, in the reader's language. */
+export function rulebookText(rule: Rulebook, locale: Locale = "en") {
+  return {
+    name: t(locale, rule.nameKey as never),
+    rule: t(locale, rule.ruleKey as never),
+    consequence: t(locale, rule.consequenceKey as never),
+  };
+}
 
 /** A small deterministic generator. Seeded, so the comparison is identical on every machine. */
 function sequence(seed: number) {
@@ -104,11 +115,11 @@ interface SimWorker {
   limit: number;
 }
 
-function snapshotWorkers(state: AppState): SimWorker[] {
+function snapshotWorkers(state: AppState, locale: Locale = "en"): SimWorker[] {
   return state.workers
     .map((worker: Worker) => ({
       id: worker.id,
-      name: worker.name,
+      name: locale === "en" ? worker.name : worker.nameDevanagari || worker.name,
       skills: worker.skills,
       rating: worker.rating,
       verified: worker.verified,
@@ -195,20 +206,28 @@ export interface RuleOutcome {
  * doing its job, which is a different thing from being passed over, and the two must not be
  * shown as if they were the same.
  */
-function shutOutReason(rule: Rulebook, worker: SimWorker, startedAt: number): string {
-  if (!worker.verified || !worker.active) return "Membership was not active.";
-  if (!worker.available) return "Had availability switched off.";
+function shutOutReason(
+  rule: Rulebook,
+  worker: SimWorker,
+  startedAt: number,
+  locale: Locale = "en",
+): string {
+  if (!worker.verified || !worker.active) return t(locale, "rule.out.inactive");
+  if (!worker.available) return t(locale, "rule.out.unavailable");
   if (rule.respectsDailyLimit && startedAt >= worker.limit) {
-    return `Already at the ${worker.limit}-minute limit they set for themselves, so the safety guard held work back.`;
+    return t(locale, "rule.out.atLimit", { limit: worker.limit });
   }
-  if (rule.respectsDailyLimit) {
-    return "Others in the rotation had less work booked, so their turn came first.";
-  }
-  return `Outranked. At ${worker.rating.toFixed(1)}, higher-scored members took every job in their trade.`;
+  if (rule.respectsDailyLimit) return t(locale, "rule.out.rotation");
+  return t(locale, "rule.out.outranked", { rating: worker.rating.toFixed(1) });
 }
 
-export function runRulebook(state: AppState, demand: SimulatedJob[], rule: Rulebook): RuleOutcome {
-  const workers = snapshotWorkers(state);
+export function runRulebook(
+  state: AppState,
+  demand: SimulatedJob[],
+  rule: Rulebook,
+  locale: Locale = "en",
+): RuleOutcome {
+  const workers = snapshotWorkers(state, locale);
   const starting = new Map(workers.map((worker) => [worker.id, worker.workload]));
   const assignments: RuleAssignment[] = [];
   let unfilled = 0;
@@ -248,7 +267,7 @@ export function runRulebook(state: AppState, demand: SimulatedJob[], rule: Ruleb
         endedAt: worker.workload,
         limit: worker.limit,
         finishedOverLimit: jobs > 0 && worker.workload > worker.limit,
-        shutOutReason: jobs > 0 ? "" : shutOutReason(rule, worker, startedAt),
+        shutOutReason: jobs > 0 ? "" : shutOutReason(rule, worker, startedAt, locale),
       };
     })
     .sort((a, b) => b.jobs - a.jobs || a.workerId.localeCompare(b.workerId));
@@ -282,29 +301,34 @@ export interface RuleComparison {
   headline: string;
 }
 
-export function compareRulebooks(state: AppState, jobCount = 32, seed = DEMAND_SEED): RuleComparison {
+export function compareRulebooks(
+  state: AppState,
+  jobCount = 32,
+  seed = DEMAND_SEED,
+  locale: Locale = "en",
+): RuleComparison {
   const demand = simulateDemand(state, jobCount, seed);
-  const outcomes = RULEBOOKS.map((rule) => runRulebook(state, demand, rule));
+  const outcomes = RULEBOOKS.map((rule) => runRulebook(state, demand, rule, locale));
   const cooperative = outcomes.find((outcome) => outcome.rulebook.id === "cooperative");
   const alternative = outcomes.find((outcome) => outcome.rulebook.id !== "cooperative");
 
   const lead = cooperative
-    ? `Same ${demand.length} jobs. Same ${cooperative.shares.length} certified members. One thing changed: the rule.`
-    : "Same jobs, same members — the rulebook decides who gets the work.";
+    ? t(locale, "rule.lead", { jobs: demand.length, members: cooperative.shares.length })
+    : t(locale, "rule.leadFallback");
   const proof: string[] = [];
   if (cooperative && alternative) {
     if (alternative.membersWithWork < cooperative.membersWithWork) {
       proof.push(
-        `${cooperative.membersWithWork} members earn under this cooperative's constitution. ` +
-          `Rank the same people by rating instead and only ${alternative.membersWithWork} do.`,
+        t(locale, "rule.proof.earn", {
+          coop: cooperative.membersWithWork,
+          alt: alternative.membersWithWork,
+        }),
       );
     }
     if (alternative.jobsPastSafeLimit > cooperative.jobsPastSafeLimit) {
-      proof.push(
-        `This rule never handed new work to a member already at the limit they set for themselves. ` +
-          `The other did it ${alternative.jobsPastSafeLimit} times.`,
-      );
+      proof.push(t(locale, "rule.proof.limit", { count: alternative.jobsPastSafeLimit }));
     }
   }
   return { demand, outcomes, lead, proof, headline: [lead, ...proof].join(" ") };
 }
+

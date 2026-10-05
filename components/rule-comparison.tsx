@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { AppState } from "@/lib/domain";
-import { compareRulebooks, JOB_MINUTES, type RuleOutcome } from "@/lib/rule-comparison";
+import type { AppState, Locale } from "@/lib/domain";
+import { t } from "@/lib/messages";
+import { compareRulebooks, JOB_MINUTES, rulebookText, type RuleOutcome } from "@/lib/rule-comparison";
 
 /**
  * The one bold visual: same jobs, same members, one thing changed.
@@ -12,9 +13,9 @@ import { compareRulebooks, JOB_MINUTES, type RuleOutcome } from "@/lib/rule-comp
  * is named for what it optimises, not for any company that might optimise that way.
  */
 
-function Bars({ outcome, max }: { outcome: RuleOutcome; max: number }) {
+function Bars({ outcome, max, locale }: { outcome: RuleOutcome; max: number; locale: Locale }) {
   return (
-    <ol className="ruleBars" aria-label={`Work distribution under ${outcome.rulebook.name}`}>
+    <ol className="ruleBars" aria-label={t(locale, "rule.distribution", { rule: rulebookText(outcome.rulebook, locale).name })}>
       {outcome.shares.map((share) => {
         const pct = max > 0 ? Math.round((share.jobs / max) * 100) : 0;
         return (
@@ -24,15 +25,17 @@ function Bars({ outcome, max }: { outcome: RuleOutcome; max: number }) {
               <i style={{ width: `${Math.max(share.jobs > 0 ? 6 : 0, pct)}%` }} />
             </span>
             <span className="ruleBarCount">
-              {share.jobs === 0 ? "none" : `${share.jobs}`}
+              {share.jobs === 0 ? t(locale, "rule.noWork") : `${share.jobs}`}
               {share.finishedOverLimit && <b aria-hidden="true"> †</b>}
             </span>
+            {/* Spoken to a screen reader in the same language the page is being read in. */}
             <span className="srOnly">
+              {" "}
               {share.jobs === 0
-                ? ` earned nothing. ${share.shutOutReason}`
-                : ` took ${share.jobs} jobs, ${share.minutesAdded} minutes.${
+                ? t(locale, "rule.sr.earnedNothing", { reason: share.shutOutReason })
+                : `${t(locale, "rule.sr.took", { jobs: share.jobs, minutes: share.minutesAdded })}${
                     share.finishedOverLimit
-                      ? ` Finished the day over their own ${share.limit} minute limit.`
+                      ? ` ${t(locale, "rule.sr.overLimit", { limit: share.limit })}`
                       : ""
                   }`}
             </span>
@@ -43,70 +46,69 @@ function Bars({ outcome, max }: { outcome: RuleOutcome; max: number }) {
   );
 }
 
-function Column({ outcome, max }: { outcome: RuleOutcome; max: number }) {
+function Column({ outcome, max, locale }: { outcome: RuleOutcome; max: number; locale: Locale }) {
   const rule = outcome.rulebook;
+  const words = rulebookText(rule, locale);
   return (
     <article className={rule.active ? "ruleColumn active" : "ruleColumn"}>
       <header>
-        <span className="ruleBadge">{rule.active ? "IN FORCE HERE" : "COUNTERFACTUAL"}</span>
-        <h3>{rule.name}</h3>
-        <p className="ruleDefinition">{rule.rule}</p>
+        <span className="ruleBadge">{rule.active ? t(locale, "rule.inForce") : t(locale, "rule.counterfactual")}</span>
+        <h3>{words.name}</h3>
+        <p className="ruleDefinition">{words.rule}</p>
       </header>
 
       <dl className="ruleStats">
         <div>
-          <dt>Members who earn</dt>
+          <dt>{t(locale, "rule.stat.earn")}</dt>
           <dd>
             {outcome.membersWithWork}
-            <small> of {outcome.shares.length}</small>
+            <small> {t(locale, "rule.stat.of", { total: outcome.shares.length })}</small>
           </dd>
         </div>
         <div className={outcome.jobsPastSafeLimit > 0 ? "bad" : "good"}>
-          <dt>Jobs given to someone already at their limit</dt>
+          <dt>{t(locale, "rule.stat.pastLimit")}</dt>
           <dd>{outcome.jobsPastSafeLimit}</dd>
         </div>
         <div>
-          <dt>Most work taken by one member</dt>
+          <dt>{t(locale, "rule.stat.busiest")}</dt>
           <dd>
             {outcome.busiestMemberJobs}
             <small> {outcome.busiestMemberName.split(" ")[0]}</small>
           </dd>
         </div>
         <div>
-          <dt>Guaranteed payout floor</dt>
-          <dd>{rule.guaranteedFloor ? "Yes" : <span className="none">None</span>}</dd>
+          <dt>{t(locale, "rule.stat.floor")}</dt>
+          <dd>{rule.guaranteedFloor ? t(locale, "rule.yes") : <span className="none">{t(locale, "rule.none")}</span>}</dd>
         </div>
       </dl>
 
-      <Bars outcome={outcome} max={max} />
+      <Bars outcome={outcome} max={max} locale={locale} />
 
       {outcome.shares.some((share) => share.finishedOverLimit) && (
         <p className="ruleFootnote">
           <b>†</b>{" "}
-          {rule.respectsDailyLimit
-            ? "Finished the day over their own limit because a job they had already started ran past it. This rule stops new work at the limit; it does not stop a member mid-job."
-            : "Finished the day over their own limit. This rule has no limit to stop at, so the over-run is not bounded by one job."}
+          {t(locale, rule.respectsDailyLimit ? "rule.footnote.bounded" : "rule.footnote.unbounded")}
         </p>
       )}
 
-      <p className="ruleConsequence">{rule.consequence}</p>
+      <p className="ruleConsequence">{words.consequence}</p>
 
       {outcome.unfilled > 0 && (
         <p className="ruleTradeoff">
-          <strong>
-            {outcome.unfilled} job{outcome.unfilled === 1 ? "" : "s"} went unfilled.
-          </strong>{" "}
-          This rule refuses rather than overworking a member. Federation is how the customer still
-          gets served — a nearby cooperative with safe capacity takes the job.
+          <strong>{t(locale, "rule.unfilled", { count: outcome.unfilled })}</strong>{" "}
+          {t(locale, "rule.unfilledBody")}
         </p>
       )}
     </article>
   );
 }
 
-export function RuleComparison({ state }: { state: AppState }) {
+export function RuleComparison({ state, locale = "en" }: { state: AppState; locale?: Locale }) {
   const [open, setOpen] = useState(false);
-  const comparison = useMemo(() => compareRulebooks(state), [state.workers, state.cooperatives]);
+  const comparison = useMemo(
+    () => compareRulebooks(state, undefined, undefined, locale),
+    [state.workers, state.cooperatives, locale],
+  );
   const [cooperative, alternative] = comparison.outcomes;
   const max = Math.max(1, ...comparison.outcomes.flatMap((o) => o.shares.map((s) => s.jobs)));
 
@@ -116,9 +118,9 @@ export function RuleComparison({ state }: { state: AppState }) {
     <section className="ruleCompareBold" aria-label="Same jobs, same workers, different rule">
       <div className="ruleCompareHead">
         <p className="ruleCompareKicker">
-          <span>SAME JOBS</span>
-          <span>SAME WORKERS</span>
-          <span className="different">DIFFERENT RULE</span>
+          <span>{t(locale, "rule.kicker.jobs")}</span>
+          <span>{t(locale, "rule.kicker.workers")}</span>
+          <span className="different">{t(locale, "rule.kicker.rule")}</span>
         </p>
         <h2>{comparison.lead}</h2>
         {comparison.proof.length > 0 && (
@@ -129,15 +131,13 @@ export function RuleComparison({ state }: { state: AppState }) {
           </ul>
         )}
         <p className="ruleCompareSub">
-          Both columns run the same {comparison.demand.length} jobs through the same{" "}
-          {cooperative.shares.length} certified members, starting from the same workloads. Only the
-          rule changes.
+          {t(locale, "rule.sub", { jobs: comparison.demand.length, members: cooperative.shares.length })}
         </p>
       </div>
 
       <div className="ruleColumns">
-        <Column outcome={cooperative} max={max} />
-        <Column outcome={alternative} max={max} />
+        <Column outcome={cooperative} max={max} locale={locale} />
+        <Column outcome={alternative} max={max} locale={locale} />
       </div>
 
       <button
@@ -146,41 +146,35 @@ export function RuleComparison({ state }: { state: AppState }) {
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
       >
-        {open ? "Hide how this is calculated" : "How is this calculated?"}
+        {open ? t(locale, "rule.methodHide") : t(locale, "rule.methodShow")}
       </button>
 
       {open && (
         <div className="ruleMethod">
           <p>
-            <strong>Synthetic demand, real members.</strong> The {comparison.demand.length} jobs are
-            generated from deterministic seed 26089, so this comparison is identical on every
-            machine and every run. The members, their certifications, their ratings and their
-            starting workloads are the register&apos;s own records. Each job adds {JOB_MINUTES}{" "}
-            minutes, equally under both rules.
+            <strong>{t(locale, "rule.method.demandTitle")}</strong>{" "}
+            {t(locale, "rule.method.demand", { jobs: comparison.demand.length, minutes: JOB_MINUTES })}
           </p>
           <p>
-            <strong>Both rules check certification first.</strong> Neither rule dispatches an
-            unverified or uncertified member. The contrast is only in what happens next: this
-            cooperative orders by who has least work booked and stops at each member&apos;s own
-            daily limit; the other orders by rating and has no limit to stop at.
+            <strong>{t(locale, "rule.method.checksTitle")}</strong>{" "}
+            {t(locale, "rule.method.checks")}
           </p>
           <p>
-            <strong>This is a counterfactual, not an accusation.</strong> &ldquo;Rating-ranked
-            dispatch&rdquo; is a rule definition, stated above in full so you can judge it
-            yourself. It is not a claim about how any particular company allocates work.
+            <strong>{t(locale, "rule.method.fairTitle")}</strong>{" "}
+            {t(locale, "rule.method.fair")}
           </p>
           <p>
-            <strong>It changes nothing.</strong> The comparison is read-only. It cannot dispatch a
-            job, alter a member, or influence a real allocation, and the test suite pins that.
+            <strong>{t(locale, "rule.method.readOnlyTitle")}</strong>{" "}
+            {t(locale, "rule.method.readOnly")}
           </p>
           <details className="ruleShutOut">
-            <summary>Why each member earned nothing, rule by rule</summary>
+            <summary>{t(locale, "rule.shutOutSummary")}</summary>
             {comparison.outcomes.map((outcome) => {
               const idle = outcome.shares.filter((share) => share.jobs === 0);
               if (!idle.length) return null;
               return (
                 <div key={outcome.rulebook.id}>
-                  <strong>{outcome.rulebook.name}</strong>
+                  <strong>{rulebookText(outcome.rulebook, locale).name}</strong>
                   <ul>
                     {idle.map((share) => (
                       <li key={share.workerId}>
