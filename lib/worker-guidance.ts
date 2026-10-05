@@ -2,6 +2,7 @@ import type { AppState, Challenge, Job, Worker } from "./domain.ts";
 import { summarizeWorkerEarnings } from "./earnings.ts";
 import { jobFlow, otpIsLive } from "./job-flow.ts";
 import { workerService, workerText } from "./worker-copy.ts";
+import { memberPolicyTwin } from "./policy-twin.ts";
 
 export type WorkerAction = "accept" | "travel" | "arrive" | "start-code" | "proof" | "finish-code" | "wait";
 
@@ -61,10 +62,15 @@ export function workerSpokenSummary(state: AppState, worker: Worker, tab: string
     return `${money} ${workerText(locale, "spokenPayments", { count: earnings.completedJobs, protection: earnings.cancellationProtection, pending: pending.reduce((sum, j) => sum + j.amount, 0) })}`;
   }
   if (tab === "governance") {
+    const proposal = state.proposals.find(p => p.status === "voting");
+    if (proposal) {
+      const twin = memberPolicyTwin(state, proposal, worker);
+      const impact = twin.mine.length ? workerText(locale, "twinSpokenImpact", { count: twin.mine.length, before: twin.myCurrent, after: twin.myProposed }) : workerText(locale, "twinNoOwnJobs");
+      return `${workerText(locale, "spokenProposal", { before: twin.before.floor, after: twin.after.floor })} ${impact} ${workerText(locale, "twinSameOrder")}`;
+    }
     const active = activeMemberChange(state, worker.id);
     if (active) return workerText(locale, "spokenRule", { before: active.proposal.simulation.currentFloor, after: state.policy.minimumPayout, count: active.participants });
-    const proposal = state.proposals.find(p => p.status === "voting");
-    return proposal ? workerText(locale, "spokenProposal", { before: state.policy.minimumPayout, after: proposal.proposedMinimumPayout }) : workerText(locale, "noVote");
+    return workerText(locale, "noVote");
   }
   if (tab === "fair") {
     const checks = state.challenges.filter(c => c.workerId === worker.id);

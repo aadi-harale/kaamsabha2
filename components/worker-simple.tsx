@@ -9,6 +9,7 @@ import { workerService, workerStatus, workerText, type WorkerCopyKey } from "@/l
 import { WorkerDecisionReasons } from "@/components/allocation-reasons";
 import { WorkerRuleChange } from "@/components/worker-rule-change";
 import { workerChallengeProgress } from "@/lib/worker-guidance";
+import { WorkerPolicyTwin } from "@/components/worker-policy-twin";
 
 type Run = (fn: () => AppState, message?: string) => boolean;
 type WorkerProps = { state: AppState; worker: Worker; run: Run };
@@ -315,19 +316,11 @@ function WorkerBallot({ state, worker, run, proposal }: WorkerProps & { proposal
   const votes = state.votes.filter(v => v.proposalId === proposal.id);
   const voted = votes.find(v => v.memberId === worker.id);
   const sim = proposal.simulation;
-  const delta = sim.proposedFloor - sim.currentFloor;
   const open = proposal.status === "voting";
 
   return <section className="workerPaper workerBallot">
     <h2>{workerText(locale, "rulesChange")}</h2>{open && !voted && <p>{workerText(locale, "votesNote")}</p>}
-    <div className="workerPayChange" role="group" aria-label={workerText(locale, "minPay")}>
-      <div><span>{workerText(locale, proposal.status === "active" ? "beforeChange" : "now")}</span><strong>₹{sim.currentFloor}</strong></div>
-      <div><span>{workerText(locale, proposal.status === "active" ? "approvedRule" : "ifApproved")}</span><strong>₹{sim.proposedFloor}</strong></div>
-    </div>
-    <p><b>{workerText(locale, "minPay")}</b></p>
-    {proposal.status !== "active" && <><p>{workerText(locale, delta > 0 ? "payIncrease" : delta < 0 ? "payDecrease" : "paySame", { amount: Math.abs(delta) })}</p>
-      <p>{workerText(locale, "waitChange", { before: sim.currentMaxWait, after: sim.proposedMaxWait })}</p>
-      <p className="workerDemoNote">{workerText(locale, "pastUnchanged")}</p></>}
+    <WorkerPolicyTwin state={state} proposal={proposal} worker={worker} />
     {proposal.status === "active" && <p className="workerFeedback">{workerText(locale, "ruleActive")}</p>}
     {voted ? <div className="workerFeedback" role="status"><strong>{workerText(locale, "voteRecorded")}: {workerText(locale, voted.choice)}</strong><p>{workerText(locale, "voteOnce")}</p>{voted.reason && <p>{voted.reason}</p>}</div>
       : !open ? proposal.status !== "active" && <p className="workerFeedback">{workerText(locale, proposal.status === "rejected" ? "voteClosed" : "noVote")}</p>

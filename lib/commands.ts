@@ -4,6 +4,7 @@ import type {
 } from "./domain.ts";
 import { homeCooperativeForLocality, selectWorkerInCooperative, workerDailyLimit } from "./domain.ts";
 import { goldenFederationCapacity, liveFederationCapacity, matchFederationCooperative } from "./federation.ts";
+import { protectedJobPay } from "./protected-pay.ts";
 
 function nextRevision(state:AppState):AppState{return{...state,revision:state.revision+1};}
 function id(prefix:string,revision:number){return`${prefix}-${String(revision+1).padStart(5,"0")}`;}
@@ -22,7 +23,7 @@ function candidateSnapshot(state:AppState,cooperativeId:string,service:string):D
 function receiptFor(state:AppState,input:{jobId:string;service:string;protectedPayout:number;cooperativeId:string;workerId:string;receiptId:string;federated:boolean;candidateWorkerIds:string[];homeCooperativeId?:string}):DecisionReceipt{
   const worker=state.workers.find(w=>w.id===input.workerId)!;
   const cooperative=state.cooperatives.find(c=>c.id===input.cooperativeId)!;
-  const payout=Math.max(input.protectedPayout,state.policy.minimumPayout);
+  const payout=protectedJobPay(input.protectedPayout,state.policy.minimumPayout);
   return{
     id:input.receiptId,jobId:input.jobId,policyVersion:cooperative.policyVersion,workerId:input.workerId,cooperativeId:input.cooperativeId,
     hardChecks:{verified:worker.verified,active:worker.active,available:worker.available,skill:worker.skills.includes(input.service),workloadSafe:worker.workloadTodayMinutes<workerDailyLimit(worker)},
@@ -57,7 +58,7 @@ export function createBooking(state:AppState,input:{customerId:string;service:st
   requireRole(state,"customer");
   if(!input.locality.trim()||!input.service.trim())throw new Error("Service and location are required");
   const assignment=resolveAssignment(state,input.service,input.locality);
-  const jobId=id("KMS",state.revision),receiptId=`${jobId}-receipt`,amount=Math.max(input.amount??state.policy.minimumPayout,state.policy.minimumPayout);
+  const jobId=id("KMS",state.revision),receiptId=`${jobId}-receipt`,amount=protectedJobPay(input.amount,state.policy.minimumPayout);
   const federationOpportunityId=assignment.federated?id("FED",state.revision):undefined;
   const job:Job={id:jobId,customerId:input.customerId,service:input.service,locality:input.locality,scheduledAt:input.scheduledAt,emergency:Boolean(input.emergency),status:assignment.worker?"assigned":"requested",workerId:assignment.worker?.id,cooperativeId:assignment.cooperative?.id,homeCooperativeId:assignment.home?.id,receiptId:assignment.worker?receiptId:undefined,federationOpportunityId,amount,intakeNote:input.intakeNote?.trim()||"",referenceName:input.referenceName?.trim()||"",declinedWorkerIds:[],evidence:[],changeOrders:[]};
   const candidates=assignment.cooperative?state.workers.filter(w=>w.cooperativeId===assignment.cooperative!.id&&w.skills.includes(input.service)&&w.verified&&w.active&&w.available&&w.workloadTodayMinutes<workerDailyLimit(w)).map(w=>w.id):[];

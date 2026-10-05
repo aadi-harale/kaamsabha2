@@ -118,6 +118,15 @@ decision should be revisited — with a translator, not with a find-and-replace.
 
 ## What production would take, in order
 
+The worker voting Policy Twin is a **pay-floor comparison**, not a forecast of demand,
+travel times or take-home earnings. It holds each job's quoted dispatch pay and receiving
+cooperative fixed, re-runs the application's member selector on the latest frozen candidate
+facts, and uses the same protected-pay function as real bookings under each floor. Missing
+or inconsistent receipts are excluded. It does not recalculate later extras, cancellation
+payments or settlements. The fair-wait setting is stored on activation but is not used by
+the current member selector; that limitation is stated in the voting view. A richer
+wait/allocation Policy Twin needs corresponding dispatch inputs and executable rules first.
+
 1. **A server that owns the register.** Move `lib/commands.ts` behind authenticated endpoints.
    The browser proposes; the server decides, re-running the same pure functions. This is the
    step that makes every other guarantee real, and the domain layer is already shaped for it.

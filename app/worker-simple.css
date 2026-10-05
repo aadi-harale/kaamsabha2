@@ -70,6 +70,23 @@
 .workerPayChange > div { padding: 18px; display: grid; gap: 8px; background: #f6f8fa; }
 .workerPayChange > div:last-child { border-left: 1px solid #dde3e8; background: #edf7f4; }
 .workerPayChange strong { font-size: 32px; line-height: 1.2; }
+.workerPolicyTwin { margin: 24px 0; padding: 20px 0; border-block: 1px solid #dde3e8; }
+.workerPolicyTwin h3 { margin: 0 0 10px; font-size: 22px; line-height: 1.4; }
+.workerPolicyTwin h4 { margin: 0 0 10px; font-size: 18px; line-height: 1.5; }
+.workerTwinRules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 18px 0; border: 1px solid #dde3e8; border-radius: 8px; overflow: hidden; }
+.workerTwinRules > div { padding: 16px; display: grid; gap: 8px; background: #f6f8fa; }
+.workerTwinRules > div:last-child { border-left: 1px solid #dde3e8; background: #edf7f4; }
+.workerTwinRules span { font-size: 15px; }
+.workerTwinRules strong { font-size: 30px; line-height: 1.2; }
+.workerTwinPersonal { border-left: 3px solid #0f6b5c; padding: 12px 0 4px 16px; margin: 20px 0; }
+.workerTwinTotals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 16px 0; }
+.workerTwinTotals dt { font-size: 15px; line-height: 1.5; color: #394854; }
+.workerTwinTotals dd { margin: 6px 0 0; font-size: 25px; font-weight: 700; overflow-wrap: anywhere; }
+.workerTwinJobs { list-style: none; padding: 0; margin: 16px 0; }
+.workerTwinJobs li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; padding: 14px 0; border-bottom: 1px solid #dde3e8; }
+.workerTwinJobs strong { font-size: 16px; overflow-wrap: anywhere; }
+.workerTwinJobs small { grid-column: 1 / -1; }
+.workerTwinJobs span { font-weight: 650; }
 .workerParticipation { margin-top: 24px !important; color: #52606d; font-size: 15px; }
 .workerComparison { margin-top: 32px; max-width: 850px; border-top: 1px solid #dde3e8; }
 .workerComparison .ruleComparison { margin-top: 16px; }
@@ -170,6 +187,9 @@
   .workerSimple .whyTag { width: fit-content; }
   .workerSimple .whyFacts { grid-template-columns: 1fr; }
   .workerMoney { padding: 22px; }
+  .workerTwinRules > div { padding: 12px; }
+  .workerTwinPersonal { padding-left: 12px; }
+  .workerTwinJobs li { grid-template-columns: 1fr; }
   .workerPayChange > div { padding: 12px; }
   .workerPayChange span { font-size: 14px; }
 }

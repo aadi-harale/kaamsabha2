@@ -309,6 +309,32 @@ deliberately rather than inheriting one.
   user's browser. Browser policy blocked access to that tab; the user must refresh it.
   Native-speaker and field usability review remain outstanding.
 
+# Verified Policy Twin in worker voting (2026-10-05)
+
+- Our votes now shows the current/proposed pay floor, personal job-pay comparison, unchanged
+  turn order and safeguards, wait-setting change, and expandable cooperative/job evidence
+  before the existing impact-review/vote controls. English/Hindi/Marathi and Listen include
+  personal impact. The duplicate pay summary was replaced rather than adding another panel.
+- `lib/policy-twin.ts` uses each job's latest linked frozen candidate facts, holds the receiving
+  cooperative/quoted pay fixed, and invokes the application selector under both policies.
+  `protectedJobPay` is shared with actual bookings/receipts. It is read-only and excludes missing
+  or inconsistent decisions. Sample earnings history is not treated as job-input evidence.
+  Amounts are full job-pay previews before costs, not earnings; extras/cancellations/settlements
+  stay unchanged. Wait-setting storage has no current selection/ETA effect, explicitly labelled.
+- Production browser proof: electrical KMS-00004/Ravi and plumbing KMS-00005/Leela each previewed
+  ₹760 → ₹860. Farhan saw zero own jobs and no promise of extra work. Ravi's ninth yes ballot
+  enabled v3; new electrical KMS-00023 used v3/₹860. The old receipt stayed byte-for-byte equal
+  and refresh preserved jobs, receipts, votes and policy. Previewing did not mutate the register.
+- Twelve responsive checks passed across all three languages and 320/768/1024/1440px. Desktop
+  and mobile screenshots were inspected; copy was shortened and the singular-count wording
+  corrected. Keyboard review controls showed a solid 3px focus outline; reduced motion passed.
+  The Policy Twin axe WCAG A/AA audit returned zero violations and zero incomplete results.
+- Passed: `npm test` (133/133), `npm run typecheck`, `npm run lint` (existing TypeScript alias),
+  `npm run build`, `git diff --check`. The complete OTP/proof/payment/cancellation earnings
+  regression also passed. Evidence: `C:/Users/AADI/Downloads/kaamsabha2-policy-twin-check.json`
+  and `kaamsabha2-worker-screenshots/policy-twin-*.png` outside Git. User browser records were
+  not changed. New translations still need native-speaker review.
+
 # Freeze
 
 Feature work beyond this pass remains frozen. Remaining work is deployment/browser
