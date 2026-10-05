@@ -1,0 +1,8 @@
+"use client";
+import { useState } from "react";
+import type { AppState, Job } from "@/lib/domain";
+type Run=(fn:()=>AppState,message?:string)=>boolean;
+export function OfferNotice({state,job,run}:{state:AppState;job?:Job;run:Run}){const[message,setMessage]=useState("");if(!job||job.status!=="assigned")return null;const offer=state.opportunities.find(o=>o.jobId===job.id&&o.workerId===job.workerId&&o.status==="offered"&&!o.seenAt);if(!offer)return null;
+  async function notify(){if(!("Notification" in window)){setMessage("This browser does not support system notifications. The offer stays visible here.");return;}try{const permission=await Notification.requestPermission();if(permission!=="granted"){setMessage("Permission was not granted. You can still accept this offer on this page.");return;}new Notification("New KaamSabha job offer",{body:`${job!.service} in ${job!.locality}. Agreed pay ₹${job!.amount}.`,tag:offer!.id});setMessage("System notification shown. Alerts work while this app is open; SMS and background push are not connected.");}catch{setMessage("System notifications need a supported secure browser. Your offer remains saved here.");}}
+  return <section className="offerNotice" aria-live="polite"><strong>New job offer: ₹{job.amount}</strong><p>{job.service} in {job.locality}. Accept or safely decline below.</p><div className="actions"><button className="secondary" onClick={()=>run(()=>({...state,revision:state.revision+1,opportunities:state.opportunities.map(o=>o.id===offer.id?{...o,seenAt:new Date().toISOString()}:o)}))}>I have seen this offer</button><button className="secondary" onClick={()=>void notify()}>Show a system alert</button></div>{message&&<p role="status">{message}</p>}</section>;
+}

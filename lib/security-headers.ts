@@ -7,12 +7,14 @@ export const LOCAL_HTTP_HOST_PATTERN = `(?:localhost|127\\.${octet}\\.${octet}\\
 function contentSecurityPolicy(isDev: boolean, enforceHttps = false) {
   return [
     "default-src 'self'",
-    `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+    `script-src 'self' 'unsafe-inline' https://checkout.razorpay.com${isDev ? " 'unsafe-eval'" : ""}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com",
+    "media-src 'self' blob:",
+    "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com",
     "font-src 'self' data:",
     // Provider calls stay behind same-origin APIs; maps use HTTPS tile providers.
-    `connect-src 'self'${isDev ? " ws: wss:" : ""}`,
+    `connect-src 'self' https://api.razorpay.com https://checkout.razorpay.com${isDev ? " ws: wss:" : ""}`,
     "form-action 'self'", "frame-ancestors 'none'", "base-uri 'self'", "object-src 'none'",
     ...(enforceHttps ? ["upgrade-insecure-requests"] : []),
   ].join("; ");
@@ -29,7 +31,7 @@ export function securityHeaderRules(isDev: boolean) {
         { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
         // Worker positions are illustrative; no device permissions are requested.
         { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()" },
-        { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+        { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
       ],
     },
     // Next applies this later rule only to public production hosts. Local/LAN production

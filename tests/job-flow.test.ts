@@ -80,6 +80,7 @@ test("during work the move moves worker to customer to worker as proof and the f
   assert.match(jobFlow(working, "worker", NOW).nextStep, /add your work proof/i);
 
   const proofed = job("started", {
+    workerId:"W02",
     evidence: [{ id: "EV-1", label: "Before/after work proof", createdAt: new Date(NOW).toISOString(), uploadedBy: "W02" }]
   });
   assert.equal(jobFlow(proofed, "customer", NOW).waitingOn, "customer");

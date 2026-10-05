@@ -126,7 +126,7 @@ function handoff(job: Job, now: number): Handoff {
       if (otpIsStale(job.startOtp, now)) return { waitingOn: "customer", key: "flow.startStale" };
       return { waitingOn: "customer", key: "flow.arrived" };
     case "started":
-      if (job.evidence.length === 0) return { waitingOn: "worker", key: "flow.working" };
+      if (!job.evidence.some(e=>e.uploadedBy===job.workerId&&e.phase!=="before")) return { waitingOn: "worker", key: "flow.working" };
       if (otpIsLive(job.completionOtp, now)) return { waitingOn: "worker", key: "flow.finishLive" };
       if (otpIsStale(job.completionOtp, now)) return { waitingOn: "customer", key: "flow.finishStale" };
       return { waitingOn: "customer", key: "flow.proofed" };
@@ -149,6 +149,8 @@ export function jobFlow(
 ): FlowView {
   const currentId = currentStepId(job, now);
   const moves = handoff(job, now);
+  const awaitingConsent=job.status==="requested"&&job.handoverHistory?.at(-1)?.status==="awaiting-customer";
+  if(awaitingConsent)moves.waitingOn="customer";
   const yourMove =
     (viewer === "customer" && moves.waitingOn === "customer") ||
     (viewer === "worker" && moves.waitingOn === "worker");
@@ -166,8 +168,8 @@ export function jobFlow(
     currentStepId: currentId,
     waitingOn: moves.waitingOn,
     yourMove,
-    nextStep: viewer === "worker" ? say("worker") : say("customer"),
-    otherSide: viewer === "worker" ? say("customer") : say("worker"),
+    nextStep: awaitingConsent ? (locale==="hi"?"ग्राहक को बाकी काम और दूसरे सदस्य को मंज़ूरी देनी है।":locale==="mr"?"ग्राहकाने उरलेले काम आणि दुसरा सदस्य मान्य करावा.":"The customer must approve remaining work and a replacement member.") : viewer === "worker" ? say("worker") : say("customer"),
+    otherSide: awaitingConsent ? "The original member released the job safely. No replacement offer is sent until the customer agrees." : viewer === "worker" ? say("customer") : say("worker"),
     finished: job.status === "settled",
     cancelled: job.status === "cancelled",
   };

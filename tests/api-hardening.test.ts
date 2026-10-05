@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { clientKey, rateLimit, rateLimitHeaders, readJsonBody, resetRateLimits } from "../lib/rate-limit.ts";
+import { clientKey, rateLimit, rateLimitHeaders, readJsonBody, readRawBody, resetRateLimits } from "../lib/rate-limit.ts";
 import { DEFAULT_SYNC_WORKSPACE, remoteSyncPolicy } from "../lib/remote-sync-policy.ts";
 
 function post(body: string, headers: Record<string, string> = {}) {
@@ -71,6 +71,15 @@ test("only a JSON object is accepted as a body", async () => {
   const good = await readJsonBody(post('{"a":1}'), 1024);
   assert.equal(good.ok, true);
   assert.deepEqual(good.ok === true ? good.body : null, { a: 1 });
+});
+
+test("raw webhook/file input preserves exact bytes and cancels an oversized stream",async()=>{
+  const bytes=new Uint8Array([0,255,123,13,10,34,195,169]);
+  const raw=await readRawBody(new Request("https://example.test",{method:"POST",body:bytes}),100);assert.equal(raw.ok,true);if(raw.ok)assert.deepEqual(Array.from(raw.body),Array.from(bytes));
+  let cancelled=false;
+  const stream=new ReadableStream({pull(controller){controller.enqueue(new Uint8Array(100));},cancel(){cancelled=true;}});
+  const request=new Request("https://example.test",{method:"POST",body:stream,duplex:"half"} as RequestInit);
+  const large=await readRawBody(request,120);assert.equal(large.ok,false);assert.equal(large.ok?0:large.status,413);assert.equal(cancelled,true);
 });
 
 test("the limiter allows a burst up to the limit, then refuses until the window rolls", () => {

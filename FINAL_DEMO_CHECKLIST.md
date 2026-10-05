@@ -25,7 +25,7 @@ Use the same browser profile so the deterministic register persists across logou
 3. Choose Electrical in `Kharadi, Pune`, add a problem description/reference name, optionally show AI intake assistance, then confirm.
 4. Point out that Kharadi has a local eligible electrician, so the home cooperative serves the request before federation is considered.
 5. Orders -> show assigned worker, protected amount, booked scope and the in-browser OpenStreetMap/OSRM route.
-6. Click the compact map. It should open the large glassmorphism interactive map with pan/zoom; ESC or the close button returns to the booking.
+6. Click the compact map or its expand button. It opens the large interactive map with pan/zoom; ESC or the close button returns to the booking.
 
 ## 2. Worker + customer: pre-start Scope Lock and full job lifecycle
 
@@ -42,7 +42,7 @@ Use the same browser profile so the deterministic register persists across logou
 9. After the decision, the job returns to `arrived`. Customer clicks **Issue the start code**. The code, its countdown and the attempts left are shown on the booking and are held with the job, so a reload or a sign-out no longer loses them.
 10. Log in as worker. The start-code panel names the code under a **Demo delivery** label (it stands in for the SMS a real customer would read out) and shows attempts left and time remaining. Enter it -> job moves to `started`.
     - Worth showing: a wrong code costs one attempt and says how many are left; an expired code costs nothing and tells the worker to ask for a new one.
-11. Worker adds work proof.
+11. Worker opens **Add work proof**, explains what was done, names any parts and why they were needed, records the result check and clicks **Save proof**. Optionally attach a real JPG/PNG/WebP/MP4/WebM up to 2 MB. At arrival, **Save before-work proof** records the initial condition. Files persist on this device; text-only proof remains a member statement.
 12. Customer reviews proof and clicks **Approve the proof and issue the finish code**. It is a different code from the start code and is bound to this job.
 13. Worker enters the finish code -> job becomes `completed`.
 14. Customer opens **Pay ₹… · Demo checkout**.
@@ -161,4 +161,19 @@ Use the SAME JOBS / SAME WORKERS / DIFFERENT RULES visual and summarize the prod
 - Leaflet/OpenStreetMap renders in-browser. Compact maps intentionally behave as clean previews; click opens a large interactive map. The federation dialog uses a quiet white surface and plain backdrop. OSRM supplies road geometry, distance and duration; failure falls back to a labelled approximate route. Worker service positions are deterministic illustrative positions, not production live GPS or home addresses.
 - OpenRouter is optional and server-only. `/api/ai/intake` structures customer intake. `/api/ai/policy` clusters worker-origin issues/suggestions for human governance review. Both have deterministic/manual fallbacks and neither can make consequential dispatch, pay, penalty, challenge, voting or activation decisions.
 - The reliable judge source of truth is the versioned browser demo register. Supabase remote mirroring is optional provider wiring; hosted RLS/Realtime/private-storage behavior is not claimed unless separately configured and verified.
-- The Razorpay-style checkout is deliberately labelled **DEMO PAYMENT**. It does not call Razorpay, move money, tokenize card data, create a UPI collect request, or claim escrow/regulated clearing. Its only effect after the simulated success screen is to post the existing deterministic KaamSabha settlement/invoice record.
+- The default checkout is deliberately labelled **DEMO PAYMENT**. It does not call Razorpay or move money. Optional **Razorpay test payments** in Admin → Payments requires local test credentials and an operator-approved server invoice. It uses a real order, signature and exact captured-payment check; Route transfers are recorded separately from bank settlement. See [PAYMENT_SETUP.md](PAYMENT_SETUP.md). A successful actual provider checkout/transfer has not been verified on this machine.
+
+## Optional safety and continuity demonstration
+
+Use a fresh isolated register for these reproducible starting values; do not reset an existing user/payment register.
+
+1. Customer books Plumbing in Kharadi for ₹760. Leela receives the one live offer.
+2. Leela accepts, travels and arrives. Save before-work proof, use the customer's start code, and save an explanation/proof of work already done.
+3. Open **I need to stop this job**, choose a reason and describe remaining work. The offer releases, her availability pauses, and the original receipt/proof stays intact without a rating/opportunity penalty.
+4. Customer opens Orders → **Agree and find a replacement**. Farhan receives one offer for the same booking and a new receipt. If the floor rose in between, the customer must consent to the revised remaining-service quote before dispatch.
+5. Farhan uses fresh start/finish codes and saves his own after-work proof. An earlier member's proof cannot finish his job. The customer can inspect both records.
+6. Admin → Jobs & decisions records the interrupted-work pay review, funding and next action. This is a human review note, not a transfer or a promise that earlier labour has been paid.
+7. Either role can use **Safety & help** to report an unapproved helper, unlisted charge, damage, payment or safety concern. Admin → Help requests saves an actual cooperative reply before closure. **SOS: Call 112** opens the phone dialer; it does not send an external alert/location.
+8. Optional AI proof review needs explicit consent and a compatible configured `OPENROUTER_PROOF_MODEL`. It supplies observations/questions for a human. An unavailable provider or oversized proof record stays explicitly unreviewed; inspect the saved proof with the cooperative.
+9. After the human pay review, the normal local demo checkout records ₹760 for Farhan, taking his sample-plus-demo earnings from ₹7,800 to ₹8,560. No real money moves.
+10. Ravi's ninth Yes vote and admin activation produce v3/₹860. A new booking uses it while the earlier agreed job stays ₹760. Overview traces two bookings, one completion, two members offered work and ₹760 recorded job payout; refresh preserves these actions and the real proof files.

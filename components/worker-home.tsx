@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import type { AppState, Job, Worker } from "@/lib/domain";
-import { addEvidence, declineJobSafely, transitionJob, updateWorkability } from "@/lib/commands";
+import { declineJobSafely, requestChangeOrder, transitionJob, updateWorkability } from "@/lib/commands";
 import { proposePreStartScopeChange } from "@/lib/prestart-scope";
 import { jobFlow } from "@/lib/job-flow";
 import { workerNextAction } from "@/lib/worker-guidance";
@@ -12,6 +12,9 @@ import { JobFlowTrack } from "@/components/job-flow-view";
 import { WorkerOtpPanel } from "@/components/otp-panel";
 import { ServiceMap } from "@/components/service-map";
 import { WorkerRuleChange } from "@/components/worker-rule-change";
+
+import { EmergencyStop, HandoverRecord, PriceBreakdown, ProofEditor, ProofRecords, SafetyHelp } from "@/components/work-trust";
+import { OfferNotice } from "@/components/offer-notice";
 
 type Run = (fn: () => AppState, message?: string) => boolean;
 type Props = { state: AppState; worker: Worker; job?: Job; now: number; run: Run;
@@ -28,6 +31,8 @@ function WorkerDetail({ label, children }: { label: string; children: ReactNode 
 export function WorkerHome({ state, worker, job, now, run, verifyOtp, onSeeVotes }: Props) {
   const locale = state.locale;
   return <div className="workerHome">
+    <OfferNotice state={state} job={job} run={run}/>
+    {state.jobs.filter(j=>j.handoverHistory?.some(h=>h.fromWorkerId===worker.id)).map(j=><HandoverRecord key={j.id} state={state} job={j} run={run}/>)}
     {job ? <WorkerTask key={job.id} state={state} worker={worker} job={job} now={now} run={run} verifyOtp={verifyOtp} />
       : <section className="workerTask workerQueue"><h2>{workerText(locale, worker.available ? "queueReady" : "queuePaused")}</h2>
         <WorkerDetail label={workerText(locale, "whyWaiting")}><WorkerStanding state={state} worker={worker} locale={locale} /></WorkerDetail>
@@ -59,7 +64,7 @@ function WorkerTask({ state, worker, job, now, run, verifyOtp }: Omit<Props, "on
         {action === "accept" && <button className="workerPrimary" onClick={() => run(() => transitionJob(state, job.id, "accepted"), workerText(locale, "acceptedJob"))}>{workerText(locale, "acceptJob")}</button>}
         {action === "travel" && <button className="workerPrimary" onClick={() => run(() => transitionJob(state, job.id, "travelling"))}>{workerText(locale, "startTravel")}</button>}
         {action === "arrive" && <button className="workerPrimary" onClick={() => run(() => transitionJob(state, job.id, "arrived"))}>{workerText(locale, "markArrived")}</button>}
-        {action === "proof" && <button className="workerPrimary" onClick={() => run(() => addEvidence(state, job.id, `Work proof ${job.evidence.length + 1}`), workerText(locale, "proofAdded"))}>{workerText(locale, "addProof")}</button>}
+        {action === "proof" && <ProofEditor state={state} job={job} run={run}/>}
         {action === "start-code" && <WorkerOtpPanel job={job} purpose="start" onVerify={verifyOtp} locale={locale} />}
         {action === "finish-code" && <WorkerOtpPanel job={job} purpose="completion" onVerify={verifyOtp} locale={locale} />}
         {pending && <p className="workerPendingScope">{pending.description} (+₹{pending.amountDelta})</p>}
@@ -75,15 +80,19 @@ function WorkerTask({ state, worker, job, now, run, verifyOtp }: Omit<Props, "on
         </select></label>
         <button className="secondary" onClick={() => run(() => declineJobSafely(state, job.id, declineReason), workerText(locale, "safeDeclineDone"))}>{workerText(locale, "safeDecline")}</button>
       </WorkerDetail>}
-      {job.status === "arrived" && <WorkerDetail label={workerText(locale, "scopeChange")}>
+      {["arrived","started"].includes(job.status) && <WorkerDetail label={workerText(locale, "scopeChange")}>
         <p>{workerText(locale, "scopeChangeNote")}</p>
-        <form className="workerScopeForm" onSubmit={e => { e.preventDefault(); run(() => proposePreStartScopeChange(state, job.id, scopeText, scopeAmount), workerText(locale, "scopeSent")); }}>
+        <form className="workerScopeForm" onSubmit={e => { e.preventDefault(); run(() => job.status==="arrived"?proposePreStartScopeChange(state, job.id, scopeText, scopeAmount):requestChangeOrder(state,job.id,scopeText,scopeAmount), workerText(locale, "scopeSent")); }}>
           <label className="field"><span>{workerText(locale, "extraWork")}</span><input value={scopeText} onChange={e => setScopeText(e.target.value)} required maxLength={1200} /></label>
           <label className="field"><span>{workerText(locale, "extraAmount")}</span><input type="number" min={0} step={1} value={scopeAmount} onChange={e => setScopeAmount(Number(e.target.value))} required /></label>
           <button className="secondary" disabled={!scopeText.trim()}>{workerText(locale, "sendAddition")}</button>
         </form>
       </WorkerDetail>}
     </section>
+    {job.status === "arrived" && <WorkerDetail label={locale === "hi" ? "काम से पहले का प्रमाण" : locale === "mr" ? "कामापूर्वीचा पुरावा" : "Save before-work proof"}><ProofEditor state={state} job={job} run={run}/></WorkerDetail>}
+    {["started","change_pending"].includes(job.status) && action !== "proof" && <WorkerDetail label={workerText(locale,"addProof")}><ProofEditor state={state} job={job} run={run}/></WorkerDetail>}
+    <ProofRecords state={state} job={job} run={run}/><EmergencyStop state={state} job={job} run={run}/><SafetyHelp state={state} job={job} run={run}/>
+    <WorkerDetail label="Agreed price breakdown"><PriceBreakdown amount={job.amount}/></WorkerDetail>
     <WorkerDetail label={workerText(locale, "mapDirections")}><ServiceMap job={job} workerName={worker.name} mode="worker" /></WorkerDetail>
     <WorkerDetail label={workerText(locale, "jobDetails")}>
       <JobFlowTrack job={job} viewer="worker" locale={locale} />

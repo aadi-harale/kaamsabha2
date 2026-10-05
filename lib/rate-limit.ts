@@ -65,27 +65,36 @@ export function rateLimitHeaders(result: RateLimitResult, limit: number): Record
   };
 }
 
-/** Reads a JSON body with a hard byte ceiling, so one request cannot pin memory. */
-export async function readJsonBody(
+/** Preserve raw bytes for webhook signatures and file hashes, with a streaming ceiling. */
+export async function readRawBody(
   request: Request,
   maxBytes: number,
-): Promise<{ ok: true; body: Record<string, unknown> } | { ok: false; status: number; error: string }> {
+): Promise<{ ok: true; body: Buffer } | { ok: false; status: number; error: string }> {
   const declared = Number(request.headers.get("content-length") ?? "0");
   if (Number.isFinite(declared) && declared > maxBytes) {
     return { ok: false, status: 413, error: "Request body is too large" };
   }
-  let text: string;
   try {
-    text = await request.text();
+    const reader=request.body?.getReader();
+    if(!reader)return {ok:true,body:Buffer.alloc(0)};
+    else{
+      const chunks:Uint8Array[]=[];let size=0;
+      while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;
+        if(size>maxBytes){await reader.cancel();return {ok:false,status:413,error:"Request body is too large"};}
+        chunks.push(value);
+      }
+      return {ok:true,body:Buffer.concat(chunks,size)};
+    }
   } catch {
     return { ok: false, status: 400, error: "Request body could not be read" };
   }
-  // content-length can be absent or wrong, so the real text is measured too.
-  if (Buffer.byteLength(text, "utf8") > maxBytes) {
-    return { ok: false, status: 413, error: "Request body is too large" };
-  }
+}
+
+/** Reads a JSON object without accepting an absent or misleading length header. */
+export async function readJsonBody(request:Request,maxBytes:number):Promise<{ok:true;body:Record<string,unknown>}|{ok:false;status:number;error:string}>{
+  const raw=await readRawBody(request,maxBytes);if(!raw.ok)return raw;
   try {
-    const parsed: unknown = JSON.parse(text);
+    const parsed: unknown = JSON.parse(raw.body.toString("utf8"));
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
       return { ok: false, status: 400, error: "Expected a JSON object" };
     }

@@ -15,7 +15,8 @@ export function adminOverview(state: AppState) {
   const activeJobs = state.jobs.filter(job => !["settled", "cancelled"].includes(job.status));
   return {
     bookings: state.jobs.length, activeJobs: activeJobs.length,
-    waitingJobs: activeJobs.filter(job => job.status === "requested").length,
+    waitingJobs: activeJobs.filter(job => job.status === "requested" && job.handoverHistory?.at(-1)?.status !== "awaiting-customer").length,
+    replacementApprovals: activeJobs.filter(job => job.status === "requested" && job.handoverHistory?.at(-1)?.status === "awaiting-customer").length,
     served: state.jobs.filter(job => ["completed", "settled"].includes(job.status)).length,
     verified: state.workers.filter(worker => worker.verified).length,
     safe: state.workers.filter(worker => memberCapacityStatus(worker) === "Safe capacity").length,

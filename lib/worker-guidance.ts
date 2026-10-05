@@ -22,7 +22,7 @@ export function workerNextAction(job: Job, now = Date.now()): WorkerAction {
   if (job.status === "travelling") return "arrive";
   if (job.status === "arrived" && !job.changeOrders.some(c => c.approved === undefined) && otpIsLive(job.startOtp, now)) return "start-code";
   if (job.status === "started") {
-    if (!job.evidence.length) return "proof";
+    if (!job.evidence.some(e=>e.uploadedBy===job.workerId&&e.phase!=="before")) return "proof";
     if (otpIsLive(job.completionOtp, now)) return "finish-code";
   }
   return "wait";

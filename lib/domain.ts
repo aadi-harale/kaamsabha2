@@ -35,9 +35,12 @@ export interface DecisionReceipt {
   homeCooperativeId?:string; homeCandidateSnapshot?:DecisionCandidateSnapshot[];
 }
 export interface OtpChallenge { purpose:"start"|"completion"; token:string; expiresAt:number; attemptsLeft:number; usedAt?:number; issuedAt?:number; demoCode?:string; }
-export interface Evidence { id:string; label:string; createdAt:string; uploadedBy:string; }
-export interface ChangeOrder { id:string; description:string; amountDelta:number; requestedBy:string; approved?:boolean; decidedAt?:string; }
-export interface Settlement { id:string; jobId:string; amount:number; workerPayout:number; platformFee:number; invoiceNumber:string; settledAt:string; }
+export interface ProofMedia { assetId:string; name:string; mimeType:string; size:number; digest:string; }
+export interface ProofReview { mode:"ai-assisted"|"unavailable"; summary:string; observations:string[]; questions:string[]; limitations:string[]; inputDigest:string; reviewedAt:string; model?:string; }
+export interface Evidence { id:string; label:string; createdAt:string; uploadedBy:string; phase?:"before"|"after"; explanation?:string; partsUsed?:string; checksDone?:string; media?:ProofMedia; }
+export interface ChangeOrder { id:string; description:string; amountDelta:number; requestedBy:string; approved?:boolean; decidedAt?:string; kind?:"work"|"helper"; helperWorkerId?:string; }
+export interface Settlement { id:string; jobId:string; amount:number; workerPayout:number; platformFee:number; invoiceNumber:string; settledAt:string; workerId?:string; mode?:"local-demo"|"razorpay-test"; providerPaymentId?:string; providerOrderId?:string; }
+export interface EmergencyHandover { id:string; fromWorkerId:string; fromReceiptId?:string; reason:string; remainingWork:string; previousStatus:JobStatus; createdAt:string; status:"awaiting-customer"|"awaiting-capacity"|"reassigned"; replacementWorkerId?:string; newReceiptId?:string; approvedAt?:string; payReviewRequired:boolean; payReviewNote?:string; }
 export interface Feedback { id:string; jobId:string; customerId:string; rating:number; note:string; createdAt:string; }
 export interface ChallengeDecisionSnapshot {
   receiptId:string; jobId:string; policyVersion:string; selectedWorkerId:string; cooperativeId:string;
@@ -55,7 +58,7 @@ export interface Challenge {
 }
 export interface CancellationRecord { id:string; jobId:string; cancelledBy:string; reason:string; workerPayout:number; customerRefund:number; createdAt:string; }
 export interface SafeDeclineRecord { id:string; jobId:string; workerId:string; reason:string; penalty:0; createdAt:string; }
-export interface OpportunityRecord { id:string; jobId:string; workerId:string; status:"offered"|"accepted"|"declined"; hardEligible:true; opportunityPenalty:0; createdAt:string; resolvedAt?:string; }
+export interface OpportunityRecord { id:string; jobId:string; workerId:string; status:"offered"|"accepted"|"declined"|"released"; hardEligible:true; opportunityPenalty:0; createdAt:string; resolvedAt?:string; seenAt?:string; }
 export interface PolicySuggestion { id:string; workerId:string; category:SuggestionCategory; title:string; details:string; status:"submitted"|"under-review"|"accepted"|"declined"; createdAt:string; reviewedAt?:string; }
 export interface IssueRecord { id:string; jobId?:string; openedBy:string; category:string; status:"open"|"responded"|"closed"; notes:string[]; }
 export interface Job {
@@ -63,6 +66,8 @@ export interface Job {
   workerId?:string; cooperativeId?:string; homeCooperativeId?:string; receiptId?:string; federationOpportunityId?:string; amount:number;
   intakeNote?:string; referenceName?:string; declinedWorkerIds?:string[]; startOtp?:OtpChallenge; completionOtp?:OtpChallenge;
   evidence:Evidence[]; changeOrders:ChangeOrder[];
+  handoverHistory?:EmergencyHandover[]; proofReview?:ProofReview;
+  gatewayInvoice?:{invoiceId:string;accessToken:string};
 }
 
 export interface PolicyProposalSimulation { currentFloor:number; proposedFloor:number; currentMaxWait:number; proposedMaxWait:number; workerProtectionDelta:number; affectedJobs:number; note:string; }

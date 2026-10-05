@@ -9,4 +9,5 @@ coverage/
 *.log
 .DS_Store
 *.tsbuildinfo
+.local-data/
 next-env.d.ts

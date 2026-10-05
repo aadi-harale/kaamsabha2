@@ -72,7 +72,7 @@ export function decidePreStartScopeChange(
       : change,
   );
   const amount = approved
-    ? Math.max(state.policy.minimumPayout, job.amount + pending.amountDelta)
+    ? job.amount + pending.amountDelta
     : job.amount;
 
   return nextRevision({

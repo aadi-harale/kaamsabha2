@@ -79,7 +79,7 @@ export function routeFederationTransfer(state:AppState,opportunityId:string,targ
   const worker=selectWorkerInCooperative(state,receiving.id,opportunity.service);
   if(!worker)throw new Error("Receiving cooperative no longer has a safe eligible member. Refresh capacity before transfer.");
   const job=opportunity.jobId?state.jobs.find(j=>j.id===opportunity.jobId):undefined;
-  if(!job||job.status!=="requested")throw new Error("Linked overflow job is not available for transfer");
+  if(!job||job.status!=="requested"||job.workerId||job.handoverHistory?.at(-1)?.status==="awaiting-customer")throw new Error("Linked overflow job is not available for transfer");
   const receiptId=`${opportunity.id}-worker`,snapshots=candidateSnapshot(state,receiving.id,opportunity.service);
   const candidateWorkerIds=snapshots.filter(s=>s.eligible).map(s=>s.workerId);
   const receipt:DecisionReceipt={

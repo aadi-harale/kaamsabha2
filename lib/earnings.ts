@@ -13,7 +13,7 @@ export function workerEarningEntries(state:AppState,workerId:string):WorkerEarni
   const historical=(state.earningsHistory??[]).filter(e=>e.workerId===workerId);
   const liveJobs=state.jobs.filter(j=>j.workerId===workerId);
   const liveSettlements=state.settlements
-    .filter(s=>liveJobs.some(j=>j.id===s.jobId))
+    .filter(s=>s.workerId?s.workerId===workerId:liveJobs.some(j=>j.id===s.jobId))
     .map<WorkerEarningEntry>(s=>({
       id:`LIVE-${s.id}`,workerId,service:liveJobs.find(j=>j.id===s.jobId)?.service??"service",
       amount:s.workerPayout,earnedAt:s.settledAt,type:"job",label:`${liveJobs.find(j=>j.id===s.jobId)?.service??"Service"} settlement`

@@ -468,6 +468,53 @@ deliberately rather than inheriting one.
   The guide in FINAL_DEMO_CHECKLIST.md names the current admin controls and honest data bases.
 
 
+# Verified work continuity, proof and Razorpay preparation (2026-10-06)
+
+- Customer/worker tickets now show agreed pay, zero current commission and consent-only extras.
+  Real before/after media lives behind MediaRepository in IndexedDB; explanations, parts and
+  checks accompany SHA-256 file fingerprints. A replacement needs its own after proof and fresh
+  codes. Legacy/text-only proof is explicitly a member statement, not verified media.
+- Emergency stop releases the current offer, pauses availability without penalty, preserves
+  originals and requires customer consent before one deterministic replacement. Started work
+  needs a recorded separate pay review before checkout; that note does not transfer compensation.
+  Safe-decline redispatch also needs quote consent if a later policy raises the floor. Frozen
+  replay excludes declined members, and old scope/cancellation/settlement prices stay frozen.
+- Both roles save job/receipt-linked safety, helper, unlisted-charge, damage or payment concerns.
+  Operations saves actual cooperative replies before closing. SOS opens the 112 dialer only.
+  Offer acknowledgements persist; opt-in system alerts work only in a supported open browser.
+- Explicit user-requested proof AI is advisory. Consent plus a compatible configured model is
+  required; actual unconfigured requests returned unavailable. No workmanship certification,
+  identity/fraud judgement, penalty, ban or consequential AI decision was added.
+- Razorpay test wiring has strict PaymentRepository/transport boundaries and ignored durable
+  local SQLite. Operator approval freezes scope, approved additions, amount, floor and member.
+  Orders, stored-order HMAC, exact captured-payment checks, idempotent capture/webhook ledger and
+  separately reserved/reconciled Route transfers are implemented. Pending bank settlement,
+  reversals and provider fees/tax are distinct. Live keys/Vercel local storage fail closed.
+- Continuous production-browser proof: KMS-00002/Leela/₹760 -> emergency -> Farhan/DEC-00020,
+  one offer -> own proof/fresh codes -> human pay review and two replied/closed help cases ->
+  INV-KMS-00002/₹760 local demo settlement. Farhan's sample-plus-demo total rose ₹7,800 -> ₹8,560.
+  Ravi's ninth Yes enabled v3/₹860; KMS-00064 used it while the earlier receipt stayed identical.
+  Overview traced 2 bookings, 1 completion, 2/13 members offered work and ₹760 job payout.
+  Refresh preserved the register and actual WebM playback/two images in IndexedDB.
+- Full normal judge regression also passed cancellation ₹190, completion ₹760, confirmed/closed
+  Replay Court, no-capacity and successful Nikita/Yerawada transfer with two receipts, and later
+  v3/₹860 booking. Final counters: 5 bookings, 1 completion, 3/13 coverage, ₹760 payout.
+- Payment UI/service adapter checks passed a ₹940 invoice including approved ₹180 scope,
+  signed capture once and separate Route reconciliation/fees. This was a controlled adapter,
+  not an actual provider checkout. Real Razorpay credentials/Route accounts and proof model
+  are still unconfigured/unverified. No secrets or test records were added to the user profile.
+- Passed: npm test (170/170), npm run typecheck, npm run lint (existing TypeScript alias),
+  npm run build, git diff --check. Browser runs: 152 responsive checks at all required widths,
+  37 scoped WCAG A/AA audits with zero violations, no page errors, visible focus/reduced motion.
+  Some map/icon/link nodes remained automated manual-review findings; screenshots were inspected.
+  Removed the duplicate quote panel, fixed nested map interactions and 320px header overlap.
+- Evidence outside Git: kaamsabha2-trust-{walkthrough,regression-check}.json,
+  kaamsabha2-payment-ui-check.json and worker-screenshots/trust-* / payment-ui-* under Downloads.
+  PAYMENT_SETUP.md, TRUST_AND_SAFETY_DECISIONS.md and FINAL_DEMO_CHECKLIST.md describe the flow
+  and boundaries. Real KYC/duplicate-identity detection, background messaging, live GPS,
+  authority paging, automatic bans/refunds and live payments remain out of scope. New worker
+  translations still need native-speaker/field review.
+
 # Freeze
 
 Feature work beyond this pass remains frozen. Remaining work is deployment/browser
