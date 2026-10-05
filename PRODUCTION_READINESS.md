@@ -97,6 +97,14 @@ These were real defects, not theoretical ones:
 
 ## Translations
 
+Worker Listen reads authored English/Hindi/Marathi summaries from the same saved register as
+the screen. It uses the device's Web Speech voices, preferring a local voice for the selected
+language. A missing voice or playback error leaves an explicit message and readable summary;
+it never substitutes an unrelated language. Voice availability and audible playback still
+need checking on the actual demo/field device. The automated Chrome run exposed no native
+voices; speech event handling was separately tested with a controlled adapter. No paid speech
+provider or additional library was added.
+
 The member's own screens are in English, Hindi and Marathi (`lib/messages.ts`, 216 messages).
 **These translations have not been reviewed by a native speaker.** They are good-faith and
 grammatical, and a Marathi and a Hindi speaker should read them before anyone relies on them in

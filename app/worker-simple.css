@@ -1,6 +1,7 @@
 /* Worker pages use a readable work slip: one question, large choices, then the record. */
 .workerEasyShell { color: #17212b; }
 .workerEasyShell .workspace { min-width: 0; }
+.workerEasyShell .brand small, .workerEasyShell .identity small { color: #52606d; }
 .workerMobileName { display: none; }
 .workerEasyShell .pageHead .eyebrow:empty { display: none; }
 .workerEasyShell .pageHead h1 { font-size: clamp(28px, 3vw, 38px); line-height: 1.2; letter-spacing: -.025em; }
@@ -88,6 +89,50 @@
 .workerSimple .whyProof { min-width: 0; }
 .workerSimple .whyOrder { overflow-x: auto; }
 .workerEasyShell :is(button, input, select, textarea, summary, a):focus-visible { outline: 3px solid #0f6b5c; outline-offset: 3px; }
+.workerListen { display: grid; justify-items: end; gap: 8px; max-width: 340px; }
+.workerListen button.secondary { display: flex; align-items: center; gap: 8px; min-height: 48px; color: #0f6b5c; padding: 10px 16px; font-size: 16px; box-shadow: none; }
+.workerListen p { font-size: 15px; line-height: 1.6; margin: 8px 0 0; color: #394854; max-width: 70ch; }
+.workerListenText { font-size: 14px; line-height: 1.6; }
+.workerListenText summary { min-height: 44px; padding: 10px 0; color: #0f6b5c; cursor: pointer; }
+.workerHome { display: grid; gap: 12px; font-size: 17px; line-height: 1.6; }
+.workerHome p, .workerRuleChange p { max-width: 70ch; margin: 0 0 12px; color: #394854; line-height: 1.65; }
+.workerTask { padding: 24px; background: #fff; border: 1px solid #dde3e8; border-left: 4px solid #0f6b5c; border-radius: 12px; }
+.workerTaskHeader { display: flex; justify-content: space-between; align-items: start; gap: 24px; margin-bottom: 16px; }
+.workerTask h2 { margin: 0 0 6px; font-size: 26px; line-height: 1.3; letter-spacing: -.02em; }
+.workerTaskHeader p { margin: 0; font-size: 17px; }
+.workerJobPay { display: grid; gap: 4px; }
+.workerJobPay span { font-size: 15px; color: #394854; }
+.workerJobPay strong { font-size: 28px; color: #0f6b5c; line-height: 1.3; font-variant-numeric: tabular-nums; }
+.workerNextAction { padding: 20px 0 6px; border-top: 1px solid #dde3e8; }
+.workerNextAction h3 { font-size: 16px; font-weight: 600; margin: 0 0 8px; }
+.workerNextAction > p { font-size: 18px; }
+.workerNextAction .otpForm { background: transparent; border: 0; padding: 0; margin-top: 16px; }
+.workerNextAction .otpForm > .eyebrow { display: none; }
+.workerNextAction .otpForm button { width: fit-content; min-height: 52px; font-size: 17px; }
+.workerHomeDetail { border-bottom: 1px solid #dde3e8; min-width: 0; }
+.workerHomeDetail > summary { min-height: 56px; padding: 14px 4px; color: #0f6b5c; cursor: pointer; font-size: 17px; font-weight: 600; line-height: 1.5; }
+.workerHomeDetailBody { padding: 8px 4px 20px; }
+.workerHomeDetailBody .field, .workerScopeForm, .workerLimitsForm { display: grid; gap: 12px; }
+.workerHomeDetailBody .field { margin-bottom: 14px; }
+.workerHome .field > span { font-size: 16px; color: #17212b; }
+.workerHome .field :is(input, select) { min-height: 48px; width: 100%; min-width: 0; max-width: 100%; font-size: 17px; border: 1px solid #9aa6b1; background: #fff; padding: 10px 12px; border-radius: 8px; }
+.workerHomeDetailBody button.secondary { font-size: 16px; min-height: 48px; width: fit-content; }
+.workerAvailable { display: flex; align-items: center; gap: 12px; min-height: 48px; }
+.workerAvailable input { width: 22px; height: 22px; accent-color: #0f6b5c; }
+.workerLimitsForm { max-width: 520px; }
+.workerHome .workerFacts { font-size: 15px; }
+.workerRuleChange { border-top: 2px solid #0f6b5c; padding: 24px 0 12px; margin-top: 12px; font-size: 17px; }
+.workerRuleChange h2 { font-size: 23px; margin: 0 0 12px; line-height: 1.4; }
+.workerRuleProof { padding: 16px; background: #edf7f4; border-radius: 8px; overflow-wrap: anywhere; }
+.workerPaymentStatus { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-block: 1px solid #dde3e8; }
+.workerPaymentStatus > div { padding: 16px 12px; }
+.workerPaymentStatus dt { font-size: 15px; color: #394854; }
+.workerPaymentStatus dd { font-size: 23px; color: #17212b; font-weight: 700; margin: 6px 0 0; }
+.workerCheckProgress { display: flex; flex-wrap: wrap; gap: 12px 20px; list-style: none; padding: 12px 0; margin: 0; }
+.workerCheckProgress li { display: flex; align-items: start; gap: 8px; font-size: 15px; line-height: 1.5; }
+.workerCheckProgress li > span { display: grid; place-items: center; width: 26px; height: 26px; flex: 0 0 26px; border: 1px solid #9aa6b1; border-radius: 50%; }
+.workerCheckProgress li.done > span { background: #0f6b5c; color: #fff; border-color: #0f6b5c; }
+.workerCheckProgress small { display: block; }
 
 @media (max-width: 820px) {
   .workerEasyShell .pageHead .workerMobileName { display: block; color: #52606d; font-size: 16px; font-weight: 500; letter-spacing: normal; margin: 0 0 6px; }
@@ -98,8 +143,23 @@
   .workerEasyShell .workspace { padding-top: 22px; }
 }
 @media (max-width: 560px) {
-  .workerHomeEarnings { grid-template-columns: 1fr; gap: 14px; padding: 18px; }
-  .workerHomeEarnings button.secondary { justify-self: start; }
+  .workerEasyShell .pageHead { display: flex; gap: 12px; margin-bottom: 18px; }
+  .workerEasyShell .pageHead > div:first-child { min-width: 0; }
+  .workerListen { max-width: 55%; }
+  .workerListen p { font-size: 14px; }
+  .workerTask { padding: 18px; }
+  .workerTaskHeader { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; }
+  .workerJobPay { max-width: 100px; }
+  .workerTask h2 { font-size: 24px; }
+  .workerHome { font-size: 16px; }
+  .workerHome button.workerPrimary, .workerNextAction .otpForm button { width: 100%; }
+  .workerHome .jobFlow { margin-inline: -4px; }
+  .workerPaymentStatus { grid-template-columns: 1fr; }
+  .workerPaymentStatus > div { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; border-bottom: 1px solid #dde3e8; }
+  .workerPaymentStatus > div:last-child { border-bottom: 0; }
+  .workerPaymentStatus dd { margin: 0; }
+  .workerHomeEarnings { grid-template-columns: minmax(0, 1fr) auto; gap: 12px; padding: 16px; }
+  .workerHomeEarnings button.secondary { max-width: 116px; padding-inline: 10px; }
   .workerSimple { gap: 16px; font-size: 16px; }
   .workerPaper { padding: 18px; }
   .workerSimple h2 { font-size: 22px; }

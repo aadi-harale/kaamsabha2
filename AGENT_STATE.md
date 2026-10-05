@@ -273,6 +273,42 @@ deliberately rather than inheriting one.
 - Twelve home-layout checks passed: three languages × 320/768/1024/1440px, no page overflow or clipped controls. Desktop/mobile screenshots were captured and inspected; keyboard payment navigation showed a 3px focus outline, and reduced-motion mode was checked. The home summary uses a quiet work-slip layout without extra charts or decorative icons.
 - Passed: `npm test` (120/120), `npm run typecheck`, `npm run lint` (existing TypeScript alias), `npm run build`. Browser evidence: `C:/Users/AADI/Downloads/kaamsabha2-home-earnings-check.json`; screenshots: `C:/Users/AADI/Downloads/kaamsabha2-worker-screenshots/home-earnings-*.png`. These isolated test records were not written to the user's browser or committed.
 
+# Verified worker guidance and member outcomes (2026-10-05)
+
+- Today presents agreed work/pay and one lifecycle action before expandable map, progress,
+  safe decline, scope addition and work limits. Existing commands and OTP verification remain
+  authoritative. Maps mount on request. The mobile header/earnings layout was tightened after
+  inspecting screenshots. Activated ballot details are collapsed to remove repeated outcomes.
+- Listen provides authored English/Hindi/Marathi summaries of the signed-in member's saved
+  records, with stop/cancel, errors and a readable transcript. It selects a matching device
+  voice; no unrelated-language fallback, paid provider or library was added. Ten controlled
+  speech-adapter checks passed, including language, ledger text, end/error and cancellation
+  on tab/language change. The initial native Chrome voice inventory was empty: audible
+  playback on the actual demo device remains unverified and device-dependent.
+- My money distinguishes paid work, cancellation protection and completed work awaiting
+  payment. The real OTP/proof/checkout walkthrough preserved ₹8,110 until settlement, then
+  raised it to ₹8,870; a later accepted-job cancellation raised it to ₹9,060. Refresh
+  preserved the records and Meena's separate ₹7,030.
+- Vote outcomes derive from the current activated proposal, saved ballots and later frozen
+  receipts. Browser proof: Ravi's ninth yes ballot enabled constitution-v3, ₹760 → ₹860;
+  Leela's new KMS-00025 receipt used v3/₹860 while the earlier receipt remained v2. Help notes
+  and idea review persisted. Farhan's new-job challenge showed received → replayed → answered
+  and closed, with the actual cooperative reply. A capture summary no longer falsely marks
+  replay complete; human review keeps the final answer pending.
+- Real control checks saved six-hour/60-minute work limits, mounted the map, approved a ₹180
+  pre-start addition (₹940 total), kept work locked pending approval, and safely declined
+  another offer with zero penalty and re-dispatch. No page errors occurred in these flows.
+- Seventy-two responsive checks passed across three languages and four required widths.
+  Desktop/mobile screenshots were captured outside Git and inspected. Keyboard focus and
+  reduced motion passed. Ten worker-shell axe WCAG A/AA audits reported zero violations after
+  fixing header contrast; decorative glyph contrast remains axe's manual-review exception.
+- Passed: `npm test` (125/125), `npm run typecheck`, `npm run lint` (existing TypeScript alias),
+  `npm run build`, `git diff --check`. Evidence: device-local
+  `C:/Users/AADI/Downloads/kaamsabha2-worker-guidance-{walkthrough,controls,a11y}.json`, the
+  existing home-earnings report and screenshot directory. No test register was written to the
+  user's browser. Browser policy blocked access to that tab; the user must refresh it.
+  Native-speaker and field usability review remain outstanding.
+
 # Freeze
 
 Feature work beyond this pass remains frozen. Remaining work is deployment/browser

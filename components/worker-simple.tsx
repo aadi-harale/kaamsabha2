@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import type { AppState, ChallengeCategory, DecisionReceipt, Job, Locale, SuggestionCategory, Worker } from "@/lib/domain";
+import type { AppState, Challenge, ChallengeCategory, DecisionReceipt, Job, Locale, SuggestionCategory, Worker } from "@/lib/domain";
 import { addIssueNote, castVote, openChallenge, openIssue, reviewPolicyImpact, submitPolicySuggestion } from "@/lib/commands";
 import { summarizeWorkerEarnings, workerEarningEntries } from "@/lib/earnings";
 import { t } from "@/lib/messages";
 import { workerService, workerStatus, workerText, type WorkerCopyKey } from "@/lib/worker-copy";
 import { WorkerDecisionReasons } from "@/components/allocation-reasons";
+import { WorkerRuleChange } from "@/components/worker-rule-change";
+import { workerChallengeProgress } from "@/lib/worker-guidance";
 
 type Run = (fn: () => AppState, message?: string) => boolean;
 type WorkerProps = { state: AppState; worker: Worker; run: Run };
@@ -88,6 +90,7 @@ export function WorkerFair({ state, worker, run }: WorkerProps) {
         <span className="workerStatus">{workerStatus(locale, c.status)}</span>
         <strong>{state.jobs.find(j => j.id === c.jobId) ? <JobLabel job={state.jobs.find(j => j.id === c.jobId)!} locale={locale} /> : c.jobId}</strong>
         <p>{c.reason}</p>
+        <ChallengeProgress challenge={c} locale={locale} />
         {c.status === "open" && <p>{workerText(locale, "nextCheck")}</p>}
         {c.adminNote && <p><b>{workerText(locale, "response")}: </b>{c.adminNote}</p>}
         {c.remedy && <p>{c.remedy}</p>}
@@ -102,6 +105,19 @@ export function WorkerFair({ state, worker, run }: WorkerProps) {
       </article>)}
     </section>
   </div>;
+}
+
+function ChallengeProgress({ challenge, locale }: { challenge: Challenge; locale: Locale }) {
+  const { checked, answered } = workerChallengeProgress(challenge);
+  const steps: { label: WorkerCopyKey; done: boolean }[] = [
+    { label: "checkReceived", done: true }, { label: "checkReviewed", done: checked }, { label: "checkAnswered", done: answered },
+    ...(challenge.remedy ? [{ label: "checkRemedy" as const, done: true }] : []),
+  ];
+  return <ol className="workerCheckProgress" aria-label={workerText(locale, "checkProgress")}>
+    {steps.map((step, index) => <li key={step.label} className={step.done ? "done" : "waiting"} aria-current={!step.done && (index === 0 || steps[index - 1].done) ? "step" : undefined}>
+      <span aria-hidden="true">{step.done ? "✓" : index + 1}</span><div>{workerText(locale, step.label)}<small>{workerText(locale, step.done ? "checkDone" : "checkWaiting")}</small></div>
+    </li>)}
+  </ol>;
 }
 
 function DecisionCheck({ state, worker, run, initialJob }: WorkerProps & { initialJob?: string }) {
@@ -258,9 +274,14 @@ export function WorkerEarnings({ state, worker }: { state: AppState; worker: Wor
     <p className="workerIntro">{workerText(locale, "moneyIntro")}</p>
     <section className="workerMoney" aria-label={workerText(locale, "money")}>
       <span>{workerText(locale, "moneyTotal")}</span><strong>{money(summary.total)}</strong>
-      <div><span>{workerText(locale, "paidJobs")}: <b>{summary.completedJobs}</b></span><span>{workerText(locale, "cancelMoney")}: <b>{money(summary.cancellationProtection)}</b></span></div>
+      <div><span>{workerText(locale, "paidJobs")}: <b>{summary.completedJobs}</b></span></div>
     </section>
     <p className="workerDemoNote">{workerText(locale, "demoMoney")}</p>
+    <dl className="workerPaymentStatus">
+      <div><dt>{workerText(locale, "completedWork")}</dt><dd>{money(summary.total - summary.cancellationProtection)}</dd></div>
+      <div><dt>{workerText(locale, "cancelMoney")}</dt><dd>{money(summary.cancellationProtection)}</dd></div>
+      <div><dt>{workerText(locale, "pendingPay")}</dt><dd>{money(unpaid.reduce((sum, job) => sum + job.amount, 0))}</dd></div>
+    </dl>
     <section className="workerPaper"><h2>{workerText(locale, "payments")}</h2>
       {!entries.length && <p>{workerText(locale, "noPayments")}</p>}
       <ul className="workerPayments">{(showAll ? entries : entries.slice(0, 5)).map(entry => <li key={entry.id}>
@@ -272,11 +293,6 @@ export function WorkerEarnings({ state, worker }: { state: AppState; worker: Wor
       {entries.length > 5 && <button type="button" className="secondary" aria-expanded={showAll} onClick={() => setShowAll(v => !v)}>{workerText(locale, showAll ? "close" : "allPayments")}</button>}
     </section>
     {unpaid.length > 0 && <section className="workerPaper"><h2>{workerText(locale, "unpaid")}</h2><p>{workerText(locale, "unpaidNote")}</p>{unpaid.map(j => <p key={j.id}><JobLabel job={j} locale={locale} /></p>)}</section>}
-    <details className="workerMore workerPaper"><summary>{workerText(locale, "breakdown")}</summary><dl className="workerFacts">
-      <div><dt>{workerText(locale, "completedWork")}</dt><dd>{money(summary.total - summary.cancellationProtection)}</dd></div>
-      <div><dt>{workerText(locale, "cancelMoney")}</dt><dd>{money(summary.cancellationProtection)}</dd></div>
-      <div><dt>{workerText(locale, "moneyTotal")}</dt><dd>{money(summary.total)}</dd></div>
-    </dl></details>
   </div>;
 }
 
@@ -284,7 +300,10 @@ export function WorkerGovernance({ state, worker, run }: WorkerProps) {
   // Keying the ballot to its proposal prevents a previous choice carrying into a new vote.
   const proposal = state.proposals.find(p => p.status === "voting") ?? state.proposals[0];
   return <div className="workerSimple"><p className="workerIntro">{workerText(state.locale, "votesIntro")}</p>
-    {proposal ? <WorkerBallot key={proposal.id} state={state} worker={worker} run={run} proposal={proposal} /> : <p className="workerEmpty">{workerText(state.locale, "noVote")}</p>}
+    <WorkerRuleChange state={state} worker={worker} />
+    {proposal ? proposal.status === "active"
+      ? <details className="workerMore"><summary>{workerText(state.locale, "moreVote")}</summary><WorkerBallot key={proposal.id} state={state} worker={worker} run={run} proposal={proposal} /></details>
+      : <WorkerBallot key={proposal.id} state={state} worker={worker} run={run} proposal={proposal} /> : <p className="workerEmpty">{workerText(state.locale, "noVote")}</p>}
   </div>;
 }
 
