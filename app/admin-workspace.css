@@ -1,0 +1,247 @@
+/* Cooperative operations: a work register with evidence at the point of decision. */
+.adminShell{--admin-ink:#172e3b;--admin-muted:#50636b;--admin-line:#d5dfe2;--admin-action:#176b52;max-width:1560px;color:var(--admin-ink)}
+.adminShell .appGrid{grid-template-columns:218px minmax(0,1fr);gap:30px}
+.adminShell .sideNav{top:84px;padding-top:18px}
+.adminShell .workspace{padding-top:22px;padding-bottom:48px}
+.adminShell .pageHead{align-items:start;margin-bottom:24px;gap:16px}
+.adminShell .pageHead h1{font-size:clamp(28px,3vw,38px);letter-spacing:-.025em;line-height:1.15;margin:0}
+.adminShell .pageHead .eyebrow{display:none}
+.adminPageDescription{max-width:66ch;margin:8px 0 0;color:var(--admin-muted);font-size:15px;line-height:1.55}
+.adminShell .pageHead>.statusChip{font-size:11px;white-space:nowrap}
+.adminShell .adminNavigation{display:grid;gap:18px}
+.adminNavigation section{display:grid;gap:3px}
+.adminShell .adminNavigation h2{font-size:12px;font-weight:600;color:var(--admin-muted);margin:0 0 4px;padding-left:12px;letter-spacing:0}
+.adminShell .adminNavigation .navItem{min-height:42px;font-size:14px;padding:9px 12px;justify-content:start;border-radius:8px;box-shadow:none}
+.adminShell .adminNavigation .navItem.active{border-left:3px solid var(--admin-action);background:#e5efeb;color:#114d3b;padding-left:9px}
+.adminMenuToggle{display:none}
+.adminShell .constitution{margin-top:24px;border-radius:9px;padding:14px;font-size:13px}
+.adminShell .constitution small{text-transform:none;letter-spacing:0;font-size:12px}
+.adminStack{display:grid;gap:20px;min-width:0}
+.adminShell .panel{padding:24px;border:1px solid var(--admin-line);border-radius:12px;box-shadow:none;background:#fff;margin:0;min-width:0}
+.adminShell h2{font-size:22px;line-height:1.25;letter-spacing:-.015em;margin:0 0 12px;font-weight:750}
+.adminShell h3{font-size:18px;line-height:1.35;margin:0 0 6px;letter-spacing:-.01em}
+.adminShell p{font-size:15px;line-height:1.6;max-width:78ch}
+.adminShell .adminBasis{font-size:13px;color:var(--admin-muted);line-height:1.6;margin:8px 0 0}
+.adminShell .adminTotals+.adminBasis{margin-top:-12px}
+.adminShell .statusChip{font-family:inherit;font-size:12px;font-weight:600;background:#eef3f3;color:#304a54;white-space:normal;box-shadow:none}
+.adminShell .statusChip .statusDot{background:var(--admin-action)}
+.adminShell button{min-height:44px;font-size:14px;border-radius:8px;box-shadow:none;line-height:1.4}
+.adminShell button:not(.navItem):hover{transform:none}
+.adminShell button:disabled{opacity:1;background:#e9eef0;color:#66737a;border-color:#d5dfe2;cursor:not-allowed}
+.adminShell :is(button,a,input,select,textarea,summary):focus-visible{outline:3px solid #176b52;outline-offset:3px}
+.adminShell :is(input,select,textarea){font-size:15px;min-height:46px;max-width:100%;min-width:0}
+.adminShell .field{min-width:0;margin:0;gap:6px}
+.adminShell .field>span{font-size:13px;font-weight:650;color:var(--admin-ink)}
+.adminShell .sectionTitle{gap:14px;align-items:start;flex-wrap:wrap;margin-bottom:16px}
+.adminShell .sectionTitle h2{margin-bottom:0}
+.adminTotals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:0;border:1px solid var(--admin-line);border-radius:12px;background:#fff;overflow:hidden}
+.adminTotals>div{padding:20px;border-right:1px solid var(--admin-line);min-width:0}
+.adminTotals>div:last-child{border-right:0}
+.adminTotals dt{font-size:13px;line-height:1.45;color:var(--admin-muted)}
+.adminTotals dd{margin:8px 0 0;font-size:30px;line-height:1.2;font-weight:750;letter-spacing:-.035em;overflow-wrap:anywhere}
+.adminTotals dd small{font-size:12px;letter-spacing:0;font-weight:500;color:var(--admin-muted)}
+.adminTasks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;border:1px solid var(--admin-line);border-radius:12px;background:white;overflow:hidden}
+.adminTasks button{display:flex;align-items:center;justify-content:space-between;gap:20px;text-align:left;border:0;border-radius:0;border-bottom:1px solid var(--admin-line);background:#fff;color:var(--admin-ink);padding:18px 20px}
+.adminTasks button:nth-child(odd){border-right:1px solid var(--admin-line)}
+.adminTasks button:nth-last-child(-n+2){border-bottom:0}
+.adminTasks span{display:grid;gap:5px}
+.adminTasks small{font-size:13px;color:var(--admin-muted);font-weight:400}
+.adminTasks b{font-size:24px;color:var(--admin-action)}
+.adminTasks button:hover{background:#eef5f2}
+.adminStory{padding:22px;border-left:4px solid var(--admin-action);background:#edf3f3;border-radius:0 10px 10px 0;display:grid;gap:12px}
+.adminStory p{margin:0;color:var(--admin-muted)}
+.adminStory ol{margin:0;padding-left:22px;display:grid;gap:2px}
+.adminStory li::marker{color:var(--admin-action);font-weight:700}
+.adminStory button{padding:6px 10px;min-height:40px;text-align:left;background:none;border:0;color:var(--admin-action);font-weight:650}
+.adminShell .ruleComparison{margin:0}
+.adminToolbar{display:flex;flex-wrap:wrap;align-items:end;gap:16px;margin-bottom:20px}
+.adminToolbar .field{flex:1 1 200px}
+.adminToolbar>span{font-size:13px;color:var(--admin-muted);padding-bottom:12px}
+.adminSplit{display:grid;grid-template-columns:minmax(220px,.7fr) minmax(0,1.5fr);gap:20px;align-items:start}
+.adminRecordList{display:grid;gap:0}
+.adminShell .adminRecordList{padding:8px}
+.adminRecordList button{display:grid;gap:4px;text-align:left;background:white;color:var(--admin-ink);border:0;border-bottom:1px solid var(--admin-line);border-radius:0;padding:16px}
+.adminRecordList button:last-child{border-bottom:0}
+.adminRecordList button[aria-pressed=true]{background:#edf5f2;border-left:3px solid var(--admin-action);padding-left:13px;border-radius:6px}
+.adminRecordList button>span,.adminRecordList small{font-size:13px;font-weight:400;line-height:1.45}
+.adminRecordList .statusChip{width:fit-content;margin-top:4px}
+.adminJobDetail>p{color:var(--admin-muted)}
+.adminFacts{display:grid;gap:0;margin:18px 0}
+.adminFacts>div{display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid var(--admin-line)}
+.adminFacts dt{font-size:13px;color:var(--admin-muted);line-height:1.5}
+.adminFacts dd{font-size:14px;line-height:1.5;font-weight:700;text-align:right;margin:0}
+.adminShell .waitingOn{display:block;max-width:none}
+.adminDisclosure{margin-top:16px;min-width:0}
+.adminDisclosure>summary{min-height:44px;cursor:pointer;font-size:14px;font-weight:650;line-height:1.5;padding:10px 0;overflow-wrap:anywhere}
+.adminShell .adminDisclosure>.panel{padding:16px 0 0;border:0;border-top:1px solid var(--admin-line);border-radius:0;margin-top:12px}
+.adminShell .adminDisclosure .sectionTitle{display:none}
+.adminShell .ledgerContext{font-size:13px}
+.adminShell .ledgerTable{overflow-x:auto}
+.adminShell .ledgerHead,.adminShell .ledgerRow{font-size:12px}
+.adminShell .workerTableHead,.adminShell .workerRow{font-size:14px;gap:14px}
+.adminShell .workerRow small{display:block;font-size:12px;line-height:1.5;color:var(--admin-muted);margin-top:3px}
+.adminShell .workerRow{padding:18px 0}
+.adminShell .workerRow .statusChip{width:fit-content}
+.adminShell .caseRow{padding:20px 0;align-items:start;border-bottom:1px solid var(--admin-line);gap:16px}
+.adminShell .caseRow>div{min-width:0}
+.adminShell .caseRow small,.adminIdea small{font-size:12px;color:var(--admin-muted)}
+.adminShell .caseRow h2{font-size:18px;margin:6px 0}
+.adminIdea{padding:22px 0;border-bottom:1px solid var(--admin-line)}
+.adminIdea h3{margin-top:10px}
+.adminMoneyRow{display:flex;justify-content:space-between;gap:20px;padding:18px 0;border-bottom:1px solid var(--admin-line)}
+.adminMoneyRow>div{display:grid;gap:5px}
+.adminMoneyRow>div:last-child{text-align:right}
+.adminMoneyRow span{font-size:13px;color:var(--admin-muted)}
+.adminEmpty{padding:28px 8px;color:var(--admin-muted)}
+.adminEmpty>strong{font-size:17px;color:var(--admin-ink)}
+.adminEmpty p{margin:8px 0 0;font-size:14px}
+.adminSubnav{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--admin-line);padding-bottom:8px}
+.adminSubnav button{padding:10px 16px;color:var(--admin-muted);background:transparent;border:1px solid transparent;box-shadow:none}
+.adminSubnav button.active{background:#e5efeb;color:#114d3b;border-color:#bcd2c8}
+.adminIntro p,.fedIntro p{margin:8px 0 0;color:var(--admin-muted)}
+.adminActiveRule{display:flex;flex-wrap:wrap;align-items:center;gap:24px;padding:20px 24px;background:#edf3f3;border-left:4px solid var(--admin-action);border-radius:0 10px 10px 0}
+.adminActiveRule>div{display:grid;gap:5px}
+.adminActiveRule span{font-size:13px;color:var(--admin-muted)}
+.adminActiveRule strong{font-size:19px}
+.adminActiveRule p{flex:1 1 260px;margin:0;font-size:14px}
+.adminProposalPicker{display:flex;align-items:end;gap:20px;flex-wrap:wrap}
+.adminProposalPicker .field{flex:1 1 260px}
+.adminPayCompare{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--admin-line);border-radius:10px;overflow:hidden;margin-top:18px}
+.adminPayCompare>div{display:grid;gap:7px;padding:20px}
+.adminPayCompare>div:last-child{background:#edf5f2;border-left:1px solid var(--admin-line)}
+.adminPayCompare span{font-size:14px}
+.adminPayCompare strong{font-size:36px;letter-spacing:-.04em;line-height:1.2}
+.adminPayCompare small{font-size:13px;color:var(--admin-muted)}
+.adminBallot .adminTotals{grid-template-columns:repeat(3,minmax(0,1fr))}
+.adminSavedVotes{list-style:none;padding:0;margin:0}
+.adminSavedVotes li{display:grid;grid-template-columns:1fr auto;gap:8px;padding:12px 0;border-bottom:1px solid var(--admin-line);font-size:14px}
+.adminSavedVotes li>p{grid-column:1/-1;font-size:13px;margin:0}
+.adminTwinRows{display:grid;gap:0;font-size:13px}
+.adminTwinRows>div{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:20px;padding:12px 0;border-bottom:1px solid var(--admin-line)}
+.adminTwinRows small{display:block;color:var(--admin-muted)}
+.adminFinding{margin:16px 0 0;padding:16px;background:#edf5f2;border-left:3px solid var(--admin-action);border-radius:0 8px 8px 0}
+.adminFinding p{font-size:14px;margin:6px 0 0}
+.adminFinding.violation{background:#fff5e5;border-color:#8a5b08}
+.adminProtectionList{padding-left:20px;font-size:15px;line-height:1.6}
+.adminProtectionList li+li{margin-top:8px}
+.adminForecast{display:grid;gap:18px;margin-top:26px}
+.adminForecast>div{display:grid;grid-template-columns:40px minmax(0,1fr) 70px;align-items:center;gap:14px;font-size:14px}
+.adminForecast>div>div{height:16px;background:#edf3f3;border-radius:3px;overflow:hidden}
+.adminForecast i{display:block;height:100%;background:var(--admin-action)}
+.fedJourneyTrack,.fedStorySteps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border:1px solid var(--admin-line);border-radius:10px;overflow:hidden;background:#fff}
+.fedJourneyTrack li{display:flex;gap:10px;align-items:center;padding:16px;border-right:1px solid var(--admin-line);font-size:14px;color:var(--admin-muted)}
+.fedJourneyTrack li:last-child{border:0}
+.fedJourneyTrack li>span{display:grid;place-items:center;flex:0 0 28px;height:28px;border:1px solid var(--admin-line);border-radius:50%;font-size:13px}
+.fedJourneyTrack .current{background:#edf5f2;color:#114d3b}
+.fedJourneyTrack .current>span{background:var(--admin-action);color:white;border-color:var(--admin-action)}
+.fedJourneyTrack .done>span{border-color:var(--admin-action);color:var(--admin-action)}
+.fedStartLayout,.fedReviewLayout{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(280px,.85fr);gap:20px;align-items:start}
+.fedBuilder{display:grid;gap:16px}
+.fedBuilder h2{margin-bottom:0}
+.fedBuilder .adminBasis{margin-top:0}
+.fedShortages{display:grid;gap:8px;margin:22px 0}
+.fedShortages button{display:grid;gap:6px;text-align:left;color:var(--admin-ink);background:#fff;border:1px solid var(--admin-line);padding:18px}
+.fedShortages button[aria-pressed=true]{border-color:var(--admin-action);background:#edf5f2}
+.fedShortages button>span{font-size:13px;line-height:1.5;font-weight:400}
+.fedQueue>div{display:flex;gap:8px;flex-wrap:wrap}
+.fedQueue button{display:grid;gap:6px;flex:1 1 220px;text-align:left;color:var(--admin-ink);background:white;border:1px solid var(--admin-line);padding:16px;max-width:100%}
+.fedQueue button[aria-pressed=true]{border-color:var(--admin-action);background:#edf5f2}
+.fedQueue button>span,.fedQueue button>small{font-size:13px;font-weight:400}
+.fedReceiverList{display:grid;margin-top:20px}
+.fedReceiverList article{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:18px 0;border-bottom:1px solid var(--admin-line)}
+.fedReceiverList article.chosen{border-left:3px solid var(--admin-action);padding-left:14px;background:#f2f8f5}
+.fedReceiverList article>div{min-width:0}
+.fedReceiverList article>div>.statusChip{display:inline-block;margin-bottom:7px}
+.fedReceiverList p{margin:4px 0;font-size:14px}
+.fedReceiverList button{flex:0 0 auto;max-width:140px}
+.fedConfirm{position:sticky;top:88px;display:grid;gap:14px}
+.fedConfirm p,.fedConfirm .adminFacts{margin:0}
+.fedConfirm .fedRouteLabel{font-size:20px;font-weight:700;color:var(--admin-action)}
+.fedConfirm .adminFacts>div{display:grid;gap:3px}
+.fedConfirm .adminFacts dd{text-align:left}
+.adminShell .fedCapacityMatrix th,.adminShell .fedCapacityMatrix td{font-size:13px;letter-spacing:0;padding:16px}
+.adminShell .fedCapacityButton{display:grid;gap:4px;padding:12px;background:#eef5f2;color:#174d3a;text-align:left;border:1px solid #cbded4;min-width:95px}
+.fedCapacityButton span,.fedCapacityButton small{font-size:12px;font-weight:400}
+.fedOutcome{border:1px solid #bcd2c8;border-left:4px solid var(--admin-action);border-radius:12px;padding:24px;background:#edf5f2}
+.fedOutcome>.statusChip{display:inline-block;margin-bottom:14px}
+.fedStorySteps{margin-top:20px}
+.fedStorySteps li{display:grid;gap:6px;padding:18px;border-right:1px solid var(--admin-line)}
+.fedStorySteps li:last-child{border-right:0}
+.fedStorySteps span,.fedStorySteps small{font-size:13px;line-height:1.5;color:var(--admin-muted)}
+.fedStorySteps strong{font-size:17px}
+.fedReasonList{list-style:none;padding:0;margin:20px 0;display:grid;gap:0}
+.fedReasonList li{display:grid;grid-template-columns:1fr auto;gap:7px;padding:14px 0;border-bottom:1px solid var(--admin-line);font-size:15px}
+.fedReasonList li>span{font-size:13px;color:var(--admin-muted)}
+.fedReasonList p{grid-column:1/-1;margin:0;font-size:14px}
+.adminShell .realMap{border:1px solid var(--admin-line);border-radius:12px;background:#fff;box-shadow:none}
+.adminShell .realMap .mapHeading{background:#172e3b;padding:16px}
+.adminShell .realMap .mapHeading strong{font-size:15px}
+.adminShell .realMap .mapHeading span{font-size:12px;line-height:1.5;letter-spacing:0}
+.adminShell .realMap .mapViewport{height:350px}
+.adminShell .policyIntelHead h2{font-size:22px}
+.adminShell .policyIntel .eyebrow{display:none}
+.adminShell .policyIntelStats span,.adminShell .policyThemeGrid article p{font-size:13px;color:var(--admin-muted)}
+.adminShell .policyIntelStats strong,.adminShell .policyThemeGrid article strong{font-size:16px}
+.adminShell .policyIntelStats>div,.adminShell .policyThemeGrid article{box-shadow:none;border-radius:8px}
+.adminShell .policyDraft{background:#edf3f3;color:var(--admin-ink);border:1px solid var(--admin-line);border-radius:10px}
+.adminShell .policyDraft :is(p,small,span){color:var(--admin-muted);font-size:13px}
+.adminShell .policyGuardrail{color:#174d3a!important;background:#e5efeb}
+.adminShell .policyIntelEmpty span{font-size:14px;color:var(--admin-muted)}
+.adminShell .replayCourtHero{background:#edf3f3;color:var(--admin-ink);border:1px solid var(--admin-line);border-radius:12px}
+.adminShell .replayCourtHero p,.adminShell .replayCourtHero small{color:var(--admin-muted);font-size:14px}
+.adminShell .replayCourtHero .eyebrow{display:none}
+.adminShell .replayCourtHero h2{font-size:25px}
+.adminShell .replayCourtHero .replayPromise{background:white;color:var(--admin-ink)}
+.adminShell .replayQueueItem :is(span,small){font-size:13px;color:var(--admin-muted)}
+.adminShell .replayFinding p,.adminShell .replayLogic,.adminShell .caseMessage span{font-size:14px}
+@media(max-width:1200px){.adminShell .appGrid{grid-template-columns:190px minmax(0,1fr);gap:22px}.fedStartLayout,.fedReviewLayout{grid-template-columns:1fr}.fedConfirm{position:static}.adminTotals>div{padding:16px}.adminShell .adminReplayLayout{grid-template-columns:1fr}}
+@media(max-width:900px){.adminSplit{grid-template-columns:1fr}.adminRecordList{grid-template-columns:repeat(2,minmax(0,1fr));max-height:320px;overflow-y:auto}.adminRecordList button{border:1px solid var(--admin-line)}.adminTotals{grid-template-columns:repeat(2,minmax(0,1fr))}.adminTotals>div{border-bottom:1px solid var(--admin-line)}.adminTotals>div:nth-child(even){border-right:0}.adminTotals>div:nth-last-child(-n+2){border-bottom:0}.fedStorySteps{grid-template-columns:1fr}.fedStorySteps li{border-right:0;border-bottom:1px solid var(--admin-line)}.fedStorySteps li:last-child{border-bottom:0}}
+@media(max-width:760px){.adminShell{padding:0 14px 30px}.adminShell .appGrid{display:block}.adminShell .sideNav{position:static;padding:12px 0 0}.adminShell .sideNav .identity,.adminShell .constitution{display:none}.adminShell .workspace{padding-top:22px;padding-bottom:20px}.adminShell .sideNav .adminNavigation{position:static;display:none;grid-auto-flow:row;grid-auto-columns:auto;overflow:visible;padding:12px;background:#fff;border:1px solid var(--admin-line);border-radius:10px;box-shadow:none;margin-top:8px}.adminShell .sideNav .adminNavigation.isOpen{display:grid;gap:14px}.adminNavigation section{grid-template-columns:repeat(2,minmax(0,1fr))}.adminNavigation h2{grid-column:1/-1}.adminShell .adminNavigation .navItem{white-space:normal;text-align:left;min-height:46px;font-size:14px}.adminMenuToggle{display:flex;align-items:center;justify-content:space-between;width:100%;gap:12px;text-align:left}.adminMenuToggle>span{font-size:12px;color:var(--admin-muted)}.adminShell .pageHead{display:block;margin-bottom:20px}.adminShell .pageHead>.statusChip{display:none}.adminShell .panel{padding:18px}.adminShell .topContext{display:none}.adminShell .brand small{display:none}.adminShell .topbar{gap:10px;padding:12px 0;min-height:64px}.adminShell .topActions{gap:6px}.adminShell .brand{gap:7px}.adminShell .brand strong{font-size:16px}.adminShell .brandMark{width:30px;height:30px;font-size:18px}.adminShell .locale select{width:86px;font-size:12px}.adminShell .topActions button{min-height:40px;font-size:12px;padding:8px}.adminShell h2{font-size:20px}.adminShell p{font-size:14px}.adminShell .adminBasis{font-size:12px}.adminTasks{grid-template-columns:1fr}.adminTasks button:nth-child(odd){border-right:0}.adminTasks button:nth-last-child(-n+2){border-bottom:1px solid var(--admin-line)}.adminTasks button:last-child{border-bottom:0}.adminStory{padding:18px}.adminStory button{font-size:14px}.adminTotals dd{font-size:27px}.adminTotals dt{font-size:12px}.adminShell .adminToolbar{align-items:stretch;gap:12px}.adminToolbar .field{flex-basis:100%}.adminSubnav{gap:4px}.adminSubnav button{font-size:13px;padding:9px 10px}.fedJourneyTrack{grid-template-columns:1fr}.fedJourneyTrack li{padding:10px 14px;border-right:0;border-bottom:1px solid var(--admin-line)}.fedJourneyTrack li:last-child{border-bottom:0}.fedReceiverList article{display:grid;gap:12px}.fedReceiverList button{max-width:none;width:100%}.fedOutcome{padding:18px}.adminShell .realMap .mapViewport{height:320px}.adminShell .realMap .mapHeading{display:grid;gap:8px}.adminShell .realMap .mapExpandButton{width:fit-content}.adminMoneyRow{display:grid;gap:10px}.adminMoneyRow>div:last-child{text-align:left}.adminShell .workerTableHead{display:none}.adminShell .workerRow{grid-template-columns:1fr;gap:8px}.adminShell .caseRow{display:grid;grid-template-columns:1fr}.adminActiveRule{padding:16px;gap:16px}.adminActiveRule p{flex-basis:100%}.adminPayCompare>div{padding:16px}.adminPayCompare strong{font-size:30px}.adminBallot .adminTotals{grid-template-columns:1fr}.adminBallot .adminTotals>div{border-right:0;border-bottom:1px solid var(--admin-line)}.adminBallot .adminTotals>div:last-child{border-bottom:0}.adminRecordList{grid-template-columns:1fr}.adminFacts>div{display:grid;gap:3px}.adminFacts dd{text-align:left}.adminShell .adminReplayLayout,.adminShell .replayCourtHero{grid-template-columns:1fr}.adminShell .frozenFacts.admin{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.adminShell *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+.adminShell #admin-page-title:focus{outline:none}
+.adminShell .constitution small{text-transform:none!important;letter-spacing:0!important}
+
+.adminShell .fedJourney:focus{outline:none}
+
+.adminShell .brand small,.adminShell .identity small,.adminShell .constitution small,.adminShell .constitution span{color:var(--admin-muted)}
+.adminShell .ruleStats dt,.adminShell .ruleStats dd small,.adminShell .ruleBar.none .ruleBarName,.adminShell .ruleBar.none .ruleBarCount{color:var(--admin-muted)}
+.adminShell .replayCourtHero .replayPromise>span{color:var(--admin-muted)}
+
+.adminShell .ledgerHead,.adminShell .ledgerRow small,.adminShell .replayCaseTitle small,.adminShell .frozenHeader :is(span,.eyebrow),.adminShell .frozenFacts :is(span,small){color:var(--admin-muted);font-size:12px;letter-spacing:0;text-transform:none}
+.adminShell .replayStepper li{color:var(--admin-muted)}
+.adminShell .replayStepper li>span{background:#eef2f3;color:var(--admin-ink);font-size:12px;border-radius:50%}
+.adminShell .replayStepper li>b{color:var(--admin-muted);font-size:12px}
+.adminShell .replayStepper li.done>span{background:#176b52;color:#fff}
+.adminShell .replayStepper li.done>b{color:#174d3a}
+.adminShell .realMap .mapHeading strong{color:#fff}
+.adminShell .leaflet-control-attribution a{text-decoration:underline;color:#174d3a}
+.mapPreviewCanvas{height:100%;width:100%}
+
+.adminShell .replayCourtHero{box-shadow:none}
+.adminShell .replayPromise>strong{font-size:26px;color:var(--admin-ink)}
+.adminShell .replayPromise :is(span,small){text-transform:none;letter-spacing:0}
+.adminShell .replayStepper b,.adminShell .caseStatus{text-transform:none;letter-spacing:0}
+.adminShell .caseStatus{font-size:12px}
+.adminShell .replayCandidateHead{font-size:12px}
+.adminShell .replayCandidateRow{font-size:14px;padding:14px 12px}
+.adminShell .replayLogic :is(strong,li){font-size:14px;line-height:1.6}
+.adminShell .frozenFacts strong{font-size:14px}
+.federationMapModal{background:#fff;border-radius:16px;backdrop-filter:none}
+.federationMapBackdrop{background:rgba(23,46,59,.6);backdrop-filter:none}
+.federationMapModal>header{background:#fff;padding:18px 20px}
+.federationMapModal>header>div>span{display:none}
+.federationMapModal>header h2{color:#172e3b;font-size:22px}
+.federationMapModal>header p{color:#50636b;font-size:13px;line-height:1.5}
+.federationMapModal .expandedFederationLegend{background:#fff;gap:8px;padding:12px}
+.federationMapModal .expandedFederationLegend button{min-height:88px;opacity:1;border-radius:8px;box-shadow:none}
+.federationMapModal .expandedFederationLegend button:disabled{background:#eef2f3;color:#50636b;opacity:1}
+.federationMapModal .expandedFederationLegend :is(span,small){font-size:12px;color:#50636b;line-height:1.5}
+.federationMapModal .expandedFederationLegend strong{font-size:14px;color:#172e3b}
+.federationMapModal .leaflet-control-attribution a{color:#174d3a;text-decoration:underline}
+.federationMapModal .kmsCoopPin.selected,.adminShell .kmsCoopPin.selected{box-shadow:0 0 0 3px rgba(23,107,82,.22),0 4px 12px rgba(23,46,59,.16)}
+.federationMapModal .federationIcon,.adminShell .federationIcon{width:auto!important}
+/* Keep resized Leaflet tiles painted in Chrome without changing map geometry. */
+.federationMapModal .leaflet-tile,.adminShell .federationMap .leaflet-tile{will-change:transform!important}
+.adminShell .mapExpandButton span:first-child{display:inline}
+@media(max-width:760px){.federationMapModal{height:94dvh;width:100%;border-radius:12px}.federationMapModal>header{padding:14px}.federationMapModal>header h2{font-size:19px}.federationMapModal .expandedFederationLegend{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:8px}.federationMapModal .expandedFederationLegend button{min-height:90px;padding:10px}.federationMapModal .expandedMapCanvas .leafletHost,.federationMapModal .expandedMapCanvas .leaflet-container{min-height:0}.federationMapModal .expandedFederationLegend :is(span,small){font-size:11px}.federationMapModal .expandedFederationLegend strong{font-size:12px}}

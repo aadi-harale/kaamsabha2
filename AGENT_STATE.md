@@ -14,16 +14,16 @@ Admin flow is operations-first: live jobs, verified members/certifications/worka
 
 Federation is now an application workflow, not an information page.
 
-1. Admin opens **Requests** and chooses the home cooperative, service shortage and customer SLA.
+1. Admin opens **Transfers** and chooses the home cooperative, service shortage and customer arrival promise.
 2. KaamSabha refuses to open federation routing if the home cooperative still has safe local capacity.
 3. A real overflow job/request is persisted with a frozen capacity candidate set.
-4. Admin reviews **Control map**, **Requests**, **Capacity** and **History & receipts** tabs.
+4. Admin follows **Transfers**, **Live capacity** and **Receipts**. Candidate records lead; the interactive control map supports the receiving-cooperative choice.
 5. The admin may choose only an eligible receiving cooperative. Ineligible candidates expose the exact capacity/workload/SLA/protection reason.
-6. Clicking **Initiate job transfer** routes the job opportunity to that cooperative.
+6. Clicking **Confirm job transfer** routes the job opportunity to that cooperative and opens its two receipts.
 7. The receiving cooperative then selects its own worker under its own active constitution. The admin never globally chooses the cheapest worker.
 8. A worker opportunity record and linked worker Decision Receipt are created. The transferred job can continue through the normal customer/worker lifecycle.
 
-The capacity matrix exposes five service categories across the four cooperatives and highlights safe capacity, constrained capacity, workload blocks and waiting demand. The compact federation map is deliberately a preview; clicking it opens a large glassmorphism modal with a fully interactive Leaflet/OpenStreetMap map. Candidate markers in the expanded map can be used to choose an eligible receiving cooperative. CSS paint containment/isolation keeps Leaflet tiles, panes and controls from leaking over neighboring UI.
+The capacity matrix exposes five service categories across the four cooperatives and highlights safe capacity, constrained capacity, workload blocks and waiting demand. The compact federation map is deliberately a preview; clicking it opens a large, readable dialog with an interactive Leaflet/OpenStreetMap map. The federation dialog uses a quiet white surface and a plain backdrop. Candidate markers in the expanded map can be used to choose an eligible receiving cooperative. CSS paint containment/isolation keeps Leaflet tiles, panes and controls from leaking over neighboring UI.
 
 The seeded federation history still preserves the deterministic judge proof from the reference story: Kharadi has no safe local electrician capacity; Yerawada has two safely available members at 24 minutes; Viman Nagar is blocked by workload protection despite a 21-minute ETA; Hadapsar misses the 35-minute customer promise at 39 minutes; federation selects Yerawada first, then Yerawada's own constitution selects Meena Jadhav.
 
@@ -67,7 +67,7 @@ Reference-repo infrastructure that is intentionally **not claimed as parity** in
 
 # Maps and providers
 
-Customer and worker tracking use Leaflet with OpenStreetMap tiles inside the browser. `/api/route` uses public OSRM road geometry/distance/duration and falls back to a clearly labelled approximate direct route if routing fails. Map tile failure has an accessible service-area fallback. All compact maps can be expanded into a glassmorphism modal; the expanded map is interactive and the preview is intentionally click-to-expand to avoid cramped Leaflet controls/overlays. Worker positions are deterministic illustrative service positions; worker home addresses and production live GPS are not claimed.
+Customer and worker tracking use Leaflet with OpenStreetMap tiles inside the browser. `/api/route` uses public OSRM road geometry/distance/duration and falls back to a clearly labelled approximate direct route if routing fails. Map tile failure has an accessible service-area fallback. All compact maps can be expanded into an interactive modal (the federation dialog uses a plain white surface); the expanded map is interactive and the preview is intentionally click-to-expand to avoid cramped Leaflet controls/overlays. Worker positions are deterministic illustrative service positions; worker home addresses and production live GPS are not claimed.
 
 OpenRouter is optional and server-only. `/api/ai/intake` structures customer intake; `/api/ai/policy` clusters worker-origin issues/suggestions for human governance review. Both have safe fallback behavior and neither may make consequential worker/governance decisions.
 
@@ -427,6 +427,46 @@ deliberately rather than inheriting one.
 - Passed: `npm test` (147/147), `npm run typecheck`, `npm run lint`, `npm run build`,
   `git diff --check`. Evidence outside Git: `C:/Users/AADI/Downloads/kaamsabha2-phone-lan-check.json`
   and `kaamsabha2-worker-screenshots/phone-lan-*.png`. User browser records were not reset.
+
+# Verified admin flow and federation UI (2026-10-05)
+
+- Admin has ten grouped workspaces. Overview shows actual local-register totals and a
+  presentation path; the same-jobs comparison appears there once. Jobs & decisions adds
+  search, active/past filtering, a selected booking and expandable frozen candidate evidence.
+  Help requests and Replay Court are separate. Payments excludes sample worker earnings
+  and the illustrative federation split. Demand remains explicitly synthetic.
+- Federation now leads with shortage -> eligible cooperative -> locally selected member ->
+  both receipts. No-receiver requests remain visible. Live capacity opens the correct request
+  builder even with an existing queue. The map fits all four locality labels after resize,
+  has usable mobile legends, traps keyboard focus and returns focus on Escape. Loaded tiles
+  were decoded and visually inspected at desktop/mobile widths before recording verification.
+- Governance displays saved proposals, the actual active rule, real saved votes, and the same
+  frozen-job Policy Twin used by workers. It labels historical baselines, exclusions and the
+  currently inert waiting variable. The sandbox does not cast votes. Fresh proposal authoring
+  was not added; accepting an idea does not create a ballot or change rules.
+- Production-browser continuous walkthrough: electrical KMS-00004 accepted by Ravi then
+  cancelled (Rs190 protection); plumbing KMS-00011 assigned to Leela, challenged by Farhan
+  as RPL-00014, replay confirmed/closed, then completed through real start/finish OTP APIs
+  and settled as INV-KMS-00011 (Rs760). Kharadi carpentry at 25 minutes stayed unfilled
+  (FED-REQ-00043); at 35 minutes FED-REQ-00044 routed to Yerawada/Nikita for Rs760,
+  generated both receipts and replayed as confirmed.
+- Ravi cast the ninth Yes vote (9 participants/9 Yes/0 No). The Twin compared three frozen
+  jobs at Rs2280 -> Rs2580, with one unfilled job excluded. Activation produced v3/Rs860;
+  new electrical booking KMS-00056 used it while the earlier receipt remained v2. Final
+  Overview: 5 bookings, 1 completed job, 3/13 members offered work, Rs760 job payouts;
+  3 active jobs/1 awaiting capacity and Rs190 cancellation pay traced to those actions.
+  Refresh preserved jobs, policy, ballots, challenges, transfers, receipts and payments.
+- Passed: npm test (150/150), npm run typecheck, npm run lint (the existing TypeScript alias),
+  npm run build and git diff --check. Full browser run: 88 layout checks across
+  320/768/1024/1440px, 21 scoped WCAG audits with zero reported violations and zero page
+  errors. Four additional expanded-map viewport audits reported zero violations. Automated
+  contrast checks left some icon/line/map nodes for manual review; screenshots and actual
+  palette contrast were checked (body minimum 5.58:1, map home label 6.95:1).
+- Evidence outside Git: C:/Users/AADI/Downloads/kaamsabha2-admin-flow-check.json,
+  kaamsabha2-admin-map-check.json and kaamsabha2-worker-screenshots/admin-flow-*.png /
+  admin-map-decoded-*.png. Tests used isolated browser contexts; user records were not reset.
+  The guide in FINAL_DEMO_CHECKLIST.md names the current admin controls and honest data bases.
+
 
 # Freeze
 

@@ -27,18 +27,28 @@ function workerPoint(job:Job){
 function fmtKm(m:number){return m<1000?`${Math.round(m)} m`:`${(m/1000).toFixed(1)} km`;}
 function fmtMin(s:number){return `${Math.max(1,Math.ceil(s/60))} min`;}
 
-function MapModal({title,subtitle,onClose,children}:{title:string;subtitle:string;onClose:()=>void;children:ReactNode}){
+function MapModal({title,subtitle,onClose,children,variant}:{title:string;subtitle:string;onClose:()=>void;children:ReactNode;variant?:"federation"}){
   const closeRef=useRef<HTMLButtonElement>(null);
+  const dialogRef=useRef<HTMLElement>(null),onCloseRef=useRef(onClose);
+  useEffect(()=>{onCloseRef.current=onClose;},[onClose]);
   useEffect(()=>{
+    const previousFocus=document.activeElement instanceof HTMLElement?document.activeElement:null;
     const previous=document.body.style.overflow;document.body.style.overflow="hidden";
-    const onKey=(event:KeyboardEvent)=>{if(event.key==="Escape")onClose();};
+    const onKey=(event:KeyboardEvent)=>{
+      if(event.key==="Escape"){event.preventDefault();onCloseRef.current();return;}
+      if(event.key!=="Tab")return;
+      const controls=Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input,select,textarea,[tabindex="0"]')??[]).filter(node=>node.getClientRects().length>0);
+      const first=controls[0],last=controls[controls.length-1];
+      if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}
+      else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
+    };
     window.addEventListener("keydown",onKey);requestAnimationFrame(()=>closeRef.current?.focus());
-    return()=>{document.body.style.overflow=previous;window.removeEventListener("keydown",onKey);};
-  },[onClose]);
+    return()=>{document.body.style.overflow=previous;window.removeEventListener("keydown",onKey);previousFocus?.focus({preventScroll:true});};
+  },[]);
   if(typeof document==="undefined")return null;
   return createPortal(
-    <div className="mapModalBackdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <section className="mapModal" role="dialog" aria-modal="true" aria-label={title}>
+    <div className={variant==="federation"?"mapModalBackdrop federationMapBackdrop":"mapModalBackdrop"} role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <section ref={dialogRef} className={variant==="federation"?"mapModal federationMapModal":"mapModal"} role="dialog" aria-modal="true" aria-label={title}>
         <header><div><span>INTERACTIVE MAP</span><h2>{title}</h2><p>{subtitle}</p></div><button type="button" ref={closeRef} className="mapModalClose" onClick={onClose} aria-label="Close expanded map">×</button></header>
         <div className="mapModalBody">{children}</div>
       </section>
@@ -155,23 +165,44 @@ function FederationCanvas({state,opportunity,selectedId,interactive,onSelect,onF
   const candidateSignature=opportunity.candidates.map(c=>`${c.cooperativeId}:${c.availableWorkers}:${c.eta}:${c.eligible}:${c.exclusionReason??""}`).join("|");
   useEffect(()=>{
     if(!host.current||!home)return;let cancelled=false;
+    let observer:ResizeObserver|null=null,resizeFrame=0;
     void import("leaflet").then(L=>{
       if(cancelled||!host.current)return;
       const instance=L.map(host.current,{scrollWheelZoom:interactive,zoomControl:interactive,dragging:interactive,doubleClickZoom:interactive,touchZoom:interactive,boxZoom:interactive,keyboard:interactive,attributionControl:true,fadeAnimation:false,zoomAnimation:false,markerZoomAnimation:false});map.current=instance;
       const tiles=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"&copy; OpenStreetMap contributors",maxZoom:18,crossOrigin:true,updateWhenIdle:true,keepBuffer:2});let failures=0;tiles.on("tileerror",()=>{failures++;if(failures>=3)failRef.current();});tiles.addTo(instance);
       const bounds=L.latLngBounds([]);
+      const pins:{marker:Marker;locality:string;stateName:string;detail:string}[]=[];
+      const iconFor=(locality:string,stateName:string,detail:string)=>{
+        const width=instance.getSize().x<480?80:132;
+        return L.divIcon({className:"kmsMapIcon federationIcon",html:`<span class="kmsCoopPin ${stateName}" style="width:${width}px">${locality.replace("Viman Nagar","Viman")}<b>${detail}</b></span>`,iconSize:[width,52],iconAnchor:[width/2,26]});
+      };
       state.cooperatives.forEach(c=>{
         const candidate=opportunity.candidates.find(x=>x.cooperativeId===c.id),stateName=c.id===home.id?"home":c.id===selectedId?"selected":candidate?.eligible?"eligible":"blocked";
         const detail=c.id===home.id?"home":candidate?`${candidate.availableWorkers} free · ${candidate.eta} min`:"not checked";bounds.extend([c.lat,c.lng]);
-        const icon=L.divIcon({className:"kmsMapIcon federationIcon",html:`<span class="kmsCoopPin ${stateName}">${c.locality.replace("Viman Nagar","Viman")}<b>${detail}</b></span>`,iconSize:[132,52],iconAnchor:[66,26]});
+        const icon=iconFor(c.locality,stateName,detail);
         const marker=L.marker([c.lat,c.lng],{keyboard:interactive,title:`${c.name}. ${candidate?.exclusionReason??(stateName==="selected"?"Receiving cooperative selected.":stateName==="home"?"Home cooperative.":"Eligible federation candidate.")}`,icon,interactive}).addTo(instance);
+        pins.push({marker,locality:c.locality,stateName,detail});
         if(interactive&&candidate?.eligible&&c.id!==home.id)marker.on("click",()=>selectRef.current?.(c.id));
         if(c.id!==home.id)L.polyline([[home.lat,home.lng],[c.lat,c.lng]],{color:stateName==="selected"?"#176b52":"#71817a",weight:stateName==="selected"?4:2,dashArray:stateName==="selected"?undefined:"5 7",opacity:stateName==="selected"?.92:.45,interactive:false}).addTo(instance);
       });
-      if(bounds.isValid())instance.fitBounds(bounds,{padding:interactive?[96,96]:[68,68],maxZoom:interactive?13:12,animate:false});
-      requestAnimationFrame(()=>{if(!cancelled)instance.invalidateSize({animate:false});});
+      let previousSize="";
+      const fit=()=>{
+        if(cancelled)return;
+        instance.invalidateSize({animate:false});
+        pins.forEach(pin=>pin.marker.setIcon(iconFor(pin.locality,pin.stateName,pin.detail)));
+        const compact=instance.getSize().x<480;
+        if(bounds.isValid())instance.fitBounds(bounds,{padding:compact?[56,48]:interactive?[84,66]:[68,54],maxZoom:interactive?13:12,animate:false});
+        const size=instance.getSize(),key=`${size.x}:${size.y}`;
+        if(previousSize&&previousSize!==key)tiles.redraw();
+        previousSize=key;
+      };
+      fit();
+      if(typeof ResizeObserver!=="undefined"){
+        observer=new ResizeObserver(()=>{cancelAnimationFrame(resizeFrame);resizeFrame=requestAnimationFrame(fit);});
+        observer.observe(host.current);
+      }
     }).catch(()=>failRef.current());
-    return()=>{cancelled=true;map.current?.remove();map.current=null;};
+    return()=>{cancelled=true;observer?.disconnect();cancelAnimationFrame(resizeFrame);map.current?.remove();map.current=null;};
   },[home?.id,cooperativeSignature,candidateSignature,selectedId,interactive,opportunity.id]);
   return <div ref={host} className="leafletHost"/>;
 }
@@ -180,11 +211,11 @@ export function FederationMap({state,opportunity,selectedCooperativeId,onSelectC
   const[failed,setFailed]=useState(false),[expanded,setExpanded]=useState(false),home=state.cooperatives.find(c=>c.id===opportunity.homeCooperativeId),selectedId=selectedCooperativeId??opportunity.selectedCooperativeId;
   const fallback=<div className="mapLoading">Map tiles are unavailable. The capacity table remains authoritative.</div>,fail=()=>setFailed(true);
   return <section className="realMap federationMap" aria-label="Pune federation capacity map">
-    <div className="mapHeading"><div><strong>Pune Federation capacity</strong><span>Locality anchors only · worker addresses stay private</span></div><button type="button" className="mapExpandButton" onClick={()=>setExpanded(true)}><span>Open control map</span><span aria-hidden="true">↗</span></button></div>
+    <div className="mapHeading"><div><strong>Pune Federation capacity</strong><span>Locality anchors only · worker addresses stay private</span></div><button type="button" className="mapExpandButton" aria-label="Open control map" onClick={()=>setExpanded(true)}><span>Open control map</span><span aria-hidden="true">↗</span></button></div>
     <p className="srOnly">Home cooperative {home?.name}. {opportunity.candidates.map(c=>{const coop=state.cooperatives.find(x=>x.id===c.cooperativeId);return `${coop?.name??c.cooperativeId}: ${c.eligible?"eligible":c.exclusionReason}, ${c.eta} minutes.`;}).join(" ")}</p>
     <div className="mapViewport mapPreviewHit" role="button" tabIndex={0} aria-label="Open interactive federation map" onClick={()=>setExpanded(true)} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setExpanded(true);}}}>
-      {failed?fallback:<FederationCanvas state={state} opportunity={opportunity} selectedId={selectedId} interactive={false} onFail={fail}/>}<div className="mapPreviewLabel">Expand control map</div>
+      <div inert className="mapPreviewCanvas">{failed?fallback:<FederationCanvas state={state} opportunity={opportunity} selectedId={selectedId} interactive={false} onFail={fail}/>}</div><div className="mapPreviewLabel">Expand control map</div>
     </div>
-    {expanded&&<MapModal title="Federation capacity control map" subtitle={`${home?.name??"Home cooperative"} overflow · ${opportunity.service} · ${opportunity.slaMinutes}-minute SLA`} onClose={()=>setExpanded(false)}><div className="expandedMapCanvas">{failed?fallback:<FederationCanvas state={state} opportunity={opportunity} selectedId={selectedId} interactive onSelect={onSelectCooperative} onFail={fail}/>}</div><div className="expandedFederationLegend">{state.cooperatives.map(c=>{const candidate=opportunity.candidates.find(x=>x.cooperativeId===c.id),homeCoop=c.id===opportunity.homeCooperativeId;return <button type="button" key={c.id} disabled={homeCoop||!candidate?.eligible} className={c.id===selectedId?"selected":""} onClick={()=>{if(candidate?.eligible)onSelectCooperative?.(c.id);}}><span>{c.locality}</span><strong>{homeCoop?"Home":candidate?`${candidate.availableWorkers} safe · ${candidate.eta} min`:"No capacity"}</strong><small>{homeCoop?"Origin":candidate?.eligible?"Eligible — choose cooperative":candidate?.exclusionReason??"Not eligible"}</small></button>;})}</div></MapModal>}
+    {expanded&&<MapModal variant="federation" title="Federation capacity control map" subtitle={`${home?.name??"Home cooperative"} overflow · ${opportunity.service} · ${opportunity.slaMinutes}-minute SLA`} onClose={()=>setExpanded(false)}><div className="expandedMapCanvas">{failed?fallback:<FederationCanvas state={state} opportunity={opportunity} selectedId={selectedId} interactive onSelect={onSelectCooperative} onFail={fail}/>}</div><div className="expandedFederationLegend">{state.cooperatives.map(c=>{const candidate=opportunity.candidates.find(x=>x.cooperativeId===c.id),homeCoop=c.id===opportunity.homeCooperativeId;return <button type="button" key={c.id} disabled={homeCoop||!candidate?.eligible} className={c.id===selectedId?"selected":""} onClick={()=>{if(candidate?.eligible)onSelectCooperative?.(c.id);}}><span>{c.locality}</span><strong>{homeCoop?"Home":candidate?`${candidate.availableWorkers} safe · ${candidate.eta} min`:"No capacity"}</strong><small>{homeCoop?"Origin":candidate?.eligible?"Eligible — choose cooperative":candidate?.exclusionReason??"Not eligible"}</small></button>;})}</div></MapModal>}
   </section>;
 }

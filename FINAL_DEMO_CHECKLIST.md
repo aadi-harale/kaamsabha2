@@ -4,8 +4,8 @@ Use the same browser profile so the deterministic register persists across logou
 
 ## 0. Open with the argument (15 seconds)
 
-1. Sign in as `admin` (password `12345`). The operations front page leads with
-   **SAME JOBS / SAME WORKERS / DIFFERENT RULE**.
+1. Sign in as `admin` (password `12345`). Overview shows live register totals and a presentation path, followed by
+   **SAME JOBS / SAME WORKERS / DIFFERENT RULE**. The comparison has one home, not a duplicate on every admin page.
 2. Read the line out: *"Same 32 jobs. Same 13 certified members. One thing changed: the rule."*
 3. Point at the two columns. Ten members earn under this cooperative's constitution; five earn
    under rating-ranked dispatch. The cooperative rule handed work to someone already at their own
@@ -65,92 +65,90 @@ This is the part a worker actually cares about, and it is reconstructed from the
 6. Click **Show the exact figures used**: the rulebook version, the protected payout, the protection floor, and the frozen turn order with his own row highlighted.
 7. Point out the line under it: missing out has no effect on rating and does not reduce future offers. The same card offers Replay Court if he still disagrees.
 8. Now book **Electrical** in Kharadi and sign in as `sunita`. Her reason is different and names the protection: *"Workload safety guard: you were already at 420 min of your 420 min limit for that day."* A protection stopping a job is not a mark against the member.
-9. Sign in as `admin` -> Overview -> **Allocation record**: every member the decision looked at, in the order the rulebook applied, with the same reason the member sees — worded for operations rather than addressed to the reader.
+9. Sign in as `admin` -> **Jobs & decisions** -> choose the booking -> **Dispatch decision and frozen inputs**: every member the decision looked at, in the order the rulebook applied, with the same reason the member sees — worded for operations rather than addressed to the reader.
 10. Book **Carpentry** in Kharadi, where no local member is certified. The receipt also freezes the home cooperative's candidate set, so a Kharadi member can still be told their cooperative had no safe capacity and that federation compared cooperatives, never individual workers.
 
 ## 4. Worker: prove Fair Work and member voice
 
-1. Worker -> Fair Work.
+1. Worker -> Why this job?.
 2. Show the frozen Decision Receipt and the persisted **Opportunity Access Normalization** ledger: only hard-eligible offers count; safe declines have opportunity penalty `0`.
 3. Open a Replay Court challenge for the decision.
-4. Worker -> Issues. Explain the four distinct paths:
+4. Worker -> Get help. Explain the four distinct paths:
    - current-job problem -> Issue;
    - past allocation looks wrong -> Replay Court;
-   - future rule looks wrong -> Speak up;
-   - proposal on ballot -> Governance.
+   - future rule looks wrong -> Share an idea;
+   - proposal on ballot -> Our votes.
 5. Raise one worker-origin issue such as `Safety / workability` or `Payment / payout` so the collective-policy monitor has real member voice to analyze.
-6. Worker -> Speak up -> submit a plain-language policy suggestion and show its visible status.
-7. Worker -> Governance -> show personal Policy Twin impact. The worker must confirm review before voting. A no vote requires a short dissent reason; one member can vote only once.
+6. Worker -> Share an idea -> submit a plain-language policy suggestion and show its visible status.
+7. Worker -> Our votes -> show personal Policy Twin impact. The worker must confirm review before voting. A no vote requires a short dissent reason; one member can vote only once.
 8. For the deterministic judge proposal, `W01/W03-W09` already represent eight member votes. `W02` can review impact and cast the ninth vote to demonstrate quorum.
 
-## 5. Admin: Collective Pattern Court + constitution activation
+## 5. Admin: member voice, Policy Twin and activation
 
-1. Log in as `admin01`.
-2. Cases -> find the worker challenge -> open the Replay Court workspace and run the frozen replay. Explain that frozen decision inputs/policy are replayed rather than today's worker state.
-3. Suggestions -> review the worker suggestion. Accepting an idea does **not** activate policy.
-4. Governance -> show **Collective Pattern Court · Policy Signal Monitor**.
-5. Click **Analyze all member voice**. The system reads worker-origin issues plus policy suggestions and clusters repeated themes.
-6. Show the returned theme cards, severity/count, evidence snippet and `DRAFT FOR DISCUSSION — NOT EXECUTABLE POLICY`.
-7. Explicitly point out the guardrail: AI cannot rank workers, punish/deactivate, dispatch, set pay, vote, decide Replay Court outcomes or activate policy. If OpenRouter is unavailable, the deterministic category/keyword fallback keeps this flow working and labels the mode.
-8. Continue to the Worker Protection Validator and Counterfactual Policy Twin.
-9. Click **Test a paid-priority proposal** -> it must be blocked.
-10. Show ballot participation (`9 / 9`) and support threshold (`>= 7`).
-11. Activate the member-approved constitution. The active version advances (v2 -> v3), while existing Decision Receipts remain frozen under v2.
-12. A later booking must use v3 and the new ₹860 floor.
+1. Sign in as `admin` (demo password `12345`). The left menu groups service operations,
+   member decisions and planning. On a phone, open **Workspace menu**.
+2. **Replay Court** -> choose the worker challenge -> **Run frozen replay** -> record the
+   matching finding or human review -> remedy/close when appropriate. The original receipt remains frozen.
+3. **Member ideas** -> **Start review** or **Accept for development**. This does not create
+   a proposal or activate a rule; fresh proposal authoring is not part of this UI pass.
+4. **Governance -> Collective Pattern Court** -> **Analyze all member voice**. Review the
+   stored themes and draft. AI is advisory; it cannot dispatch, punish, set pay, vote or activate.
+5. **Governance -> Rules & member votes** -> choose the saved proposal. Read the current
+   active constitution above, then the before/proposed payout comparison.
+6. **Inspect each job in the comparison** shows actual replayable job receipts, including
+   bookings created in this browser session. Missing/inconsistent frozen inputs are excluded.
+   This is a counterfactual comparison, not pay already earned. The waiting variable is
+   stored only; it has no selection or arrival-time effect.
+7. **Protection checks & sandbox** -> **Test a paid-priority proposal**. It must be blocked.
+   The vote sandbox does not cast real votes and rejects counts above registered membership.
+8. Return to **Rules & member votes**. Nine participants and seven Yes votes are required.
+   Inspect saved ballots and dissent; workers cast their own votes in **Our votes**.
+9. **Activate member-approved constitution** is enabled only for an eligible open ballot.
+   Activation advances v2 to v3 and the floor from ₹760 to ₹860. Existing receipts remain v2.
+10. Book again as customer; inspect the new receipt in **Jobs & decisions**. It must use v3/₹860.
+    After activation the earlier proposal comparison is labelled as a historical baseline,
+    while the active-rule strip shows the real current floor.
 
-## 6. Admin: Federation Operations — main wow sequence
+## 6. Admin: Federation — shortage, cooperative, member, receipts
 
-Federation is an operations console, not an information page.
+1. Open **Federation -> Transfers**. The three numbered steps are an actual sequence:
+   find a shortage, choose a cooperative, inspect both receipts.
+2. **Prepare a capacity request**: choose Kharadi, Carpentry and a 35-minute customer arrival
+   promise for the default live demo. Choose a real waiting booking if one exists, or explicitly
+   choose **Create a demo overflow job**. The command refuses overflow while local safe capacity exists.
+3. Click **Check receiving cooperatives**. A real job/request is saved. Review the candidate
+   list: on the baseline register Yerawada has one safe carpenter at a 26-minute planning arrival;
+   Viman Nagar and Hadapsar have no safely available qualified member. These values are live.
+4. Optionally **Open control map**. It displays locality anchors, not worker addresses.
+   Pan/zoom and eligible cooperative selection are available; keyboard focus stays inside the
+   dialog, and Escape returns to the trigger. Map tiles need internet; the capacity records
+   remain usable when tiles fail. Planning estimates are geography/workload estimates, not GPS.
+5. Review origin, receiver, capacity, planning arrival and payout protection. Click
+   **Confirm job transfer**. Capacity is checked again; federation chooses the cooperative,
+   then that cooperative's own constitution selects its member. No central worker picker exists.
+6. The app opens **Receipts** for the transferred job. The default carpenter is Nikita More
+   in Yerawada, with ₹760 under v2 (or at least ₹860 after policy activation).
+7. Read **Receipt 1: why this cooperative?** and the rejected-cooperative reasons. Click
+   **Replay frozen federation receipt**. Read the real stored result rather than assuming confirmation.
+   A manually chosen eligible alternative may differ from the engine's deterministic replay choice.
+8. Read **Receipt 2: why this member?** -> **Inspect the frozen member candidates**. The
+   assigned job also appears in **Jobs & decisions**, the customer's Orders and the member's Today.
+9. **Live capacity** shows each cooperative/service cell, including work-limit blocks and waiting
+   jobs. A cell opens the request builder for that exact pair, even when other requests exist.
+10. A request with no eligible receiver remains in **Transfers** with an explicit blocked outcome.
+    It does not vanish or claim success. Start another request when capacity/promise changes.
+11. **Receipts** also contains a labelled seeded electrician example: Kharadi unavailable,
+    Yerawada two safe members at 24 minutes, Viman Nagar blocked by workload, Hadapsar outside
+    the 35-minute promise. It names Meena Jadhav, but the seeded worker receipt is absent from
+    the application job register. Use the live transfer above to demonstrate both real receipts.
+12. Expand **Federation Policy Twin** only when asked: it uses twelve fixed synthetic scenarios,
+    not today's bookings. The illustrative settlement split is separately labelled and is excluded
+    from the Payments register totals.
 
-### A. Create a genuine capacity request
-
-1. Open **Federation -> Requests**.
-2. Choose a home cooperative/service pair that the live shortage finder shows as having zero safe capacity, then choose the customer SLA.
-3. Freeze capacity and open the overflow request.
-4. Explain that the command layer refuses federation if the home cooperative still has safe local capacity. Federation is only for genuine overflow.
-5. The new overflow job/request appears in **Jobs waiting for federation**.
-
-### B. Route the job using the interactive control map
-
-1. Open the request -> **Control map**.
-2. The compact map is a clean preview; click it to open the large glassmorphism Leaflet/OpenStreetMap control map.
-3. Inspect cooperative markers and candidate states. Only eligible cooperatives can be selected.
-4. Choose an eligible receiving cooperative either on the expanded map or in the candidate list.
-5. Review the transfer panel: service, safe capacity, planning ETA, worker-protection floor and the fact that worker selection belongs to the receiving cooperative.
-6. Click **Initiate job transfer**.
-7. Verify the result: the job is routed to the cooperative first; only then does that cooperative's own constitution select its worker. Admin never chooses a cheapest network-wide worker.
-
-### C. Show the capacity application
-
-1. Open **Capacity**.
-2. Show the cooperative x service matrix derived from current worker skills, workability and active jobs.
-3. Green/amber/red cells expose safe capacity, constrained capacity, workload blocks and waiting demand.
-4. Explain that the matrix guides where demand can move; the actual transfer still re-checks eligibility, SLA and worker protection.
-
-### D. Audit completed transfers
-
-1. Open **History & receipts**.
-2. Show the completed transfer with home cooperative -> receiving cooperative -> receiving cooperative's worker.
-3. Show **Receipt 1 / federation** and **Receipt 2 / worker**.
-4. Run the frozen federation replay. Frozen capacity/protection/SLA inputs must reproduce the cooperative decision.
-5. Show the illustrative settlement and the Local-only vs Federation Mesh Policy Twin.
-
-### E. Seeded golden federation proof for the judges
-
-The historical deterministic judge vector remains available to prove the policy engine:
-
-- Kharadi: safe electrician capacity `0`;
-- Yerawada: `2` available at `24 min`, eligible/selected;
-- Viman Nagar: `21 min`, but workload protection blocks it;
-- Hadapsar: `39 min`, outside the `35 min` customer promise;
-- federation selects Yerawada first;
-- Yerawada's own constitution then selects Meena Jadhav.
-
-The deterministic Federation Twin shows the same 12 capacity scenarios:
-- Local only: `0 served`, `12 unfilled`;
-- Federation Mesh: `11 served`, `1 unfilled`, `22.5 min` average ETA, `25 min` p90, `11` cross-coop, `0` protection violations.
-
-After activating the ₹860 floor, later federation transfers/proofs must preserve ₹860. Federation cannot silently fall back to ₹760.
+Return to **Overview** to reconcile the session: bookings, completed jobs, unique members offered
+work and recorded job payouts. Sample worker history and synthetic comparison demand are excluded.
+**Payments** separately lists each settlement and cancellation-protection record. Refresh and
+confirm the records, active policy, ballots, transfer receipts and closed challenge persist.
 
 ## 7. Close with the thesis
 
@@ -160,7 +158,7 @@ Use the SAME JOBS / SAME WORKERS / DIFFERENT RULES visual and summarize the prod
 
 ## Provider truthfulness
 
-- Leaflet/OpenStreetMap renders in-browser. Compact maps intentionally behave as clean previews; click opens a large interactive glassmorphism map. OSRM supplies road geometry, distance and duration; failure falls back to a labelled approximate route. Worker service positions are deterministic illustrative positions, not production live GPS or home addresses.
+- Leaflet/OpenStreetMap renders in-browser. Compact maps intentionally behave as clean previews; click opens a large interactive map. The federation dialog uses a quiet white surface and plain backdrop. OSRM supplies road geometry, distance and duration; failure falls back to a labelled approximate route. Worker service positions are deterministic illustrative positions, not production live GPS or home addresses.
 - OpenRouter is optional and server-only. `/api/ai/intake` structures customer intake. `/api/ai/policy` clusters worker-origin issues/suggestions for human governance review. Both have deterministic/manual fallbacks and neither can make consequential dispatch, pay, penalty, challenge, voting or activation decisions.
 - The reliable judge source of truth is the versioned browser demo register. Supabase remote mirroring is optional provider wiring; hosted RLS/Realtime/private-storage behavior is not claimed unless separately configured and verified.
 - The Razorpay-style checkout is deliberately labelled **DEMO PAYMENT**. It does not call Razorpay, move money, tokenize card data, create a UPI collect request, or claim escrow/regulated clearing. Its only effect after the simulated success screen is to post the existing deterministic KaamSabha settlement/invoice record.

@@ -12,6 +12,7 @@ import "./stability.css";
 import "./login-polish.css";
 import "./flow.css";
 import "./worker-simple.css";
+import "./admin-workspace.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
