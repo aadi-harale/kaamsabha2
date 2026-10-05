@@ -231,6 +231,22 @@ export function WorkerSuggestions({ state, worker, run }: WorkerProps) {
   </div>;
 }
 
+export function WorkerHomeEarnings({ state, worker, onSeePayments }: {
+  state: AppState; worker: Worker; onSeePayments: () => void;
+}) {
+  const locale = state.locale;
+  const earnings = summarizeWorkerEarnings(state, worker.id);
+  return <section className="workerHomeEarnings" aria-label={workerText(locale, "money")}>
+    <div className="workerHomeBalance">
+      <h2>{workerText(locale, "moneyTotal")}</h2>
+      <strong aria-live="polite" aria-atomic="true">₹{earnings.total.toLocaleString("en-IN")}</strong>
+      <span>{workerText(locale, "paidJobs")}: <b>{earnings.completedJobs}</b></span>
+    </div>
+    <button type="button" className="secondary" onClick={onSeePayments}>{workerText(locale, "seePayments")}</button>
+    <p className="workerDemoNote">{workerText(locale, "demoMoney")}</p>
+  </section>;
+}
+
 export function WorkerEarnings({ state, worker }: { state: AppState; worker: Worker }) {
   const locale = state.locale;
   const summary = summarizeWorkerEarnings(state, worker.id);

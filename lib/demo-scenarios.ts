@@ -1,8 +1,8 @@
 import type { AppState } from "./domain.ts";
 import { initialState } from "./domain.ts";
 import {
-  addEvidence, createBooking, declineJobSafely, recordOtpIssued, recordOtpVerified,
-  signIn, signOut, transitionJob,
+  addEvidence, cancelBookingProtected, createBooking, declineJobSafely, recordOtpIssued, recordOtpVerified,
+  settleJob, signIn, signOut, transitionJob,
 } from "./commands.ts";
 
 /**
@@ -63,6 +63,40 @@ function toArrived(state: AppState): AppState {
 }
 
 const DEFINITIONS: ScenarioDefinition[] = [
+  {
+    id: "ravi-earnings",
+    name: "Ravi's earnings and a new job",
+    sets: "Adds a paid electrical job and a protected cancellation to Ravi's sample history, then offers him a new appliance job.",
+    then: "Sign in as ravi. Today and My money show the same total; accept the new job to test a payment changing that total.",
+    signInAs: "ravi",
+    build: () => {
+      let state = toArrived(book(initialState(), "electrician", "Kharadi, Pune", "Demo: repair a sparking switch"));
+      const paidJob = state.jobs[0];
+      if (paidJob?.workerId !== "W02") throw new Error("Ravi's demo requires an electrical job assigned to Ravi");
+      // Only already-spent demo code tokens are stubbed. Every lifecycle step, receipt,
+      // proof and payment is produced by the same commands used in the application.
+      state = recordOtpIssued(asCustomer(state), paidJob.id, {
+        purpose: "start", token: "scenario-start", issuedAt: Date.now(),
+        expiresAt: Date.now() + 5 * 60_000, attemptsLeft: 5, demoCode: "000000",
+      });
+      state = recordOtpVerified(signIn(signOut(state), "W02", "worker"), paidJob.id, "start");
+      state = addEvidence(state, paidJob.id, "Demo work proof: repaired switch checked with customer");
+      state = recordOtpIssued(asCustomer(state), paidJob.id, {
+        purpose: "completion", token: "scenario-completion", issuedAt: Date.now(),
+        expiresAt: Date.now() + 5 * 60_000, attemptsLeft: 5, demoCode: "000001",
+      });
+      state = recordOtpVerified(signIn(signOut(state), "W02", "worker"), paidJob.id, "completion");
+      state = settleJob(asCustomer(state), paidJob.id);
+
+      state = book(state, "electrician", "Kharadi, Pune", "Demo: customer cancels after Ravi accepts");
+      const cancelledJob = state.jobs[0];
+      if (cancelledJob.workerId !== "W02") throw new Error("Ravi's demo cancellation must belong to Ravi");
+      state = transitionJob(signIn(signOut(state), "W02", "worker"), cancelledJob.id, "accepted");
+      state = cancelBookingProtected(asCustomer(state), cancelledJob.id, "Demo customer cancelled after acceptance");
+
+      return book(state, "appliance", "Kharadi, Pune", "Demo: washing machine needs a check; accept to continue");
+    },
+  },
   {
     id: "why-not-me",
     name: "Why a member did not get the job",

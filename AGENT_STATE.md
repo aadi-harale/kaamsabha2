@@ -242,10 +242,11 @@ that a member's numbers survive translation, and that the operations voice stays
 when the member reads Hindi. The translations have not been reviewed by a native speaker; that
 is recorded in `PRODUCTION_READINESS.md` as outstanding.
 
-`lib/demo-scenarios.ts` seeds six stories in one click from the login screen: a member passed
+`lib/demo-scenarios.ts` seeds seven stories in one click from the login screen: a member passed
 over on turn order, a protection holding work back, a job waiting for its start code, work
 under way with proof added, a job leaving its own cooperative, and a safe decline with the
-re-dispatch. Each runs the same commands a person would — nothing writes a job, receipt or
+re-dispatch, and Ravi's paid work, cancellation and new offer. Each runs the same commands a
+person would — nothing writes a job, receipt or
 settlement directly — so what appears afterwards is the product working with the clicking done
 for you. A test asserts every receipt a scenario leaves carries a frozen candidate set, exactly
 as a hand-driven booking would, that scenarios are idempotent, that one does not leave the
@@ -263,6 +264,14 @@ deliberately rather than inheriting one.
 - All five tabs passed 60 layout checks: English, Hindi, Marathi × 320/768/1024/1440px, with no horizontal page scroll or clipped navigation. Fourteen desktop/mobile screenshots were captured outside Git and representative screens visually inspected. Keyboard radio selection, 3px visible focus and reduced-motion preference were checked. Scoped axe WCAG A/AA audits reported zero violations; governance's generic-div ARIA label was fixed and rechecked with zero incomplete results. Decorative-symbol contrast exceptions were visually checked.
 - Final commands passed: `npm test` (118/118), `npm run typecheck`, `npm run lint` (the existing TypeScript alias), `npm run build`, `git diff --check`. New UI translations still need native-speaker and real worker usability review; this pass establishes simpler flows, not evidence of field validation.
 - Verification artifacts on this device: `C:/Users/AADI/Downloads/kaamsabha2-worker-walkthrough.json` and `C:/Users/AADI/Downloads/kaamsabha2-worker-screenshots/`. No test records or credentials were added to the repository.
+
+# Verified worker home earnings (2026-10-05)
+
+- Today now shows the signed-in worker's total recorded earnings and paid-job count before the current job or queue, with a keyboard-operable See payments button. It derives from the same `summarizeWorkerEarnings` ledger as My money, in English/Hindi/Marathi; demo amounts remain labelled.
+- Login shortcut "Ravi's earnings and a new job" explicitly resets the register, then uses existing commands to produce a settled electrical job, an accepted-job cancellation and an unpaid appliance offer, each with a frozen dispatch receipt. Default history remains untouched. Only spent scenario OTP tokens are stubbed, as in the existing mid-job shortcut.
+- Production browser walkthrough selected the shortcut through the UI: ₹7,160 sample history + ₹760 settlement + ₹190 cancellation = ₹8,110, nine paid jobs. Offer KMS-00030 remained unpaid through acceptance, travel, real server-issued start/finish code verification and work proof. Its customer demo checkout raised both earnings views to ₹8,870 (ten paid jobs); another accepted electrical booking/cancellation raised both to ₹9,060 (₹380 total cancellation protection). Refresh preserved jobs, settlements, cancellations and the amount. Meena's own ₹7,030 stayed separate. No page errors occurred.
+- Twelve home-layout checks passed: three languages × 320/768/1024/1440px, no page overflow or clipped controls. Desktop/mobile screenshots were captured and inspected; keyboard payment navigation showed a 3px focus outline, and reduced-motion mode was checked. The home summary uses a quiet work-slip layout without extra charts or decorative icons.
+- Passed: `npm test` (120/120), `npm run typecheck`, `npm run lint` (existing TypeScript alias), `npm run build`. Browser evidence: `C:/Users/AADI/Downloads/kaamsabha2-home-earnings-check.json`; screenshots: `C:/Users/AADI/Downloads/kaamsabha2-worker-screenshots/home-earnings-*.png`. These isolated test records were not written to the user's browser or committed.
 
 # Freeze
 

@@ -4,6 +4,8 @@ import { initialState } from "../lib/domain.ts";
 import { resetRegister, runScenario, SCENARIOS } from "../lib/demo-scenarios.ts";
 import { explainAllocation, frozenFairOrder } from "../lib/allocation-explain.ts";
 import { jobFlow } from "../lib/job-flow.ts";
+import { cancelBookingProtected, signIn, transitionJob } from "../lib/commands.ts";
+import { summarizeWorkerEarnings, workerEarningEntries } from "../lib/earnings.ts";
 
 test("every scenario leaves a register a person could have produced by clicking", () => {
   for (const scenario of SCENARIOS) {
@@ -119,6 +121,40 @@ test("reset returns the untouched seed", () => {
   assert.deepEqual(reset.receipts, []);
   assert.deepEqual(reset.settlements, []);
   assert.equal(reset.workers.length, initialState().workers.length);
+});
+
+test("Ravi's earnings scenario reconciles real settlements and cancellation protection with history", () => {
+  const state = runScenario("ravi-earnings");
+  assert.ok(state);
+  assert.equal(state.jobs.length, 3);
+  assert.ok(state.jobs.every(j => j.workerId === "W02"));
+  const paidJob = state.jobs.find(j => j.status === "settled");
+  assert.ok(paidJob?.startOtp?.usedAt && paidJob.completionOtp?.usedAt);
+  assert.equal(paidJob.evidence.length, 1);
+  assert.equal(state.settlements[0].jobId, paidJob.id);
+  assert.equal(state.settlements[0].workerPayout, 760);
+  assert.equal(state.cancellations[0].workerPayout, 190);
+  assert.equal(state.jobs[0].status, "assigned", "the new offer is still unpaid");
+  const summary = summarizeWorkerEarnings(state, "W02");
+  assert.equal(summary.total, 8110);
+  assert.equal(summary.completedJobs, 9);
+  assert.equal(summary.cancellationProtection, 190);
+  assert.equal(workerEarningEntries(state, "W02").filter(e => e.id.startsWith("LIVE-")).length, 2);
+  assert.equal(summarizeWorkerEarnings(state, "W01").total, summarizeWorkerEarnings(initialState(), "W01").total, "another member's payments are unchanged");
+});
+
+test("Ravi's new offer earns nothing until paid, and a protected cancellation adds exactly once", () => {
+  let state = runScenario("ravi-earnings");
+  assert.ok(state);
+  const job = state.jobs[0];
+  state = transitionJob(signIn(state, "W02", "worker"), job.id, "accepted");
+  assert.equal(summarizeWorkerEarnings(state, "W02").total, 8110);
+  state = signIn(state, "customer01", "customer");
+  state = cancelBookingProtected(state, job.id, "Customer test cancellation");
+  assert.equal(summarizeWorkerEarnings(state, "W02").total, 8300);
+  assert.equal(summarizeWorkerEarnings(state, "W02").cancellationProtection, 380);
+  assert.throws(() => cancelBookingProtected(state, job.id, "Again"));
+  assert.equal(summarizeWorkerEarnings(state, "W02").total, 8300);
 });
 
 test("every scenario tells the reader where to go next", () => {

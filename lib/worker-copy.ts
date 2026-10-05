@@ -89,6 +89,7 @@ const phrases = {
   ideaProcess: ["Sending an idea does not change the rules. Members must review and vote first.", "सुझाव भेजने से नियम नहीं बदलते। पहले सदस्य जांचते हैं और वोट देते हैं।", "कल्पना पाठवल्याने नियम बदलत नाहीत. आधी सदस्य तपासतात आणि मत देतात."],
   moneyIntro: ["See what you have earned and where it came from.", "देखें कितनी कमाई हुई और किस काम से हुई।", "किती कमाई झाली आणि कोणत्या कामातून झाली ते पहा."],
   moneyTotal: ["Total recorded earnings", "दर्ज कुल कमाई", "नोंदवलेली एकूण कमाई"],
+  seePayments: ["See payments", "भुगतान देखें", "देयके पहा"],
   demoMoney: ["Demo amounts: sample history plus payments recorded in this demo.", "डेमो राशि: पुराने नमूने और इस डेमो में दर्ज भुगतान।", "डेमो रक्कम: जुने नमुने आणि या डेमोत नोंदवलेली देयके."],
   paidJobs: ["Paid jobs", "भुगतान वाले काम", "पैसे मिळालेली कामे"],
   cancelMoney: ["Pay for cancelled jobs", "रद्द कामों के पैसे", "रद्द कामांचे पैसे"],
