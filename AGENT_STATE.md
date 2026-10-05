@@ -412,6 +412,22 @@ deliberately rather than inheriting one.
   `kaamsabha2-worker-screenshots/vote-list-*.png`. Native-speaker/worker field review and
   native audible playback remain unverified; readable Listen transcripts were checked.
 
+# Verified phone/LAN loading fix (2026-10-05)
+
+- Reproduced Loading KaamSabha at `http://10.20.10.84:3012`: the global CSP upgraded
+  scripts/styles to HTTPS and they failed with `ERR_SSL_PROTOCOL_ERROR` on the HTTP server.
+  Transport headers now exempt localhost/loopback/RFC1918 Host headers from HTTPS upgrade
+  and HSTS. All other CSP restrictions remain; public production hosts retain both protections.
+- Actual HTTP Host probes confirmed local exemptions, public-host enforcement and rejection
+  of an address-lookalike public hostname. API responses still use `no-store, max-age=0`.
+- The production LAN URL now renders login. A fresh mobile/touch browser completed the
+  booking/ballot/activation/refresh flow through this origin, with 60 responsive checks,
+  four scoped WCAG audits and zero page errors. Before/after screenshots were inspected.
+  This was phone emulation on the laptop, not a claim of verification on the user's handset.
+- Passed: `npm test` (147/147), `npm run typecheck`, `npm run lint`, `npm run build`,
+  `git diff --check`. Evidence outside Git: `C:/Users/AADI/Downloads/kaamsabha2-phone-lan-check.json`
+  and `kaamsabha2-worker-screenshots/phone-lan-*.png`. User browser records were not reset.
+
 # Freeze
 
 Feature work beyond this pass remains frozen. Remaining work is deployment/browser
