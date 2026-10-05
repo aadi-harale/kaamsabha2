@@ -1,7 +1,8 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import type { Job, OtpChallenge } from "@/lib/domain";
+import type { Job, Locale, OtpChallenge } from "@/lib/domain";
+import { t } from "@/lib/messages";
 import { otpIsLive, otpIsStale } from "@/lib/job-flow";
 
 type Purpose = "start" | "completion";
@@ -117,9 +118,9 @@ export function CustomerOtpPanel({
  * left, and how long the code lasts, instead of failing silently on an empty box.
  */
 export function WorkerOtpPanel({
-  job, purpose, onVerify,
+  job, purpose, onVerify, locale = "en",
 }: {
-  job: Job; purpose: Purpose; onVerify: (jobId: string, purpose: Purpose, code: string) => Promise<void>;
+  job: Job; purpose: Purpose; onVerify: (jobId: string, purpose: Purpose, code: string) => Promise<void>; locale?: Locale;
 }) {
   const challenge = challengeOf(job, purpose);
   const words = WORDS[purpose];
@@ -138,40 +139,40 @@ export function WorkerOtpPanel({
     } finally { setBusy(false); }
   }
 
+  const codeNoun = t(locale, purpose === "start" ? "otp.start" : "otp.finish");
   if (!challenge || stale) {
     return (
       <div className="otpPanel waiting">
-        <p className="eyebrow">{words.noun.toUpperCase()}</p>
-        <strong>
-          {stale
-            ? "That code expired. Ask the customer to issue a new one."
-            : "The customer has not issued this code yet."}
-        </strong>
-        <span>Nothing is wrong and nothing counts against you. Ask them when they are ready.</span>
+        <p className="eyebrow">{codeNoun}</p>
+        <strong>{stale ? t(locale, "otp.expiredTitle") : t(locale, "otp.waitingTitle")}</strong>
+        <span>{t(locale, "otp.waitingBody")}</span>
       </div>
     );
   }
 
   return (
     <form className="otpPanel otpForm" onSubmit={submit}>
-      <p className="eyebrow">{words.noun.toUpperCase()}</p>
+      <p className="eyebrow">{codeNoun}</p>
       <label className="field">
-        <span>Enter the {words.noun} the customer gives you</span>
+        <span>{t(locale, "otp.enterLabel", { code: codeNoun })}</span>
         <input
           name="code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} required
           pattern="[0-9]{6}" value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, ""))}
           placeholder="6 digits"
         />
       </label>
-      <button disabled={busy || code.length !== 6}>{busy ? "Checking…" : words.workerAction}</button>
+      <button disabled={busy || code.length !== 6}>
+        {busy ? "…" : t(locale, purpose === "start" ? "otp.verifyStart" : "otp.verifyFinish")}
+      </button>
       <small>
-        {challenge.attemptsLeft} attempt{challenge.attemptsLeft === 1 ? "" : "s"} left
-        {countdown ? ` · expires in ${countdown.label}` : ""}. A wrong code costs an attempt; waiting does not.
+        {t(locale, "otp.attempts", {
+          left: challenge.attemptsLeft,
+          time: countdown?.label ?? "—",
+        })}
       </small>
       {challenge.demoCode && (
         <small className="otpDemoNote">
-          Demo delivery: the customer&apos;s code for this job is <b>{challenge.demoCode}</b>, shown here only
-          because this prototype runs both roles in one browser.
+          {t(locale, "otp.demoNote", { code: challenge.demoCode })}
         </small>
       )}
     </form>

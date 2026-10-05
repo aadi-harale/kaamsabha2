@@ -1,24 +1,21 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import type { AppState, ChallengeCategory, ChallengeOutcome, DecisionReceipt, Worker } from "@/lib/domain";
+import type { AppState, ChallengeCategory, ChallengeOutcome, DecisionReceipt, Locale, Worker } from "@/lib/domain";
+import { t } from "@/lib/messages";
 import { closeChallenge, openChallenge, remedyChallenge, replayChallenge, resolveChallenge } from "@/lib/commands";
 
 type Run=(fn:()=>AppState,message?:string)=>void;
 
-const categories:{id:ChallengeCategory;label:string;help:string}[]=[
-  {id:"opportunity",label:"I think the opportunity was allocated unfairly",help:"Use when the decision rule or opportunity ordering looks wrong."},
-  {id:"workload",label:"My workload or rest status looks wrong",help:"Use when the frozen safety/workability input does not match what you set."},
-  {id:"eligibility",label:"A skill or eligibility check looks wrong",help:"Use when certification, availability or eligibility seems incorrect."},
-  {id:"pay",label:"The protected pay in the decision looks wrong",help:"Use when the frozen payout or protection floor seems inconsistent."},
-  {id:"federation",label:"The cooperative routing looks wrong",help:"Use for a cross-cooperative Federation decision."},
-  {id:"other",label:"Something else in the decision looks wrong",help:"Describe the part you want the cooperative to check."},
-];
+const CATEGORY_IDS:ChallengeCategory[]=["opportunity","workload","eligibility","pay","federation","other"];
+const categoryLabel=(id:ChallengeCategory,locale:Locale)=>t(locale,`replay.cat.${id}` as never);
+const categoryHelp=(id:ChallengeCategory,locale:Locale)=>t(locale,`replay.cat.${id}.help` as never);
+const WANT_KEYS=["replay.want.explain","replay.want.check","replay.want.access","replay.want.human"] as const;
 
 function pretty(value:string){return value.replaceAll("-"," ").replace(/\b\w/g,c=>c.toUpperCase());}
 function participates(receipt:DecisionReceipt,workerId:string){return receipt.workerId===workerId||receipt.candidateWorkerIds?.includes(workerId)||receipt.candidateSnapshot?.some(c=>c.workerId===workerId);}
 
-function Stepper({status}:{status:string}){
+function Stepper({status,locale="en"}:{status:string;locale?:Locale}){
   const order=["open","replayed","outcome","remedied","closed"];
   const outcomeStatuses=new Set(["confirmed","violation","human-review","remedied","closed","upheld","dismissed"]);
   const reached=(step:string)=>{
@@ -28,51 +25,51 @@ function Stepper({status}:{status:string}){
     if(step==="remedied")return status==="remedied"||status==="closed";
     return status==="closed";
   };
-  return <ol className="replayStepper" aria-label="Replay Court case progress">{order.map((step,index)=><li className={reached(step)?"done":""} key={step}><span>{reached(step)?"✓":index+1}</span><b>{step==="outcome"?"Finding":pretty(step)}</b></li>)}</ol>;
+  return <ol className="replayStepper" aria-label={t(locale,"replay.progress")}>{order.map((step,index)=><li className={reached(step)?"done":""} key={step}><span>{reached(step)?"✓":index+1}</span><b>{t(locale,`replay.step.${step}` as never)}</b></li>)}</ol>;
 }
 
-function FrozenFacts({receipt}:{receipt:DecisionReceipt}){
+function FrozenFacts({receipt,locale="en"}:{receipt:DecisionReceipt;locale?:Locale}){
   const candidates=receipt.candidateSnapshot??[];
   return <div className="frozenFacts" aria-label="Frozen decision summary">
-    <div><span>Constitution</span><strong>{receipt.policyVersion}</strong></div>
-    <div><span>Protected payout</span><strong>₹{receipt.protectedPayout}</strong><small>Floor at decision: ₹{receipt.protectionFloor??receipt.protectedPayout}</small></div>
-    <div><span>Selected member</span><strong>{receipt.workerId}</strong></div>
-    <div><span>Decision participants</span><strong>{candidates.length||receipt.candidateWorkerIds?.length||1}</strong><small>Frozen at dispatch</small></div>
+    <div><span>{t(locale,"replay.constitution")}</span><strong>{receipt.policyVersion}</strong></div>
+    <div><span>{t(locale,"fact.payout")}</span><strong>₹{receipt.protectedPayout}</strong><small>{t(locale,"replay.floorAt",{floor:receipt.protectionFloor??receipt.protectedPayout})}</small></div>
+    <div><span>{t(locale,"replay.selectedMember")}</span><strong>{receipt.workerId}</strong></div>
+    <div><span>{t(locale,"replay.participants")}</span><strong>{candidates.length||receipt.candidateWorkerIds?.length||1}</strong><small>{t(locale,"replay.frozenAtDispatch")}</small></div>
   </div>;
 }
 
-export function WorkerReplayCourt({state,worker,run}:{state:AppState;worker:Worker;run:Run}){
+export function WorkerReplayCourt({state,worker,run,locale="en"}:{state:AppState;worker:Worker;run:Run;locale?:Locale}){
   const receipts=useMemo(()=>state.receipts.filter(r=>participates(r,worker.id)).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)),[state.receipts,worker.id]);
   const cases=state.challenges.filter(c=>c.workerId===worker.id);
   const [receiptId,setReceiptId]=useState(receipts[0]?.id??"");
   const [category,setCategory]=useState<ChallengeCategory>("opportunity");
   const [statement,setStatement]=useState("");
-  const [desired,setDesired]=useState("Explain the decision and correct it if the frozen replay does not match");
+  const [desired,setDesired]=useState<string>(WANT_KEYS[0]);
   useEffect(()=>{if(!receipts.some(r=>r.id===receiptId))setReceiptId(receipts[0]?.id??"");},[receipts,receiptId]);
   const receipt=receipts.find(r=>r.id===receiptId);
   const job=receipt?state.jobs.find(j=>j.id===receipt.jobId):undefined;
   function submit(e:FormEvent<HTMLFormElement>){
     e.preventDefault();if(!receipt)return;
-    run(()=>openChallenge(state,receipt.jobId,{receiptId:receipt.id,category,statement,desiredOutcome:desired}),"Replay Court case opened. The decision facts are now frozen for review.");
+    run(()=>openChallenge(state,receipt.jobId,{receiptId:receipt.id,category,statement,desiredOutcome:t(locale,desired as never)}),"Replay Court case opened. The decision facts are now frozen for review.");
     setStatement("");
   }
   return <section className="replayCourt workerReplay" aria-labelledby="worker-replay-title">
-    <div className="replayCourtHero"><div><p className="eyebrow">REPLAY COURT</p><h2 id="worker-replay-title">Check a work-allocation decision without needing to understand the algorithm.</h2><p>Choose what felt wrong. KaamSabha freezes the original receipt, re-runs the same rule on the same decision-time facts, and shows you what happened. Today&apos;s worker state or a newer constitution cannot replace that evidence.</p></div><div className="replayPromise"><span>Worker right</span><strong>No ranking penalty for challenging a decision</strong><small>AI cannot decide Replay Court outcomes.</small></div></div>
+    <div className="replayCourtHero"><div><p className="eyebrow">{t(locale,"replay.title")}</p><h2 id="worker-replay-title">{t(locale,"replay.heading")}</h2><p>{t(locale,"replay.body")}</p></div><div className="replayPromise"><span>{t(locale,"replay.rightLabel")}</span><strong>{t(locale,"replay.rightTitle")}</strong><small>{t(locale,"replay.rightNote")}</small></div></div>
 
     <div className="replayWorkspace">
       <form className="panel replayComposer" onSubmit={submit}>
-        <div><p className="eyebrow">START A DECISION CHECK</p><h3>What do you want checked?</h3><p className="muted">This is for allocation decisions. Use Issues for a current service problem and Speak Up for a future rule change.</p></div>
+        <div><p className="eyebrow">{t(locale,"replay.startTitle")}</p><h3>{t(locale,"replay.startHeading")}</h3><p className="muted">{t(locale,"replay.startBody")}</p></div>
         {receipts.length?<>
-          <label className="field"><span>Decision</span><select value={receiptId} onChange={e=>setReceiptId(e.target.value)}>{receipts.map(r=>{const j=state.jobs.find(x=>x.id===r.jobId);return <option value={r.id} key={r.id}>{r.jobId} · {j?.service??"work allocation"} · {r.policyVersion}</option>})}</select></label>
-          {receipt&&<FrozenFacts receipt={receipt}/>} 
-          <fieldset className="replayReasons"><legend>What felt wrong?</legend>{categories.map(c=><label className={category===c.id?"replayReason selected":"replayReason"} key={c.id}><input type="radio" name="challenge-category" value={c.id} checked={category===c.id} onChange={()=>setCategory(c.id)}/><span><strong>{c.label}</strong><small>{c.help}</small></span></label>)}</fieldset>
-          <label className="field"><span>Tell the cooperative in your own words</span><textarea value={statement} onChange={e=>setStatement(e.target.value)} required minLength={8} placeholder="Example: I had lower safe workload, but the receipt says another member was selected first…"/></label>
-          <label className="field"><span>What would help?</span><select value={desired} onChange={e=>setDesired(e.target.value)}><option>Explain the decision and correct it if the frozen replay does not match</option><option>Check the eligibility facts and show me the result</option><option>Review my opportunity-access record</option><option>Escalate to a human cooperative reviewer</option></select></label>
-          <button>Open Replay Court case</button>
-        </>:<div className="replayEmpty"><strong>No replayable decisions yet.</strong><span>Once you are selected or included in a frozen candidate set, the decision will appear here automatically.</span></div>}
+          <label className="field"><span>{t(locale,"replay.decision")}</span><select value={receiptId} onChange={e=>setReceiptId(e.target.value)}>{receipts.map(r=>{const j=state.jobs.find(x=>x.id===r.jobId);return <option value={r.id} key={r.id}>{r.jobId} · {j?.service??"work allocation"} · {r.policyVersion}</option>})}</select></label>
+          {receipt&&<FrozenFacts receipt={receipt} locale={locale}/>} 
+          <fieldset className="replayReasons"><legend>{t(locale,"replay.whatFeltWrong")}</legend>{CATEGORY_IDS.map(id=><label className={category===id?"replayReason selected":"replayReason"} key={id}><input type="radio" name="challenge-category" value={id} checked={category===id} onChange={()=>setCategory(id)}/><span><strong>{categoryLabel(id,locale)}</strong><small>{categoryHelp(id,locale)}</small></span></label>)}</fieldset>
+          <label className="field"><span>{t(locale,"replay.ownWords")}</span><textarea value={statement} onChange={e=>setStatement(e.target.value)} required minLength={8} placeholder={t(locale,"replay.ownWordsHint")}/></label>
+          <label className="field"><span>{t(locale,"replay.whatWouldHelp")}</span><select value={desired} onChange={e=>setDesired(e.target.value)}>{WANT_KEYS.map(key=><option value={key} key={key}>{t(locale,key)}</option>)}</select></label>
+          <button>{t(locale,"replay.open")}</button>
+        </>:<div className="replayEmpty"><strong>{t(locale,"replay.noDecisions")}</strong><span>{t(locale,"replay.noDecisionsBody")}</span></div>}
       </form>
 
-      <section className="panel replayCases" aria-label="Your Replay Court cases"><div className="sectionTitle roomy"><div><h3>Your cases</h3><p className="muted">Every case keeps its own frozen evidence and status.</p></div><span>{cases.length}</span></div>{cases.length?cases.map(c=>{const snap=c.decisionSnapshot;return <article className="workerCase" key={c.id}><div className="workerCaseHead"><div><small>{c.id} · {c.jobId}</small><strong>{c.category?pretty(c.category):"Allocation review"}</strong><span>{c.reason}</span></div><span className={`caseStatus ${c.status}`}>{pretty(c.status)}</span></div><Stepper status={c.status}/>{snap&&<div className="caseFrozenLine"><span>Frozen evidence</span><b>{snap.policyVersion}</b><span>₹{snap.protectedPayout} protected</span><span>{snap.candidateSnapshot.length||1} participant(s)</span></div>}{c.replayResult&&<div className={`replayFinding ${c.replayResult.outcome}`}><small>REPLAY FINDING</small><strong>{pretty(c.replayResult.outcome)}</strong><p>{c.replayResult.summary}</p></div>}{c.adminNote&&<div className="caseMessage"><strong>Cooperative response</strong><span>{c.adminNote}</span></div>}{c.remedy&&<div className="caseRemedy"><strong>Remedy recorded</strong><span>{c.remedy}</span></div>}</article>}):<div className="replayEmpty"><strong>No open cases.</strong><span>You can challenge a decision without affecting your rating or access to work.</span></div>}</section>
+      <section className="panel replayCases" aria-label="Your Replay Court cases"><div className="sectionTitle roomy"><div><h3>{t(locale,"replay.yourCases")}</h3><p className="muted">{t(locale,"replay.casesNote")}</p></div><span>{cases.length}</span></div>{cases.length?cases.map(c=>{const snap=c.decisionSnapshot;return <article className="workerCase" key={c.id}><div className="workerCaseHead"><div><small>{c.id} · {c.jobId}</small><strong>{c.category?pretty(c.category):"Allocation review"}</strong><span>{c.reason}</span></div><span className={`caseStatus ${c.status}`}>{pretty(c.status)}</span></div><Stepper status={c.status}/>{snap&&<div className="caseFrozenLine"><span>Frozen evidence</span><b>{snap.policyVersion}</b><span>₹{snap.protectedPayout} protected</span><span>{snap.candidateSnapshot.length||1} participant(s)</span></div>}{c.replayResult&&<div className={`replayFinding ${c.replayResult.outcome}`}><small>REPLAY FINDING</small><strong>{pretty(c.replayResult.outcome)}</strong><p>{c.replayResult.summary}</p></div>}{c.adminNote&&<div className="caseMessage"><strong>Cooperative response</strong><span>{c.adminNote}</span></div>}{c.remedy&&<div className="caseRemedy"><strong>Remedy recorded</strong><span>{c.remedy}</span></div>}</article>}):<div className="replayEmpty"><strong>{t(locale,"replay.noCases")}</strong><span>{t(locale,"replay.noCasesBody")}</span></div>}</section>
     </div>
   </section>;
 }

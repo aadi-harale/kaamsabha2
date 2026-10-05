@@ -1,23 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import type { AppState, Job, Worker } from "@/lib/domain";
+import type { AppState, Job, Locale, Worker } from "@/lib/domain";
+import { t } from "@/lib/messages";
 import {
   allocationLedger, customerMatchSummary, explanationsForWorker, unassignedReason,
   type AllocationExplanation, type AllocationOutcome,
 } from "@/lib/allocation-explain";
 
-/** Worded for the member reading about their own job. */
-const MEMBER_LABEL: Record<AllocationOutcome, string> = {
-  "selected": "You got this job",
-  "safely-declined": "You declined — no penalty",
-  "passed-over": "Someone was ahead in turn",
-  "blocked-by-protection": "A protection stopped it",
-  "not-certified": "Certification needed",
-  "other-cooperative": "Another cooperative",
-  "cooperative-had-no-safe-capacity": "Left your cooperative",
-  "not-recorded": "Not fully recorded",
+/** Worded for the member reading about their own job, in their own language. */
+const MEMBER_LABEL_KEY: Record<AllocationOutcome, string> = {
+  "selected": "outcome.selected",
+  "safely-declined": "outcome.declined",
+  "passed-over": "outcome.passedOver",
+  "blocked-by-protection": "outcome.blocked",
+  "not-certified": "outcome.notCertified",
+  "other-cooperative": "outcome.otherCoop",
+  "cooperative-had-no-safe-capacity": "outcome.federated",
+  "not-recorded": "outcome.unrecorded",
 };
+const memberLabel = (outcome: AllocationOutcome, locale: Locale) =>
+  t(locale, MEMBER_LABEL_KEY[outcome] as never);
 
 /** Worded for the operations register, which is about other people. */
 const OPS_LABEL: Record<AllocationOutcome, string> = {
@@ -38,7 +41,7 @@ function outcomeTone(outcome: AllocationOutcome) {
   return "blocked";
 }
 
-function ExplanationCard({ explanation, onChallenge }: { explanation: AllocationExplanation; onChallenge?: (jobId: string) => void }) {
+function ExplanationCard({ explanation, onChallenge, locale }: { explanation: AllocationExplanation; onChallenge?: (jobId: string) => void; locale: Locale }) {
   const [open, setOpen] = useState(false);
   const mine = explanation.fairOrder.find((row) => row.isViewer);
   return (
@@ -50,7 +53,7 @@ function ExplanationCard({ explanation, onChallenge }: { explanation: Allocation
           </small>
           <strong>{explanation.headline}</strong>
         </div>
-        <span className={`whyTag ${outcomeTone(explanation.outcome)}`}>{MEMBER_LABEL[explanation.outcome]}</span>
+        <span className={`whyTag ${outcomeTone(explanation.outcome)}`}>{memberLabel(explanation.outcome, locale)}</span>
       </div>
 
       <p className="whyDetail">{explanation.detail}</p>
@@ -66,7 +69,7 @@ function ExplanationCard({ explanation, onChallenge }: { explanation: Allocation
       <p className="whyConsequence">{explanation.consequence}</p>
 
       <button className="whyToggle" type="button" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
-        {open ? "Hide the exact figures used" : "Show the exact figures used"}
+        {open ? t(locale, "why.hideFigures") : t(locale, "why.showFigures")}
       </button>
 
       {open && (
@@ -83,28 +86,27 @@ function ExplanationCard({ explanation, onChallenge }: { explanation: Allocation
           {explanation.fairOrder.length > 0 && (
             <div className="whyOrder">
               <p className="whyOrderHead">
-                Turn order at the moment of the decision — least work booked goes first
+                {t(locale, "why.turnOrder")}
               </p>
               <table>
                 <caption className="srOnly">Frozen turn order for job {explanation.jobId}</caption>
                 <thead>
-                  <tr><th scope="col">#</th><th scope="col">Member</th><th scope="col">Booked that day</th><th scope="col">Outcome</th></tr>
+                  <tr><th scope="col">#</th><th scope="col">{t(locale, "why.colMember")}</th><th scope="col">{t(locale, "why.colBooked")}</th><th scope="col">{t(locale, "why.colOutcome")}</th></tr>
                 </thead>
                 <tbody>
                   {explanation.fairOrder.map((row) => (
                     <tr key={row.workerId} className={row.isViewer ? "isViewer" : undefined}>
                       <td>{row.position}</td>
-                      <td>{row.isViewer ? "You" : row.workerName}</td>
+                      <td>{row.isViewer ? t(locale, "why.you") : row.workerName}</td>
                       <td>{row.workloadTodayMinutes} of {row.maxDailyMinutes} min</td>
-                      <td>{row.selected ? "Chosen" : "Not this time"}</td>
+                      <td>{row.selected ? t(locale, "why.chosen") : t(locale, "why.notThisTime")}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
               {mine && !mine.selected && (
                 <p className="whyOrderNote">
-                  Your own figures are highlighted. These are the numbers as they were, not as they are today —
-                  the cooperative never rewrites a settled decision.
+                  {t(locale, "why.frozenNote")}
                 </p>
               )}
             </div>
@@ -116,7 +118,7 @@ function ExplanationCard({ explanation, onChallenge }: { explanation: Allocation
 
       {explanation.challengeable && onChallenge && (
         <button className="secondary compact" type="button" onClick={() => onChallenge(explanation.jobId)}>
-          This still looks wrong — send it to Replay Court
+          {t(locale, "why.challenge")}
         </button>
       )}
     </article>
@@ -125,11 +127,11 @@ function ExplanationCard({ explanation, onChallenge }: { explanation: Allocation
 
 /** Worker view: every decision that involved them, with the reason, newest first. */
 export function WorkerDecisionReasons({
-  state, worker, onChallenge,
+  state, worker, onChallenge, locale = "en",
 }: {
-  state: AppState; worker: Worker; onChallenge?: (jobId: string) => void;
+  state: AppState; worker: Worker; onChallenge?: (jobId: string) => void; locale?: Locale;
 }) {
-  const explanations = explanationsForWorker(state, worker);
+  const explanations = explanationsForWorker(state, worker, locale);
   const [filter, setFilter] = useState<"all" | "missed">("all");
   const missed = explanations.filter((item) => item.outcome !== "selected");
   const shown = filter === "missed" ? missed : explanations;
@@ -138,19 +140,18 @@ export function WorkerDecisionReasons({
     <section className="whySection">
       <div className="whySectionHead">
         <div>
-          <p className="eyebrow">WHY YOU DID OR DID NOT GET A JOB</p>
-          <h2>Every allocation that involved you, with the reason.</h2>
+          <p className="eyebrow">{t(locale, "why.sectionTitle")}</p>
+          <h2>{t(locale, "why.sectionHeading")}</h2>
           <p>
-            Each answer is rebuilt from the figures frozen at the moment of the decision, so it does not
-            change later. Missing out never lowers your rating and never reduces the offers you get next.
+            {t(locale, "why.sectionBody")}
           </p>
         </div>
         <div className="segment" role="group" aria-label="Filter decisions">
           <button type="button" className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>
-            All {explanations.length}
+            {t(locale, "why.filterAll", { count: explanations.length })}
           </button>
           <button type="button" className={filter === "missed" ? "active" : ""} onClick={() => setFilter("missed")}>
-            Didn&apos;t get {missed.length}
+            {t(locale, "why.filterMissed", { count: missed.length })}
           </button>
         </div>
       </div>
@@ -159,14 +160,13 @@ export function WorkerDecisionReasons({
         <div className="empty">
           <span aria-hidden="true">○</span>
           <p>
-            No allocation decisions involve you yet. As soon as a job is dispatched in your cooperative for a
-            skill you hold, the reason you did or did not get it appears here.
+            {t(locale, "why.empty")}
           </p>
         </div>
       ) : (
         <div className="whyList">
           {shown.map((explanation) => (
-            <ExplanationCard key={explanation.receiptId} explanation={explanation} onChallenge={onChallenge} />
+            <ExplanationCard key={explanation.receiptId} explanation={explanation} onChallenge={onChallenge} locale={locale} />
           ))}
         </div>
       )}
@@ -179,37 +179,25 @@ export function WorkerDecisionReasons({
  * This is the answer to "why am I not getting work?" when there is no job on screen —
  * the question the empty state used to leave unanswered.
  */
-export function WorkerStanding({ state, worker }: { state: AppState; worker: Worker }) {
+export function WorkerStanding({ state, worker, locale = "en" }: { state: AppState; worker: Worker; locale?: Locale }) {
   const limit = worker.maxDailyMinutes ?? 480;
   const checks = [
+    { label: t(locale, "standing.check.verified"), ok: worker.verified, fix: t(locale, "standing.fix.verified") },
+    { label: t(locale, "standing.check.active"), ok: worker.active, fix: t(locale, "standing.fix.active") },
+    { label: t(locale, "standing.check.available"), ok: worker.available, fix: t(locale, "standing.fix.available") },
     {
-      label: "Membership verified",
-      ok: worker.verified,
-      fix: "The cooperative office has to confirm your verification before dispatch can offer you work.",
-    },
-    {
-      label: "Membership active",
-      ok: worker.active,
-      fix: "Your membership is not active. Raise an issue so the cooperative can look at it.",
-    },
-    {
-      label: "Available for new work",
-      ok: worker.available,
-      fix: "You switched availability off. Switch it back on below whenever you are ready — nobody is penalised either way.",
-    },
-    {
-      label: `Within your daily limit (${worker.workloadTodayMinutes} of ${limit} min)`,
+      label: t(locale, "standing.check.limit", { used: worker.workloadTodayMinutes, limit }),
       ok: worker.workloadTodayMinutes < limit,
-      fix: `You have reached the limit you set for today. Dispatch will hold work back until tomorrow, or you can raise your own limit below.`,
+      fix: t(locale, "standing.fix.limit"),
     },
     {
-      label: `Certified skills on file (${worker.skills.length})`,
+      label: t(locale, "standing.check.skills", { count: worker.skills.length }),
       ok: worker.skills.length > 0,
-      fix: "No certified skill is on file, so no job category can reach you yet.",
+      fix: t(locale, "standing.fix.skills"),
     },
   ];
   const blocking = checks.filter((check) => !check.ok);
-  const explanations = explanationsForWorker(state, worker);
+  const explanations = explanationsForWorker(state, worker, locale);
   const recentMisses = explanations.filter((item) => item.outcome !== "selected").slice(0, 3);
   // The last job that closed, so finishing one does not end on a blank screen.
   const lastClosed = state.jobs
@@ -224,16 +212,14 @@ export function WorkerStanding({ state, worker }: { state: AppState; worker: Wor
     <section className="standingPanel">
       <div className="standingHead">
         <div>
-          <p className="eyebrow">WHY YOU HAVE NO JOB RIGHT NOW</p>
-          <h2>{blocking.length === 0 ? "You are in the queue for new work." : "Something is holding work back from you."}</h2>
+          <p className="eyebrow">{t(locale, "standing.title")}</p>
+          <h2>{blocking.length === 0 ? t(locale, "standing.clear") : t(locale, "standing.held")}</h2>
           <p>
-            {blocking.length === 0
-              ? "Every check dispatch runs on you passes. Jobs go to whoever has the least work booked that day, so your turn comes round as others fill up."
-              : "These are your own settings and records, not a score. Nothing here is a mark against you."}
+            {blocking.length === 0 ? t(locale, "standing.clearDetail") : t(locale, "standing.heldDetail")}
           </p>
         </div>
         <span className={blocking.length === 0 ? "standingBadge ok" : "standingBadge hold"}>
-          {blocking.length === 0 ? "In the queue" : `${blocking.length} to fix`}
+          {blocking.length === 0 ? t(locale, "standing.inQueue") : t(locale, "standing.toFix", { count: blocking.length })}
         </span>
       </div>
 
@@ -246,14 +232,14 @@ export function WorkerStanding({ state, worker }: { state: AppState; worker: Wor
               {!check.ok && <span>{check.fix}</span>}
             </div>
             {/* The word carries the meaning; the colour and the tick only reinforce it. */}
-            <span className="standingState">{check.ok ? "Passing" : "Needs attention"}</span>
+            <span className="standingState">{check.ok ? t(locale, "standing.passing") : t(locale, "standing.needsAttention")}</span>
           </li>
         ))}
       </ul>
 
       {lastClosed && (
         <div className="standingLastJob">
-          <strong>Your last job is closed and paid</strong>
+          <strong>{t(locale, "standing.lastJob")}</strong>
           <span>
             {lastClosed.id} · {lastClosed.service.replaceAll("_", " ")} in {lastClosed.locality}
             {lastSettlement
@@ -265,14 +251,14 @@ export function WorkerStanding({ state, worker }: { state: AppState; worker: Wor
 
       {recentMisses.length > 0 && (
         <div className="standingMisses">
-          <p className="standingMissesHead">The last jobs that went to someone else, and why</p>
+          <p className="standingMissesHead">{t(locale, "standing.misses")}</p>
           {recentMisses.map((item) => (
             <div key={item.receiptId}>
               <strong>{item.jobId}</strong>
               <span>{item.detail}</span>
             </div>
           ))}
-          <small>Open Fair Work for the full record and the figures behind each one.</small>
+          <small>{t(locale, "standing.missesHint")}</small>
         </div>
       )}
     </section>

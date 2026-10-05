@@ -213,6 +213,45 @@ the register's own records.
 The visual leads the admin Overview, which is where someone landing on the app arrives, and
 stays a footer everywhere else so it never crowds the work.
 
+# Hindi and Marathi, and one-click demo scenarios
+
+`lib/messages.ts` holds 216 whole sentences in English, Hindi and Marathi. Whole sentences,
+not fragments: these messages carry names and numbers, and both Indic languages put the verb
+last and attach postpositions to the noun, so the old approach of joining English pieces
+produces word salad in them. Each language writes its own word order around named placeholders.
+Register is ordinary spoken Hindi and Marathi with respectful second person, not Sanskritised
+officialese — the reader is a member being told why they did or did not get paid.
+
+Coverage is the member's own workflow, end to end: the nine-step job flow in both vocabularies,
+every allocation explanation and its frozen figures, the "why you have no job right now" panel,
+the OTP panels, the Fair Work hero and receipt grid, and the whole worker side of Replay Court
+including its six challenge categories. Seeded members carry a `nameDevanagari` form, so a
+Marathi screen does not end with one Latin name in the middle of a sentence. A browser check
+counts the untranslated strings left on the worker workspace: three, and all three are machine
+identifiers (`KMS-00002`, `constitution-v2`) that should not be translated.
+
+Deliberately **not** translated, and this is a decision rather than an omission: cooperative
+operations, governance and the admin side of Replay Court. They are record-first tools for an
+administrator, and a half-translated audit trail is worse than an untranslated one. The
+rule-comparison panel is also English — it is the argument aimed at an evaluator, not part of
+the member's work. English remains the default, so nothing changes language on its own.
+
+Tests pin that every key exists in both languages, that no message renders a leftover
+`{placeholder}`, that Hindi and Marathi are neither English copies nor copies of each other,
+that a member's numbers survive translation, and that the operations voice stays English even
+when the member reads Hindi. The translations have not been reviewed by a native speaker; that
+is recorded in `PRODUCTION_READINESS.md` as outstanding.
+
+`lib/demo-scenarios.ts` seeds six stories in one click from the login screen: a member passed
+over on turn order, a protection holding work back, a job waiting for its start code, work
+under way with proof added, a job leaving its own cooperative, and a safe decline with the
+re-dispatch. Each runs the same commands a person would — nothing writes a job, receipt or
+settlement directly — so what appears afterwards is the product working with the clicking done
+for you. A test asserts every receipt a scenario leaves carries a frozen candidate set, exactly
+as a hand-driven booking would, that scenarios are idempotent, that one does not leave the
+previous one's jobs behind, and that each ends signed out so a judge chooses a role
+deliberately rather than inheriting one.
+
 # Freeze
 
 Feature work beyond this pass remains frozen. Remaining work is deployment/browser

@@ -1,4 +1,5 @@
-import type { Job, OtpChallenge } from "./domain.ts";
+import type { Job, Locale, OtpChallenge } from "./domain.ts";
+import { t } from "./messages.ts";
 
 /**
  * One ordered description of a job, shared by the customer screen, the worker screen
@@ -34,17 +35,11 @@ export interface FlowView {
   cancelled: boolean;
 }
 
-const STEPS: { id: string; customerLabel: string; workerLabel: string; owner: FlowActor }[] = [
-  { id: "booked", customerLabel: "Booked", workerLabel: "Job created", owner: "customer" },
-  { id: "assigned", customerLabel: "Member assigned", workerLabel: "Offered to you", owner: "cooperative" },
-  { id: "accepted", customerLabel: "Member accepted", workerLabel: "You accepted", owner: "worker" },
-  { id: "travel", customerLabel: "On the way", workerLabel: "Travel to customer", owner: "worker" },
-  { id: "scope", customerLabel: "Scope confirmed", workerLabel: "Scope check on arrival", owner: "customer" },
-  { id: "start", customerLabel: "Start confirmed", workerLabel: "Start code verified", owner: "customer" },
-  { id: "work", customerLabel: "Work and proof", workerLabel: "Do the work, add proof", owner: "worker" },
-  { id: "finish", customerLabel: "Finish confirmed", workerLabel: "Finish code verified", owner: "customer" },
-  { id: "paid", customerLabel: "Paid", workerLabel: "Payout posted", owner: "customer" },
-];
+const STEP_IDS = ["booked", "assigned", "accepted", "travel", "scope", "start", "work", "finish", "paid"] as const;
+const STEP_OWNERS: Record<(typeof STEP_IDS)[number], FlowActor> = {
+  booked: "customer", assigned: "cooperative", accepted: "worker", travel: "worker",
+  scope: "customer", start: "customer", work: "worker", finish: "customer", paid: "customer",
+};
 
 /** A code that can still be typed in: issued, unexpired, unused, attempts remaining. */
 export function otpIsLive(challenge: OtpChallenge | undefined, now = Date.now()): boolean {
@@ -85,7 +80,7 @@ function currentStepId(job: Job, now: number): string {
   }
 }
 
-const ORDER = STEPS.map((step) => step.id);
+const ORDER: readonly string[] = STEP_IDS;
 
 function stepState(stepId: string, currentId: string, job: Job): FlowStep["state"] {
   if (job.status === "cancelled") {
@@ -104,129 +99,80 @@ function stepState(stepId: string, currentId: string, job: Job): FlowStep["state
 
 interface Handoff {
   waitingOn: FlowActor;
-  customer: string;
-  worker: string;
+  /** Message key stem; `.customer` and `.worker` are appended. */
+  key: string;
+  params?: Record<string, string | number>;
 }
 
 function handoff(job: Job, now: number): Handoff {
   const pendingScope = job.changeOrders.find((change) => change.approved === undefined);
   switch (job.status) {
     case "requested":
-      return {
-        waitingOn: "cooperative",
-        customer: "The cooperative is still finding a certified member who can safely take this job.",
-        worker: "This job is back in dispatch and has not been offered to you.",
-      };
+      return { waitingOn: "cooperative", key: "flow.requested" };
     case "assigned":
-      return {
-        waitingOn: "worker",
-        customer: "Your assigned member is reviewing the job and the protected payout before accepting.",
-        worker: "Accept this job, or safely decline it — declining costs you nothing.",
-      };
+      return { waitingOn: "worker", key: "flow.assigned" };
     case "accepted":
-      return {
-        waitingOn: "worker",
-        customer: "Your member has accepted and will set off shortly.",
-        worker: "Start travel when you are on your way.",
-      };
+      return { waitingOn: "worker", key: "flow.accepted" };
     case "travelling":
-      return {
-        waitingOn: "worker",
-        customer: "Your member is on the way. Follow the route on the map.",
-        worker: "Mark yourself arrived once you reach the customer.",
-      };
+      return { waitingOn: "worker", key: "flow.travelling" };
     case "change_pending":
       return {
         waitingOn: "customer",
-        customer: `Approve or decline the extra work the member has asked for${pendingScope ? ` (+₹${pendingScope.amountDelta})` : ""}. Work stays stopped until you decide.`,
-        worker: "The customer is deciding on the extra work. Do not start it yet.",
+        key: "flow.change",
+        params: { amount: pendingScope?.amountDelta ?? 0 },
       };
     case "arrived":
-      if (otpIsLive(job.startOtp, now))
-        return {
-          waitingOn: "worker",
-          customer: "Read your start code out to the member so they can begin.",
-          worker: "Ask the customer for their start code and enter it to begin work.",
-        };
-      if (otpIsStale(job.startOtp, now))
-        return {
-          waitingOn: "customer",
-          customer: "That start code is no longer valid. Issue a fresh one when you are ready.",
-          worker: "The last start code expired. Ask the customer to issue a new one.",
-        };
-      return {
-        waitingOn: "customer",
-        customer: "Your member has arrived. Check the agreed work, then issue the start code.",
-        worker: "Confirm the work with the customer, then wait for their start code.",
-      };
+      if (otpIsLive(job.startOtp, now)) return { waitingOn: "worker", key: "flow.startLive" };
+      if (otpIsStale(job.startOtp, now)) return { waitingOn: "customer", key: "flow.startStale" };
+      return { waitingOn: "customer", key: "flow.arrived" };
     case "started":
-      if (job.evidence.length === 0)
-        return {
-          waitingOn: "worker",
-          customer: "Work is under way. Your member will add before and after proof.",
-          worker: "Do the agreed work, then add your work proof.",
-        };
-      if (otpIsLive(job.completionOtp, now))
-        return {
-          waitingOn: "worker",
-          customer: "Read your finish code out to the member to close the job.",
-          worker: "Ask the customer for their finish code and enter it.",
-        };
-      if (otpIsStale(job.completionOtp, now))
-        return {
-          waitingOn: "customer",
-          customer: "That finish code is no longer valid. Issue a fresh one.",
-          worker: "The last finish code expired. Ask the customer to issue a new one.",
-        };
-      return {
-        waitingOn: "customer",
-        customer: "Review the work proof. If you are happy, issue the finish code.",
-        worker: "Proof sent. Waiting for the customer to review it and issue the finish code.",
-      };
+      if (job.evidence.length === 0) return { waitingOn: "worker", key: "flow.working" };
+      if (otpIsLive(job.completionOtp, now)) return { waitingOn: "worker", key: "flow.finishLive" };
+      if (otpIsStale(job.completionOtp, now)) return { waitingOn: "customer", key: "flow.finishStale" };
+      return { waitingOn: "customer", key: "flow.proofed" };
     case "completed":
-      return {
-        waitingOn: "customer",
-        customer: "The work is done. Pay the invoice to close the job.",
-        worker: "Work confirmed. The customer is paying; your protected payout posts on settlement.",
-      };
+      return { waitingOn: "customer", key: "flow.completed" };
     case "settled":
-      return {
-        waitingOn: "nobody",
-        customer: "Paid and closed. Rating this job is optional and never used to punish a member.",
-        worker: "Paid. Your protected payout is posted in your earnings.",
-      };
+      return { waitingOn: "nobody", key: "flow.settled" };
     case "cancelled":
-      return {
-        waitingOn: "nobody",
-        customer: "This booking was cancelled. Any protected payout owed to the member was recorded.",
-        worker: "This job was cancelled. Any protected payout owed to you was recorded.",
-      };
+      return { waitingOn: "nobody", key: "flow.cancelled" };
     default:
-      return { waitingOn: "nobody", customer: "", worker: "" };
+      return { waitingOn: "nobody", key: "flow.requested" };
   }
 }
 
-export function jobFlow(job: Job, viewer: FlowViewer, now = Date.now()): FlowView {
+export function jobFlow(
+  job: Job,
+  viewer: FlowViewer,
+  now = Date.now(),
+  locale: Locale = "en",
+): FlowView {
   const currentId = currentStepId(job, now);
   const moves = handoff(job, now);
   const yourMove =
     (viewer === "customer" && moves.waitingOn === "customer") ||
     (viewer === "worker" && moves.waitingOn === "worker");
+  // Each side reads the same step in its own vocabulary and its own language.
+  const say = (side: "customer" | "worker") =>
+    t(locale, `${moves.key}.${side}` as never, moves.params ?? {});
   return {
-    steps: STEPS.map((step) => ({ ...step, state: stepState(step.id, currentId, job) })),
+    steps: STEP_IDS.map((id) => ({
+      id,
+      customerLabel: t(locale, `step.${id}.customer` as never),
+      workerLabel: t(locale, `step.${id}.worker` as never),
+      owner: STEP_OWNERS[id],
+      state: stepState(id, currentId, job),
+    })),
     currentStepId: currentId,
     waitingOn: moves.waitingOn,
     yourMove,
-    nextStep: viewer === "worker" ? moves.worker : moves.customer,
-    otherSide: viewer === "worker" ? moves.customer : moves.worker,
+    nextStep: viewer === "worker" ? say("worker") : say("customer"),
+    otherSide: viewer === "worker" ? say("customer") : say("worker"),
     finished: job.status === "settled",
     cancelled: job.status === "cancelled",
   };
 }
 
-export function waitingOnLabel(actor: FlowActor): string {
-  if (actor === "customer") return "Waiting on the customer";
-  if (actor === "worker") return "Waiting on the member";
-  if (actor === "cooperative") return "Waiting on the cooperative";
-  return "Nothing to do";
+export function waitingOnLabel(actor: FlowActor, locale: Locale = "en"): string {
+  return t(locale, `waiting.${actor}` as never);
 }

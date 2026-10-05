@@ -1,4 +1,5 @@
-import type { AppState, DecisionCandidateSnapshot, DecisionReceipt, Job, Worker } from "./domain.ts";
+import type { AppState, DecisionCandidateSnapshot, DecisionReceipt, Job, Locale, Worker } from "./domain.ts";
+import { t } from "./messages.ts";
 
 /**
  * Why a member did or did not get a job.
@@ -67,35 +68,25 @@ export interface AllocationExplanation {
  * the two must always describe the same check.
  */
 type Voice = "member" | "operations";
-const HARD_CHECKS: {
-  key: keyof DecisionCandidateSnapshot;
-  label: (service: string, voice: Voice) => string;
-}[] = [
-  {
-    key: "verified",
-    label: (_service, voice) => voice === "member"
-      ? "Your membership verification was not active in the register at that moment."
-      : "Membership verification was not active in the register at that moment.",
-  },
-  {
-    key: "active",
-    label: (_service, voice) => voice === "member"
-      ? "Your membership was not active at that moment."
-      : "Membership was not active at that moment.",
-  },
-  {
-    key: "available",
-    label: (_service, voice) => voice === "member"
-      ? "You had 'available for new work' switched off."
-      : "Had 'available for new work' switched off.",
-  },
-  {
-    key: "skill",
-    label: (service, voice) => voice === "member"
-      ? `You were not recorded as certified for ${readableService(service)} work.`
-      : `Not recorded as certified for ${readableService(service)} work.`,
-  },
+const HARD_CHECKS: { key: keyof DecisionCandidateSnapshot; message: MessageStem }[] = [
+  { key: "verified", message: "check.verified" },
+  { key: "active", message: "check.active" },
+  { key: "available", message: "check.available" },
+  { key: "skill", message: "check.skill" },
 ];
+type MessageStem = "check.verified" | "check.active" | "check.available" | "check.skill";
+
+/**
+ * Operations wording stays English: the register is a record-first tool for an administrator,
+ * and a half-translated audit trail is worse than an untranslated one. Only the member's own
+ * copy is localised.
+ */
+const OPERATIONS_CHECK: Record<MessageStem, (service: string) => string> = {
+  "check.verified": () => "Membership verification was not active in the register at that moment.",
+  "check.active": () => "Membership was not active at that moment.",
+  "check.available": () => "Had 'available for new work' switched off.",
+  "check.skill": (service) => `Not recorded as certified for ${readableService(service)} work.`,
+};
 
 export function readableService(service: string) {
   return service.replaceAll("_", " ").replaceAll("-", " ");
@@ -105,12 +96,20 @@ function minutes(value: number) {
   return `${value} min`;
 }
 
-function workerLabel(state: AppState, workerId: string) {
-  return state.workers.find((worker) => worker.id === workerId)?.name ?? workerId;
+/** A member's name in the script the reader is using, falling back to the Latin form. */
+function workerLabel(state: AppState, workerId: string, locale: Locale = "en") {
+  const worker = state.workers.find((item) => item.id === workerId);
+  if (!worker) return workerId;
+  return locale === "en" ? worker.name : worker.nameDevanagari || worker.name;
 }
 
-function workerNames(state: AppState) {
-  return new Map(state.workers.map((worker) => [worker.id, worker.name]));
+function workerNames(state: AppState, locale: Locale = "en") {
+  return new Map(
+    state.workers.map((worker) => [
+      worker.id,
+      locale === "en" ? worker.name : worker.nameDevanagari || worker.name,
+    ]),
+  );
 }
 
 function cooperativeLabel(state: AppState, cooperativeId?: string) {
@@ -155,14 +154,20 @@ function blockedReasons(
   row: DecisionCandidateSnapshot,
   service: string,
   voice: Voice = "member",
+  locale: Locale = "en",
 ): string[] {
   const reasons = HARD_CHECKS.filter((check) => row[check.key] === false).map((check) =>
-    check.label(service, voice),
+    voice === "member"
+      ? t(locale, `${check.message}.member` as never, { service: readableService(service) })
+      : OPERATIONS_CHECK[check.message](service),
   );
   if (row.workloadTodayMinutes >= row.maxDailyMinutes) {
     reasons.push(
       voice === "member"
-        ? `Workload safety guard: you were already at ${minutes(row.workloadTodayMinutes)} of your ${minutes(row.maxDailyMinutes)} limit for that day, so the cooperative held the job back from you.`
+        ? t(locale, "check.workload.member", {
+            used: row.workloadTodayMinutes,
+            limit: row.maxDailyMinutes,
+          })
         : `Workload safety guard: already at ${minutes(row.workloadTodayMinutes)} of a ${minutes(row.maxDailyMinutes)} limit for that day, so the job was held back.`,
     );
   }
@@ -173,24 +178,25 @@ function baseFacts(
   state: AppState,
   receipt: DecisionReceipt,
   row?: DecisionCandidateSnapshot,
+  locale: Locale = "en",
 ): AllocationFact[] {
   const facts: AllocationFact[] = [
-    { label: "Rulebook in force", value: receipt.policyVersion },
-    { label: "Protected payout", value: `₹${receipt.protectedPayout}` },
-    { label: "Protection floor that day", value: `₹${receipt.protectionFloor ?? receipt.protectedPayout}` },
-    { label: "Cooperative that got the job", value: cooperativeLabel(state, receipt.cooperativeId) },
+    { label: t(locale, "fact.policy"), value: receipt.policyVersion },
+    { label: t(locale, "fact.payout"), value: `₹${receipt.protectedPayout}` },
+    { label: t(locale, "fact.floor"), value: `₹${receipt.protectionFloor ?? receipt.protectedPayout}` },
+    { label: t(locale, "fact.cooperative"), value: cooperativeLabel(state, receipt.cooperativeId) },
   ];
   if (row) {
     facts.push({
-      label: "Your workload at decision time",
-      value: `${minutes(row.workloadTodayMinutes)} of ${minutes(row.maxDailyMinutes)}`,
+      label: t(locale, "fact.workload"),
+      value: t(locale, "fact.workloadValue", {
+        used: row.workloadTodayMinutes,
+        limit: row.maxDailyMinutes,
+      }),
     });
   }
   return facts;
 }
-
-const NO_PENALTY =
-  "Not being chosen this time has no effect on your rating and does not reduce your future offers.";
 
 /**
  * Explain one frozen decision to one member.
@@ -201,6 +207,7 @@ export function explainAllocation(
   state: AppState,
   receipt: DecisionReceipt,
   worker: Worker,
+  locale: Locale = "en",
 ): AllocationExplanation {
   const job = state.jobs.find((item) => item.id === receipt.jobId);
   const service = job?.service ?? "";
@@ -208,7 +215,7 @@ export function explainAllocation(
   const homeSnapshot = receipt.homeCandidateSnapshot ?? [];
   const row = snapshot.find((item) => item.workerId === worker.id);
   const homeRow = homeSnapshot.find((item) => item.workerId === worker.id);
-  const fairOrder = frozenFairOrder(receipt, worker.id, workerNames(state));
+  const fairOrder = frozenFairOrder(receipt, worker.id, workerNames(state, locale));
   const declined = state.safeDeclines.find(
     (record) => record.jobId === receipt.jobId && record.workerId === worker.id,
   );
@@ -231,12 +238,14 @@ export function explainAllocation(
     return {
       ...common,
       outcome: "safely-declined",
-      headline: "You were offered this job and safely declined it.",
-      detail: `Your recorded reason was "${declined.reason}". Dispatch then ran again without you and the job went to ${workerLabel(state, receipt.workerId)}.`,
+      headline: t(locale, "why.declined.headline"),
+      detail: t(locale, "why.declined.detail", {
+        reason: declined.reason,
+        other: workerLabel(state, receipt.workerId, locale),
+      }),
       blockedBy: [],
-      facts: baseFacts(state, receipt, row),
-      consequence:
-        "A safe decline carries a zero rating penalty and a zero opportunity penalty. It is not held against you in any later decision.",
+      facts: baseFacts(state, receipt, row, locale),
+      consequence: t(locale, "why.declined.consequence"),
       challengeable: true,
     };
   }
@@ -248,33 +257,36 @@ export function explainAllocation(
     return {
       ...common,
       outcome: "selected",
-      headline: `You were given this ${readableService(service) || "service"} job.`,
+      headline: t(locale, "why.selected.headline", { service: readableService(service) || "service" }),
       detail: runnerUp && mine
-        ? `${fairOrder.length} member${fairOrder.length === 1 ? "" : "s"} passed every safety and certification check. You were first in turn order with ${minutes(mine.workloadTodayMinutes)} booked that day, against ${minutes(runnerUp.workloadTodayMinutes)} for ${workerLabel(state, runnerUp.workerId)}.`
-        : "You were the only member who passed every certification and safety check for this job at that moment.",
+        ? t(locale, "why.selected.detail", {
+            count: fairOrder.length,
+            mine: mine.workloadTodayMinutes,
+            theirs: runnerUp.workloadTodayMinutes,
+            other: workerLabel(state, runnerUp.workerId, locale),
+          })
+        : t(locale, "why.selected.detailAlone"),
       blockedBy: [],
-      facts: baseFacts(state, receipt, row),
-      consequence: `The payout was fixed at ₹${receipt.protectedPayout} before you were matched. Nobody bid against you for it.`,
+      facts: baseFacts(state, receipt, row, locale),
+      consequence: t(locale, "why.selected.consequence", { payout: receipt.protectedPayout }),
       challengeable: true,
     };
   }
 
   // 3. The member was in the considered cooperative but a hard check stopped them.
   if (row && !row.eligible) {
-    const reasons = blockedReasons(row, service);
+    const reasons = blockedReasons(row, service, "member", locale);
     const certificationOnly = reasons.length === 1 && row.skill === false;
     return {
       ...common,
       outcome: certificationOnly ? "not-certified" : "blocked-by-protection",
       headline: certificationOnly
-        ? `This job needed ${readableService(service)} certification, which you did not hold.`
-        : "A protection or eligibility check stopped this job reaching you.",
-      detail: `Certification and safety checks run before any turn ordering. Because one of them did not pass, you were never ranked against other members for this job. It went to ${workerLabel(state, receipt.workerId)}.`,
-      blockedBy: reasons.length
-        ? reasons
-        : ["The receipt records you as not eligible but does not name which check failed."],
-      facts: baseFacts(state, receipt, row),
-      consequence: NO_PENALTY,
+        ? t(locale, "why.notCertified.headline", { service: readableService(service) })
+        : t(locale, "why.blocked.headline"),
+      detail: t(locale, "why.blocked.detail", { other: workerLabel(state, receipt.workerId, locale) }),
+      blockedBy: reasons.length ? reasons : [t(locale, "check.unknown.member")],
+      facts: baseFacts(state, receipt, row, locale),
+      consequence: t(locale, "why.noPenalty"),
       challengeable: true,
     };
   }
@@ -285,39 +297,52 @@ export function explainAllocation(
     const chosen = fairOrder.find((item) => item.selected);
     let detail: string;
     if (!mine || !chosen) {
-      detail = `You passed every check. The receipt records ${workerLabel(state, receipt.workerId)} as selected but does not carry enough frozen turn-order data to show the margin.`;
+      detail = t(locale, "why.passedOver.unknown", { other: workerLabel(state, receipt.workerId, locale) });
     } else if (chosen.workloadTodayMinutes === mine.workloadTodayMinutes) {
-      detail = `You and ${workerLabel(state, chosen.workerId)} both had ${minutes(mine.workloadTodayMinutes)} booked that day. An exact tie is broken by member ID, which is fixed in advance — ${chosen.workerId} comes before ${mine.workerId}. It is not a judgement about either of you.`;
+      detail = t(locale, "why.passedOver.tie", {
+        other: workerLabel(state, chosen.workerId, locale),
+        mine: mine.workloadTodayMinutes,
+        theirId: chosen.workerId,
+        myId: mine.workerId,
+      });
     } else {
-      const gap = mine.workloadTodayMinutes - chosen.workloadTodayMinutes;
-      detail = `You were eligible and in the running at position ${mine.position} of ${fairOrder.length}. ${workerLabel(state, chosen.workerId)} went ahead of you because they had ${minutes(chosen.workloadTodayMinutes)} booked that day against your ${minutes(mine.workloadTodayMinutes)} — ${minutes(gap)} less. Work is spread toward whoever has least, not toward whoever is cheapest or best rated.`;
+      detail = t(locale, "why.passedOver.detail", {
+        position: mine.position,
+        total: fairOrder.length,
+        other: workerLabel(state, chosen.workerId, locale),
+        theirs: chosen.workloadTodayMinutes,
+        mine: mine.workloadTodayMinutes,
+        gap: mine.workloadTodayMinutes - chosen.workloadTodayMinutes,
+      });
     }
     return {
       ...common,
       outcome: "passed-over",
-      headline: "You were eligible for this job. Another member was ahead of you in turn order.",
+      headline: t(locale, "why.passedOver.headline"),
       detail,
       blockedBy: [],
-      facts: baseFacts(state, receipt, row),
-      consequence: NO_PENALTY,
+      facts: baseFacts(state, receipt, row, locale),
+      consequence: t(locale, "why.noPenalty"),
       challengeable: true,
     };
   }
 
   // 5. The member's own cooperative was the home cooperative, but the job left it.
   if (homeRow) {
-    const reasons = blockedReasons(homeRow, service);
+    const reasons = blockedReasons(homeRow, service, "member", locale);
     const safeAtHome = homeSnapshot.filter((item) => item.eligible);
     return {
       ...common,
       outcome: "cooperative-had-no-safe-capacity",
-      headline: `This job started at your cooperative and was routed to ${cooperativeLabel(state, receipt.cooperativeId)}.`,
+      headline: t(locale, "why.federated.headline", {
+        cooperative: cooperativeLabel(state, receipt.cooperativeId),
+      }),
       detail: safeAtHome.length
-        ? `${safeAtHome.length} member${safeAtHome.length === 1 ? "" : "s"} at your cooperative passed every check, but the job still had to move to meet the customer's arrival promise. Federation compares cooperatives, never individual workers across cooperatives.`
-        : `No member at your cooperative passed every certification and safety check for this job, so there was no safe local capacity to use. Federation then compared cooperatives, never individual workers across cooperatives. The receiving cooperative chose its own member under its own rulebook.`,
+        ? t(locale, "why.federated.detailSome", { count: safeAtHome.length })
+        : t(locale, "why.federated.detailNone"),
       blockedBy: reasons,
-      facts: baseFacts(state, receipt, homeRow),
-      consequence: NO_PENALTY,
+      facts: baseFacts(state, receipt, homeRow, locale),
+      consequence: t(locale, "why.noPenalty"),
       challengeable: true,
     };
   }
@@ -327,12 +352,11 @@ export function explainAllocation(
     return {
       ...common,
       outcome: "not-recorded",
-      headline: "This decision was recorded before the register started freezing candidate sets.",
-      detail:
-        "The cooperative cannot reconstruct a turn order for it, so no comparison is shown here rather than guessing one. You can still take it to Replay Court for human review.",
+      headline: t(locale, "why.unrecorded.headline"),
+      detail: t(locale, "why.unrecorded.detail"),
       blockedBy: [],
-      facts: baseFacts(state, receipt),
-      consequence: NO_PENALTY,
+      facts: baseFacts(state, receipt, undefined, locale),
+      consequence: t(locale, "why.noPenalty"),
       challengeable: true,
     };
   }
@@ -341,11 +365,13 @@ export function explainAllocation(
   return {
     ...common,
     outcome: "other-cooperative",
-    headline: `This job was handled by ${cooperativeLabel(state, receipt.cooperativeId)}, not your cooperative.`,
-    detail: `Your cooperative was not the one this job was routed to, so you were never in its candidate set. Workers are never ranked against each other across cooperatives.`,
+    headline: t(locale, "why.otherCoop.headline", {
+      cooperative: cooperativeLabel(state, receipt.cooperativeId),
+    }),
+    detail: t(locale, "why.otherCoop.detail"),
     blockedBy: [],
-    facts: baseFacts(state, receipt),
-    consequence: NO_PENALTY,
+    facts: baseFacts(state, receipt, undefined, locale),
+    consequence: t(locale, "why.noPenalty"),
     challengeable: false,
   };
 }
@@ -368,9 +394,13 @@ export function decisionsForWorker(state: AppState, worker: Worker): DecisionRec
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
-export function explanationsForWorker(state: AppState, worker: Worker): AllocationExplanation[] {
+export function explanationsForWorker(
+  state: AppState,
+  worker: Worker,
+  locale: Locale = "en",
+): AllocationExplanation[] {
   return decisionsForWorker(state, worker).map((receipt) =>
-    explainAllocation(state, receipt, worker),
+    explainAllocation(state, receipt, worker, locale),
   );
 }
 

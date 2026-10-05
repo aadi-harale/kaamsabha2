@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { AppState, Job } from "@/lib/domain";
+import type { AppState, Job, Locale } from "@/lib/domain";
 import { jobFlow, otpIsLive, waitingOnLabel, type FlowViewer } from "@/lib/job-flow";
+import { t } from "@/lib/messages";
 
 /**
  * A live code expires on the clock, not on a click. Without this the card would keep telling
@@ -23,21 +24,21 @@ function useOtpClock(job: Job) {
  * The same nine steps, on both screens, in both vocabularies. A customer and a member
  * looking at one job see the same position and the same answer to "whose move is it".
  */
-export function JobFlowTrack({ job, viewer }: { job: Job; viewer: FlowViewer }) {
+export function JobFlowTrack({ job, viewer, locale = "en" }: { job: Job; viewer: FlowViewer; locale?: Locale }) {
   useOtpClock(job);
-  const flow = jobFlow(job, viewer);
+  const flow = jobFlow(job, viewer, Date.now(), locale);
   const stepNumber = flow.steps.findIndex((step) => step.id === flow.currentStepId) + 1;
   return (
-    <section className="flowTrack" aria-label="Job progress">
+    <section className="flowTrack" aria-label={t(locale, "ui.progress")}>
       <div className="flowTrackHead">
         <p className="eyebrow">
           {flow.cancelled
-            ? "CANCELLED"
+            ? t(locale, "ui.cancelled")
             : flow.finished
-              ? "COMPLETE"
-              : `STEP ${stepNumber} OF ${flow.steps.length}`}
+              ? t(locale, "ui.complete")
+              : t(locale, "ui.stepOf", { n: stepNumber, total: flow.steps.length })}
         </p>
-        <span className={`flowWaiting ${flow.waitingOn}`}>{waitingOnLabel(flow.waitingOn)}</span>
+        <span className={`flowWaiting ${flow.waitingOn}`}>{waitingOnLabel(flow.waitingOn, locale)}</span>
       </div>
       <ol className="flowSteps">
         {flow.steps.map((step) => (
@@ -67,20 +68,20 @@ export function JobFlowTrack({ job, viewer }: { job: Job; viewer: FlowViewer }) 
  * quiet when they are waiting, but never blank — a blank screen is what makes people think
  * the app is broken.
  */
-export function NextStepCard({ job, viewer }: { job: Job; viewer: FlowViewer }) {
+export function NextStepCard({ job, viewer, locale = "en" }: { job: Job; viewer: FlowViewer; locale?: Locale }) {
   useOtpClock(job);
-  const flow = jobFlow(job, viewer);
+  const flow = jobFlow(job, viewer, Date.now(), locale);
   if (flow.finished || flow.cancelled) {
     return (
       <section className={`nextStep ${flow.cancelled ? "closed" : "finished"}`} aria-live="polite">
-        <p className="eyebrow">{flow.cancelled ? "BOOKING CLOSED" : "JOB CLOSED"}</p>
+        <p className="eyebrow">{flow.cancelled ? t(locale, "ui.bookingClosed") : t(locale, "ui.jobClosed")}</p>
         <strong>{flow.nextStep}</strong>
       </section>
     );
   }
   return (
     <section className={flow.yourMove ? "nextStep yours" : "nextStep waiting"} aria-live="polite">
-      <p className="eyebrow">{flow.yourMove ? "YOUR NEXT STEP" : waitingOnLabel(flow.waitingOn).toUpperCase()}</p>
+      <p className="eyebrow">{flow.yourMove ? t(locale, "ui.yourNextStep") : waitingOnLabel(flow.waitingOn, locale)}</p>
       <strong>{flow.nextStep}</strong>
       <span>{flow.otherSide}</span>
     </section>

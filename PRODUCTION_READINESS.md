@@ -95,6 +95,19 @@ These were real defects, not theoretical ones:
 - `x-forwarded-for` is spoofable, so the limiter's client identity is a speed bump, not a
   control.
 
+## Translations
+
+The member's own screens are in English, Hindi and Marathi (`lib/messages.ts`, 216 messages).
+**These translations have not been reviewed by a native speaker.** They are good-faith and
+grammatical, and a Marathi and a Hindi speaker should read them before anyone relies on them in
+the field. Worker-facing wording about pay and protections is exactly where a clumsy phrase
+does real harm.
+
+Cooperative operations, governance and the admin side of Replay Court remain English on
+purpose: they are record-first tools for an administrator, and a half-translated audit trail is
+worse than an untranslated one. If the cooperative's own administrators work in Marathi, that
+decision should be revisited — with a translator, not with a find-and-replace.
+
 ## What production would take, in order
 
 1. **A server that owns the register.** Move `lib/commands.ts` behind authenticated endpoints.

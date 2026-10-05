@@ -300,3 +300,23 @@ select,input,textarea{max-width:100%}
 .ruleProof{display:grid;gap:6px;margin:0 0 10px;padding:0;list-style:none}
 .ruleProof li{position:relative;padding-left:16px;color:#e4ebe7;font-size:13px;line-height:1.55;max-width:70ch}
 .ruleProof li::before{content:"";position:absolute;left:0;top:8px;width:7px;height:7px;border-radius:2px;background:#d6ed8d}
+
+/* ---------- demo scenario shortcuts (login screen) ---------- */
+.scenarioPicker{margin-top:4px;border:1px solid #d9ded9;border-radius:12px;background:#fbfcfb;overflow:hidden}
+.scenarioToggle{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;min-height:42px;padding:10px 13px;border:0;border-radius:0;background:transparent;color:#1d5c46;box-shadow:none;font-size:12px;font-weight:800;text-align:left}
+.scenarioToggle:hover{background:#f2f7f4}
+.scenarioBody{display:grid;gap:10px;padding:0 13px 13px}
+.scenarioNote{margin:0;color:#5f6b65;font-size:11px;line-height:1.6}
+.scenarioList{display:grid;gap:7px;margin:0;padding:0;list-style:none}
+.scenarioList li{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:10px 11px;border:1px solid #e2e6e2;border-radius:10px;background:#fff}
+.scenarioList li>div{display:grid;gap:3px;min-width:0}
+.scenarioList strong{font-size:12px;color:#17231d}
+.scenarioList span{font-size:11px;line-height:1.5;color:#5a6660}
+.scenarioList small{font-size:10px;line-height:1.5;color:#7a847e}
+.scenarioList li>button{flex:0 0 auto;min-height:32px;padding:6px 11px;border:1px solid #cdd6d0;border-radius:9px;background:#fff;color:#1d5c46;box-shadow:none;font-size:11px;font-weight:800}
+.scenarioList li>button:hover{background:#f2f7f4}
+.scenarioReset{justify-self:start;min-height:32px;padding:6px 11px;border:1px dashed #cdd6d0;border-radius:9px;background:transparent;color:#6b766f;box-shadow:none;font-size:11px;font-weight:700}
+@media (max-width:460px){
+  .scenarioList li{flex-direction:column}
+  .scenarioList li>button{align-self:flex-start}
+}

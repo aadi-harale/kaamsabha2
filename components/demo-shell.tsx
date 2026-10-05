@@ -7,9 +7,47 @@ import type { AppState, Role } from "@/lib/domain";
 import { stateRepository } from "@/lib/repository";
 import { summarizeWorkerEarnings, weeklyWorkerEarnings, workerEarningEntries } from "@/lib/earnings";
 import { authenticateDemoAccount, DEMO_PASSWORD, demoAccounts, rolePermissions, roleTitle } from "@/lib/demo-auth";
+import { resetRegister, SCENARIOS } from "@/lib/demo-scenarios";
 
-function DemoLogin({state,onLogin}:{state:AppState;onLogin:(role:Role,identity:string)=>void}){
-  const[username,setUsername]=useState("customer");
+/**
+ * Seventeen screens across three roles is a lot to drive from a cold start. These jump the
+ * register to the state a given story needs, using the same commands a person would — nothing
+ * is written directly — so what appears afterwards is the product working, not a mock-up.
+ */
+function ScenarioPicker({onSeed}:{onSeed:(state:AppState,signInAs:string)=>void}){
+  const[open,setOpen]=useState(false);
+  const[ran,setRan]=useState<string|null>(null);
+  return <section className="scenarioPicker">
+    <button type="button" className="scenarioToggle" aria-expanded={open} onClick={()=>setOpen(v=>!v)}>
+      <span>{open?"Hide demo shortcuts":"Jump straight to a story"}</span>
+      <span aria-hidden="true">{open?"▴":"▾"}</span>
+    </button>
+    {open&&<div className="scenarioBody">
+      <p className="scenarioNote">
+        Each one books and advances real jobs through the same dispatch rules the app uses. It
+        replaces the clicking, not the logic. Running one clears the register first.
+      </p>
+      <ul className="scenarioList">
+        {SCENARIOS.map(scenario=><li key={scenario.id}>
+          <div>
+            <strong>{scenario.name}</strong>
+            <span>{scenario.sets}</span>
+            <small>{scenario.then}</small>
+          </div>
+          <button type="button" onClick={()=>{onSeed(scenario.run(),scenario.signInAs);setRan(scenario.id);}}>
+            {ran===scenario.id?"Set up ✓":"Set up"}
+          </button>
+        </li>)}
+      </ul>
+      <button type="button" className="scenarioReset" onClick={()=>{onSeed(resetRegister(),"customer");setRan(null);}}>
+        Clear the register and start from the seed
+      </button>
+    </div>}
+  </section>;
+}
+
+function DemoLogin({state,onLogin,onSeed,initialUsername="customer"}:{state:AppState;onLogin:(role:Role,identity:string)=>void;onSeed:(state:AppState,signInAs:string)=>void;initialUsername?:string}){
+  const[username,setUsername]=useState(initialUsername);
   const[password,setPassword]=useState(DEMO_PASSWORD);
   const[showPassword,setShowPassword]=useState(false);
   const[error,setError]=useState("");
@@ -88,6 +126,8 @@ function DemoLogin({state,onLogin}:{state:AppState;onLogin:(role:Role,identity:s
           <ul>{rolePermissions[active.role].slice(0,3).map(item=><li key={item}>✓ {item}</li>)}</ul>
         </div>}
 
+        <ScenarioPicker onSeed={onSeed}/>
+
         <div className="namedDemoHint">
           <strong>Demo credentials</strong>
           <span>Every account uses password <b>12345</b>.</span>
@@ -129,6 +169,7 @@ export function DemoShell(){
   const[appKey,setAppKey]=useState(0);
   const[earningsOpen,setEarningsOpen]=useState(false);
   const[earningsState,setEarningsState]=useState<AppState|null>(null);
+  const[usernameHint,setUsernameHint]=useState("customer");
 
   useEffect(()=>{
     const current=stateRepository.load();setLoginState(current);setSession(current.session);setLoaded(true);
@@ -151,7 +192,10 @@ export function DemoShell(){
     if(!session)return;
     const decorateProductUi=()=>{
       const root=document.querySelector(".productShell");if(!root)return;
-      const state=stateRepository.load(),names=new Map(state.workers.map(w=>[w.id,w.name]));
+      const state=stateRepository.load();
+      // Member IDs left in older components are swapped for names — in the reader's own script,
+      // so a Marathi screen does not end up with one Latin name in the middle of it.
+      const names=new Map(state.workers.map(w=>[w.id,state.locale==="en"?w.name:(w.nameDevanagari||w.name)]));
       // Leaflet rewrites its own DOM constantly while a map pans or re-measures. Walking
       // into it would make this run on every tile move for no benefit, so it is skipped.
       const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{
@@ -200,7 +244,17 @@ export function DemoShell(){
     const base=stateRepository.load(),next=signIn(base,identity,role);stateRepository.save(next);setSession(next.session);setAppKey(k=>k+1);
   }
 
+  /** A scenario replaces the register outright, so the login screen has to be told to redraw. */
+  function seed(next:AppState,signInAs:string){
+    stateRepository.save({...next,session:null});
+    const reloaded=stateRepository.load();
+    setLoginState(reloaded);
+    setSession(null);
+    setUsernameHint(signInAs);
+    setAppKey(k=>k+1);
+  }
+
   if(!loaded||!loginState)return <main className="shell loading">Loading KaamSabha…</main>;
-  if(!session)return <DemoLogin state={loginState} onLogin={login}/>;
+  if(!session)return <DemoLogin key={appKey} state={loginState} onLogin={login} onSeed={seed} initialUsername={usernameHint}/>;
   return <div className="demoShellRoot"><ProductApp key={appKey}/>{earningsOpen&&earningsState&&<EarningsWorkspace state={earningsState} onClose={()=>setEarningsOpen(false)}/>}</div>;
 }
