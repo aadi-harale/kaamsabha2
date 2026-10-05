@@ -227,3 +227,76 @@ select,input,textarea{max-width:100%}
 .crashDetail{margin-top:4px}
 .crashDetail summary{cursor:pointer;color:#5f6b65;font-size:11px;font-weight:800}
 .crashDetail pre{margin:8px 0 0;padding:10px;border:1px solid #e4e8e4;border-radius:9px;background:#fbfcfb;color:#4a564f;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere}
+
+/* ---------- SAME JOBS / SAME WORKERS / DIFFERENT RULE ----------
+   The one place the design standards allow to be loud, because it is the whole argument.
+   Still flat: no gradients, no glass, one accent. */
+.ruleCompareBold{margin-top:28px;border:2px solid #171a18;border-radius:16px;background:#fff;overflow:hidden}
+.ruleCompareHead{padding:20px 22px;background:#171a18;color:#fff}
+.ruleCompareKicker{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.ruleCompareKicker span{padding:4px 10px;border:1px solid #3d453f;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.09em;color:#c2cbc5}
+.ruleCompareKicker .different{border-color:#d6ed8d;background:#d6ed8d;color:#171a18}
+.ruleCompareHead h2{margin:0 0 8px;font-size:clamp(19px,2.1vw,27px);line-height:1.28;letter-spacing:-.02em;color:#fff;max-width:68ch}
+.ruleCompareSub{margin:0;color:#aab5af;font-size:12px;line-height:1.6;max-width:72ch}
+
+.ruleColumns{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#e2e6e2}
+.ruleColumn{display:grid;gap:13px;align-content:start;padding:18px;background:#fbfcfb}
+.ruleColumn.active{background:#fff;box-shadow:inset 4px 0 0 #176b52}
+.ruleColumn header{display:grid;gap:5px}
+.ruleBadge{justify-self:start;padding:3px 9px;border:1px solid #cfd8d2;border-radius:999px;background:#f2f5f3;color:#5a6b63;font-size:9px;font-weight:900;letter-spacing:.09em}
+.ruleColumn.active .ruleBadge{border-color:#176b52;background:#176b52;color:#fff}
+.ruleColumn h3{margin:0;font-size:16px;letter-spacing:-.01em;color:#15271f}
+.ruleDefinition{margin:0;color:#4f5b55;font-size:12px;line-height:1.6}
+
+.ruleStats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0}
+.ruleStats>div{display:grid;gap:2px;padding:9px 10px;border:1px solid #e2e6e2;border-radius:10px;background:#fff}
+.ruleStats>div.good{border-color:#bcd7c8;background:#f1f8f4}
+.ruleStats>div.bad{border-color:#dcb8b2;background:#fbefed}
+.ruleStats dt{color:#6f7a74;font-size:10px;line-height:1.35}
+.ruleStats dd{margin:0;font-size:19px;font-weight:850;color:#17231d;font-variant-numeric:tabular-nums}
+.ruleStats dd small{font-size:11px;font-weight:600;color:#7a847e}
+.ruleStats dd .none{font-size:15px;color:#7d332a}
+.ruleStats>div.bad dd{color:#7d332a}
+
+.ruleBars{display:grid;gap:3px;margin:0;padding:0;list-style:none}
+.ruleBar{display:grid;grid-template-columns:62px minmax(0,1fr) 42px;align-items:center;gap:8px;font-size:11px}
+.ruleBarName{color:#4f5b55;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ruleBarTrack{height:13px;border-radius:4px;background:#eef1ef;overflow:hidden}
+.ruleBarTrack i{display:block;height:100%;background:#53645c;border-radius:4px}
+.ruleColumn.active .ruleBarTrack i{background:#176b52}
+.ruleBarCount{text-align:right;color:#3f4b45;font-weight:800;font-variant-numeric:tabular-nums}
+.ruleBarCount b{color:#9c382f}
+.ruleBar.none .ruleBarName,.ruleBar.none .ruleBarCount{color:#9aa49e;font-weight:600}
+.ruleBar.none .ruleBarTrack{background:#f4f6f4;border:1px dashed #dde2de}
+
+.ruleConsequence{margin:0;padding:10px 11px;border:1px solid #e2e6e2;border-left:3px solid #53645c;border-radius:9px;background:#f7f9f7;color:#4a564f;font-size:12px;line-height:1.6}
+.ruleColumn.active .ruleConsequence{border-left-color:#176b52;background:#f1f8f4}
+.ruleTradeoff{margin:0;padding:10px 11px;border:1px dashed #cdd6d0;border-radius:9px;color:#5f6b65;font-size:11px;line-height:1.6}
+.ruleTradeoff strong{color:#17231d}
+
+.ruleMethodToggle{margin:14px 18px;min-height:34px;padding:7px 12px;border:1px solid #cdd6d0;border-radius:10px;background:#fff;color:#1d5c46;box-shadow:none;font-size:11px;font-weight:800}
+.ruleMethodToggle:hover{background:#f2f7f4}
+.ruleMethod{display:grid;gap:10px;margin:0 18px 18px;padding:14px;border:1px solid #e4e8e4;border-radius:12px;background:#fbfcfb}
+.ruleMethod p{margin:0;color:#4f5b55;font-size:12px;line-height:1.65}
+.ruleMethod strong{color:#17231d}
+.ruleShutOut summary{cursor:pointer;color:#1d5c46;font-size:11px;font-weight:800}
+.ruleShutOut>div{margin-top:9px}
+.ruleShutOut>div>strong{font-size:11px;color:#17231d}
+.ruleShutOut ul{margin:5px 0 0;padding-left:18px;display:grid;gap:4px;color:#5a6660;font-size:11px;line-height:1.55}
+
+@media (max-width:860px){
+  .ruleColumns{grid-template-columns:1fr}
+  .ruleColumn.active{box-shadow:inset 0 4px 0 #176b52}
+}
+@media (max-width:460px){
+  .ruleStats{grid-template-columns:1fr}
+  .ruleCompareHead{padding:16px}
+  .ruleColumn{padding:14px}
+  .ruleBar{grid-template-columns:54px minmax(0,1fr) 38px;gap:6px}
+  .ruleMethodToggle,.ruleMethod{margin-left:14px;margin-right:14px}
+}
+.ruleFootnote{margin:0;color:#6b766f;font-size:10.5px;line-height:1.6}
+.ruleFootnote b{color:#9c382f;font-weight:900}
+.ruleProof{display:grid;gap:6px;margin:0 0 10px;padding:0;list-style:none}
+.ruleProof li{position:relative;padding-left:16px;color:#e4ebe7;font-size:13px;line-height:1.55;max-width:70ch}
+.ruleProof li::before{content:"";position:absolute;left:0;top:8px;width:7px;height:7px;border-radius:2px;background:#d6ed8d}

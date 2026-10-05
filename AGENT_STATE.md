@@ -176,6 +176,43 @@ Real defects closed in this pass:
 CI now installs from the lockfile with `npm ci`, runs an advisory production audit, and fails
 if a credential-shaped value is committed outside `.env.example`.
 
+# The thesis, computed instead of asserted
+
+`SAME JOBS / SAME WORKERS / DIFFERENT RULE` was a three-cell strip showing a job count, a member
+count and a policy version. It stated the product's entire argument and proved none of it; a
+judge had to take on faith that a different rulebook would treat the same people differently.
+
+`lib/rule-comparison.ts` now runs the same demand, over the same members, from the same starting
+workloads, under two named rulebooks, and reports what each one did. On the seeded register:
+10 of 13 members earn under this cooperative's constitution and 5 do under rating-ranked
+dispatch; the cooperative rule hands new work to a member already at their own limit 0 times
+and the other does it 11 times. Nothing in that sentence is written into the UI — it is
+computed, and the headline is assembled from the computed numbers.
+
+Honesty constraints the module holds to, with tests pinning each:
+
+- The alternative is a **rule definition**, stated in full on screen, not a claim about any
+  company. A test fails if a brand name appears in the rulebook copy.
+- The protection claim is precise. The cooperative guard refuses to **start** a member on new
+  work once they are at their limit; it does not stop a job already underway from running past
+  it. An earlier draft of the headline overclaimed ("never sent anyone past the limit") and the
+  test suite caught it. The metric that separates the rulebooks is `jobsPastSafeLimit` — work
+  handed to someone *already* at or over the line. Members who finish slightly over are marked
+  and the mark is explained in words, including in the cooperative's own column.
+- Members who earn nothing are each told why, and a protection holding work back is never
+  reported as the same thing as being passed over.
+- The cost of the safe rule is shown, not hidden: at higher demand it leaves jobs unfilled
+  rather than overworking anyone, and the panel says federation is how the customer is still
+  served. A test asserts the unfilled count is non-zero at high demand.
+- It is read-only. A test re-serialises the register after running it and asserts nothing moved.
+
+Demand is synthetic, generated from the project's seed 26089, labelled as synthetic on screen,
+and identical on every machine. The members, certifications, ratings and starting workloads are
+the register's own records.
+
+The visual leads the admin Overview, which is where someone landing on the app arrives, and
+stays a footer everywhere else so it never crowds the work.
+
 # Freeze
 
 Feature work beyond this pass remains frozen. Remaining work is deployment/browser

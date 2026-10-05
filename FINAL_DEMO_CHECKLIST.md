@@ -2,6 +2,22 @@
 
 Use the same browser profile so the deterministic register persists across logouts. The strongest story is: familiar customer marketplace -> pre-start Scope Lock -> worker protections and voice -> AI-assisted collective policy review -> executable member governance -> operational federation transfer.
 
+## 0. Open with the argument (15 seconds)
+
+1. Sign in as `admin` (password `12345`). The operations front page leads with
+   **SAME JOBS / SAME WORKERS / DIFFERENT RULE**.
+2. Read the line out: *"Same 32 jobs. Same 13 certified members. One thing changed: the rule."*
+3. Point at the two columns. Ten members earn under this cooperative's constitution; five earn
+   under rating-ranked dispatch. The cooperative rule handed work to someone already at their own
+   limit zero times; the other rule did it eleven times.
+4. If asked where the numbers come from, open **How is this calculated?**: synthetic demand from
+   seed 26089, the register's own members and ratings, identical on every machine, read-only, and
+   the alternative stated as a rule definition rather than an accusation about any company.
+5. Note the two honest edges rather than waiting to be asked — they are the strongest part of the
+   argument. The cooperative column carries a † where a member finished slightly over their limit
+   because a job they had already started ran past it, and it leaves a job unfilled rather than
+   overworking anyone. Federation (section 6) is the answer to that.
+
 ## 1. Customer: normal marketplace first
 
 1. Sign in as `customer` (every demo account uses password `12345`).
