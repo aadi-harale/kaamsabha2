@@ -7,7 +7,15 @@ export type ChallengeOutcome = "confirmed" | "violation" | "human-review";
 export type ChallengeStatus = "open" | "replayed" | "confirmed" | "violation" | "human-review" | "remedied" | "closed" | "upheld" | "dismissed";
 
 export interface Worker {
-  id:string; name:string; cooperativeId:string; skills:string[]; verified:boolean; active:boolean; available:boolean;
+  id:string; name:string;
+  /**
+   * The same name in Devanagari, used when a member reads the app in Hindi or Marathi. Both
+   * languages share the script, so one form serves both. Seeing your own name in your own
+   * script is part of the dignity this product claims; a Latin name sitting inside a Marathi
+   * sentence reads as a half-finished translation.
+   */
+  nameDevanagari?:string;
+  cooperativeId:string; skills:string[]; verified:boolean; active:boolean; available:boolean;
   radiusKm:number; workloadTodayMinutes:number; rating:number; certifications?:string[]; maxDailyMinutes?:number;
   minRestMinutes?:number; availableUntil?:string;
 }
@@ -24,8 +32,9 @@ export interface DecisionReceipt {
   id:string; jobId:string; policyVersion:string; workerId:string; cooperativeId:string; hardChecks:Record<string,boolean>;
   protectedPayout:number; protectionFloor?:number; estimatedCost:number; estimatedNet:number; reason:string; federationReason:string;
   createdAt:string; candidateWorkerIds?:string[]; candidateSnapshot?:DecisionCandidateSnapshot[];
+  homeCooperativeId?:string; homeCandidateSnapshot?:DecisionCandidateSnapshot[];
 }
-export interface OtpChallenge { purpose:"start"|"completion"; token:string; expiresAt:number; attemptsLeft:number; usedAt?:number; }
+export interface OtpChallenge { purpose:"start"|"completion"; token:string; expiresAt:number; attemptsLeft:number; usedAt?:number; issuedAt?:number; demoCode?:string; }
 export interface Evidence { id:string; label:string; createdAt:string; uploadedBy:string; }
 export interface ChangeOrder { id:string; description:string; amountDelta:number; requestedBy:string; approved?:boolean; decidedAt?:string; }
 export interface Settlement { id:string; jobId:string; amount:number; workerPayout:number; platformFee:number; invoiceNumber:string; settledAt:string; }
@@ -127,16 +136,26 @@ function seededEarnings(workers:Worker[]):WorkerEarningEntry[]{
 
 export function initialState():AppState{
   const workers:Worker[]=[
-    {id:"W01",name:"Meena Jadhav",cooperativeId:"coop-yerawada",skills:["electrician"],certifications:["Electrical Safety L2"],verified:true,active:true,available:true,radiusKm:9,workloadTodayMinutes:160,rating:4.8,maxDailyMinutes:480,minRestMinutes:30},
-    {id:"W02",name:"Ravi Shinde",cooperativeId:"coop-kharadi",skills:["electrician","appliance"],certifications:["Electrical Safety L2","Appliance Repair L1"],verified:true,active:true,available:true,radiusKm:8,workloadTodayMinutes:210,rating:4.7,maxDailyMinutes:480,minRestMinutes:30},
-    {id:"W03",name:"Asha Kamble",cooperativeId:"coop-kharadi",skills:["cleaning"],certifications:["Home Hygiene L2"],verified:true,active:true,available:true,radiusKm:7,workloadTodayMinutes:130,rating:4.9,maxDailyMinutes:420,minRestMinutes:30},
-    {id:"W04",name:"Sagar Pawar",cooperativeId:"coop-hadapsar",skills:["plumbing"],certifications:["Plumbing & Leak Safety L1"],verified:true,active:true,available:true,radiusKm:10,workloadTodayMinutes:95,rating:4.8,maxDailyMinutes:480,minRestMinutes:30},
-    {id:"W05",name:"Nikita More",cooperativeId:"coop-yerawada",skills:["carpentry"],certifications:["Home Carpentry L1"],verified:true,active:true,available:true,radiusKm:9,workloadTodayMinutes:115,rating:4.9,maxDailyMinutes:420,minRestMinutes:30},
-    {id:"W06",name:"Priya Gaikwad",cooperativeId:"coop-yerawada",skills:["electrician","appliance"],certifications:["Electrical Safety L2"],verified:true,active:true,available:true,radiusKm:9,workloadTodayMinutes:240,rating:4.8,maxDailyMinutes:480,minRestMinutes:30},
-    {id:"W07",name:"Imran Shaikh",cooperativeId:"coop-hadapsar",skills:["electrician","cleaning"],certifications:["Electrical Safety L1"],verified:true,active:true,available:true,radiusKm:10,workloadTodayMinutes:170,rating:4.7,maxDailyMinutes:480,minRestMinutes:30},
-    {id:"W08",name:"Kavita Bhosale",cooperativeId:"coop-viman",skills:["electrician"],certifications:["Electrical Safety L2"],verified:true,active:true,available:true,radiusKm:8,workloadTodayMinutes:500,rating:4.9,maxDailyMinutes:420,minRestMinutes:60},
-    {id:"W09",name:"Manoj Patil",cooperativeId:"coop-hadapsar",skills:["plumbing","cleaning"],certifications:["Plumbing & Leak Safety L2"],verified:true,active:true,available:true,radiusKm:10,workloadTodayMinutes:260,rating:4.6,maxDailyMinutes:480,minRestMinutes:30},
-    {id:"W10",name:"Anil Kulkarni",cooperativeId:"coop-viman",skills:["plumbing","appliance"],certifications:["Plumbing & Leak Safety L1","Appliance Repair L1"],verified:true,active:true,available:true,radiusKm:8,workloadTodayMinutes:185,rating:4.8,maxDailyMinutes:480,minRestMinutes:30}
+    {id:"W01",name:"Meena Jadhav",nameDevanagari:"मीना जाधव",cooperativeId:"coop-yerawada",skills:["electrician"],certifications:["Electrical Safety L2"],verified:true,active:true,available:true,radiusKm:9,workloadTodayMinutes:160,rating:4.8,maxDailyMinutes:480,minRestMinutes:30},
+    {id:"W02",name:"Ravi Shinde",nameDevanagari:"रवी शिंदे",cooperativeId:"coop-kharadi",skills:["electrician","appliance"],certifications:["Electrical Safety L2","Appliance Repair L1"],verified:true,active:true,available:true,radiusKm:8,workloadTodayMinutes:210,rating:4.7,maxDailyMinutes:480,minRestMinutes:30},
+    {id:"W03",name:"Asha Kamble",nameDevanagari:"आशा कांबळे",cooperativeId:"coop-kharadi",skills:["cleaning"],certifications:["Home Hygiene L2"],verified:true,active:true,available:true,radiusKm:7,workloadTodayMinutes:130,rating:4.9,maxDailyMinutes:420,minRestMinutes:30},
+    {id:"W04",name:"Sagar Pawar",nameDevanagari:"सागर पवार",cooperativeId:"coop-hadapsar",skills:["plumbing"],certifications:["Plumbing & Leak Safety L1"],verified:true,active:true,available:true,radiusKm:10,workloadTodayMinutes:95,rating:4.8,maxDailyMinutes:480,minRestMinutes:30},
+    {id:"W05",name:"Nikita More",nameDevanagari:"निकिता मोरे",cooperativeId:"coop-yerawada",skills:["carpentry"],certifications:["Home Carpentry L1"],verified:true,active:true,available:true,radiusKm:9,workloadTodayMinutes:115,rating:4.9,maxDailyMinutes:420,minRestMinutes:30},
+    {id:"W06",name:"Priya Gaikwad",nameDevanagari:"प्रिया गायकवाड",cooperativeId:"coop-yerawada",skills:["electrician","appliance"],certifications:["Electrical Safety L2"],verified:true,active:true,available:true,radiusKm:9,workloadTodayMinutes:240,rating:4.8,maxDailyMinutes:480,minRestMinutes:30},
+    {id:"W07",name:"Imran Shaikh",nameDevanagari:"इम्रान शेख",cooperativeId:"coop-hadapsar",skills:["electrician","cleaning"],certifications:["Electrical Safety L1"],verified:true,active:true,available:true,radiusKm:10,workloadTodayMinutes:170,rating:4.7,maxDailyMinutes:480,minRestMinutes:30},
+    {id:"W08",name:"Kavita Bhosale",nameDevanagari:"कविता भोसले",cooperativeId:"coop-viman",skills:["electrician"],certifications:["Electrical Safety L2"],verified:true,active:true,available:true,radiusKm:8,workloadTodayMinutes:500,rating:4.9,maxDailyMinutes:420,minRestMinutes:60},
+    {id:"W09",name:"Manoj Patil",nameDevanagari:"मनोज पाटील",cooperativeId:"coop-hadapsar",skills:["plumbing","cleaning"],certifications:["Plumbing & Leak Safety L2"],verified:true,active:true,available:true,radiusKm:10,workloadTodayMinutes:260,rating:4.6,maxDailyMinutes:480,minRestMinutes:30},
+    {id:"W10",name:"Anil Kulkarni",nameDevanagari:"अनिल कुलकर्णी",cooperativeId:"coop-viman",skills:["plumbing","appliance"],certifications:["Plumbing & Leak Safety L1","Appliance Repair L1"],verified:true,active:true,available:true,radiusKm:8,workloadTodayMinutes:185,rating:4.8,maxDailyMinutes:480,minRestMinutes:30},
+    // These three exist so a member can actually see why a job did not come to them.
+    // Without a second certified member in the same cooperative, every decision has one
+    // candidate and the explanation has nothing to compare.
+    // Sunita is certified for the same work as Ravi but has already reached the daily limit
+    // she set for herself, so the workload safety guard holds electrical jobs back from her.
+    {id:"W11",name:"Sunita Rathod",nameDevanagari:"सुनीता राठोड",cooperativeId:"coop-kharadi",skills:["electrician"],certifications:["Electrical Safety L2"],verified:true,active:true,available:true,radiusKm:8,workloadTodayMinutes:420,rating:4.8,maxDailyMinutes:420,minRestMinutes:30},
+    // Farhan and Leela are both free and safe for plumbing in Kharadi, so a plumbing booking
+    // there shows one member chosen on turn order and one told the exact margin.
+    {id:"W12",name:"Farhan Qureshi",nameDevanagari:"फरहान कुरेशी",cooperativeId:"coop-kharadi",skills:["plumbing"],certifications:["Plumbing & Leak Safety L2"],verified:true,active:true,available:true,radiusKm:9,workloadTodayMinutes:300,rating:4.7,maxDailyMinutes:480,minRestMinutes:30},
+    {id:"W13",name:"Leela Waghmare",nameDevanagari:"लीला वाघमारे",cooperativeId:"coop-kharadi",skills:["plumbing"],certifications:["Plumbing & Leak Safety L1"],verified:true,active:true,available:true,radiusKm:9,workloadTodayMinutes:150,rating:4.9,maxDailyMinutes:480,minRestMinutes:30}
   ];
   return {
     schema:1,revision:0,locale:"en",session:null,policy:{...POLICY},

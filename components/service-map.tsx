@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import type { Map as LeafletMap } from "leaflet";
+import type { Map as LeafletMap, Marker, Polyline } from "leaflet";
 import type { AppState, FederationOpportunity, Job } from "@/lib/domain";
 
 type Point={lat:number;lng:number};
@@ -54,28 +54,71 @@ function Fallback({from,to,label}:{from:Point;to:Point;label:string}){
   </div>;
 }
 
+/**
+ * Keeps a Leaflet instance alive for the lifetime of the host element.
+ *
+ * Two rules learned the hard way:
+ *  - The map is built once. Route geometry arriving later redraws the line, it does not
+ *    tear the map down, so the tiles never flash or come back half-painted.
+ *  - Leaflet caches its own pixel size. Any layout change around it (a job moving from
+ *    "arrived" to "started" swaps a whole panel in and out) leaves that cache stale and
+ *    the tiles misplaced, so the container is watched and told to re-measure.
+ */
 function ServiceCanvas({from,to,route,workerName,job,mode,interactive,onFail}:{from:Point;to:Point;route:Route|null;workerName?:string;job:Job;mode:"customer"|"worker";interactive:boolean;onFail:()=>void}){
   const host=useRef<HTMLDivElement>(null),map=useRef<LeafletMap|null>(null),failRef=useRef(onFail);
+  const layers=useRef<{worker:Marker|null;destination:Marker|null;line:Polyline|null}>({worker:null,destination:null,line:null});
+  const leaflet=useRef<typeof import("leaflet")|null>(null);
+  const[ready,setReady]=useState(false);
   useEffect(()=>{failRef.current=onFail;},[onFail]);
+
+  // Build the map once per host element.
   useEffect(()=>{
-    if(!host.current)return;let cancelled=false;
+    const element=host.current;
+    if(!element)return;
+    let cancelled=false;
+    let instance:LeafletMap|null=null;
+    let observer:ResizeObserver|null=null;
     void import("leaflet").then(L=>{
       if(cancelled||!host.current)return;
-      const instance=L.map(host.current,{scrollWheelZoom:interactive,zoomControl:interactive,dragging:interactive,doubleClickZoom:interactive,touchZoom:interactive,boxZoom:interactive,keyboard:interactive,attributionControl:true,fadeAnimation:false,zoomAnimation:false,markerZoomAnimation:false});
+      leaflet.current=L;
+      instance=L.map(element,{scrollWheelZoom:interactive,zoomControl:interactive,dragging:interactive,doubleClickZoom:interactive,touchZoom:interactive,boxZoom:interactive,keyboard:interactive,attributionControl:true,fadeAnimation:false,zoomAnimation:false,markerZoomAnimation:false});
       map.current=instance;
       const tiles=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"&copy; OpenStreetMap contributors",maxZoom:18,crossOrigin:true,updateWhenIdle:true,keepBuffer:2});
       let failures=0;tiles.on("tileerror",()=>{failures++;if(failures>=3)failRef.current();});tiles.addTo(instance);
-      const workerIcon=L.divIcon({className:"kmsMapIcon",html:`<span class="kmsWorkerPin" aria-hidden="true">${mode==="worker"?"You":"W"}</span>`,iconSize:[42,42],iconAnchor:[21,21]});
-      const jobIcon=L.divIcon({className:"kmsMapIcon",html:"<span class=\"kmsJobPin\" aria-hidden=\"true\">Job</span>",iconSize:[44,44],iconAnchor:[22,22]});
-      L.marker([from.lat,from.lng],{keyboard:interactive,title:workerName||job.workerId||"Assigned worker",icon:workerIcon,interactive}).addTo(instance);
-      L.marker([to.lat,to.lng],{keyboard:interactive,title:`Service request: ${job.locality}`,icon:jobIcon,interactive}).addTo(instance);
-      const geometry=(route?.geometry?.length?route.geometry:[from,to]).map(p=>[p.lat,p.lng] as [number,number]);
-      L.polyline(geometry,{color:"#176b52",weight:4,dashArray:route?.isApproximate?"7 7":undefined,opacity:.9,interactive:false}).addTo(instance);
-      instance.fitBounds(L.latLngBounds([[from.lat,from.lng],[to.lat,to.lng]]),{padding:interactive?[78,78]:[48,48],maxZoom:interactive?15:14,animate:false});
-      requestAnimationFrame(()=>{if(!cancelled)instance.invalidateSize({animate:false});});
+      // Re-measure whenever the surrounding layout changes size, otherwise Leaflet keeps
+      // painting tiles for the size it had when it was created.
+      if(typeof ResizeObserver!=="undefined"){
+        observer=new ResizeObserver(()=>{if(!cancelled&&map.current)map.current.invalidateSize({animate:false});});
+        observer.observe(element);
+      }
+      instance.whenReady(()=>{if(!cancelled)instance?.invalidateSize({animate:false});});
+      if(!cancelled)setReady(true);
     }).catch(()=>failRef.current());
-    return()=>{cancelled=true;map.current?.remove();map.current=null;};
-  },[from.lat,from.lng,to.lat,to.lng,route?.provider,route?.isApproximate,workerName,job.workerId,job.locality,mode,interactive]);
+    return()=>{
+      cancelled=true;observer?.disconnect();
+      layers.current={worker:null,destination:null,line:null};
+      map.current?.remove();map.current=null;instance=null;setReady(false);
+    };
+  },[interactive]);
+
+  // Redraw the pins and the route line in place when the inputs change.
+  useEffect(()=>{
+    const L=leaflet.current,instance=map.current;
+    if(!ready||!L||!instance)return;
+    const workerIcon=L.divIcon({className:"kmsMapIcon",html:`<span class="kmsWorkerPin" aria-hidden="true">${mode==="worker"?"You":"W"}</span>`,iconSize:[42,42],iconAnchor:[21,21]});
+    const jobIcon=L.divIcon({className:"kmsMapIcon",html:"<span class=\"kmsJobPin\" aria-hidden=\"true\">Job</span>",iconSize:[44,44],iconAnchor:[22,22]});
+    const workerTitle=workerName||job.workerId||"Assigned worker";
+    if(layers.current.worker)layers.current.worker.setLatLng([from.lat,from.lng]).setIcon(workerIcon);
+    else layers.current.worker=L.marker([from.lat,from.lng],{keyboard:interactive,title:workerTitle,icon:workerIcon,interactive}).addTo(instance);
+    if(layers.current.destination)layers.current.destination.setLatLng([to.lat,to.lng]);
+    else layers.current.destination=L.marker([to.lat,to.lng],{keyboard:interactive,title:`Service request: ${job.locality}`,icon:jobIcon,interactive}).addTo(instance);
+    const geometry=(route?.geometry?.length?route.geometry:[from,to]).map(p=>[p.lat,p.lng] as [number,number]);
+    if(layers.current.line)layers.current.line.remove();
+    layers.current.line=L.polyline(geometry,{color:"#176b52",weight:4,dashArray:route?.isApproximate?"7 7":undefined,opacity:.9,interactive:false}).addTo(instance);
+    instance.fitBounds(L.latLngBounds([[from.lat,from.lng],[to.lat,to.lng]]),{padding:interactive?[78,78]:[48,48],maxZoom:interactive?15:14,animate:false});
+    instance.invalidateSize({animate:false});
+  },[ready,from.lat,from.lng,to.lat,to.lng,route,workerName,job.workerId,job.locality,mode,interactive]);
+
   return <div ref={host} className="leafletHost"/>;
 }
 
