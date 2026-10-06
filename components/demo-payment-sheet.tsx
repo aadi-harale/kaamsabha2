@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
 type Method = "upi" | "card" | "netbanking";
 
@@ -11,20 +11,40 @@ export function DemoPaymentSheet({
 }: {
   amount: number;
   jobId: string;
-  onSettle: () => void;
+  onSettle: () => boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [method, setMethod] = useState<Method>("upi");
   const [paid, setPaid] = useState(false);
+  const [settlementError, setSettlementError] = useState("");
+  const trigger = useRef<HTMLButtonElement>(null);
+  const dialog = useRef<HTMLElement>(null);
+  const successHeading = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    dialog.current?.focus({ preventScroll: true });
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") { event.preventDefault(); setOpen(false); }
+      if (event.key !== "Tab") return;
+      const controls = Array.from(dialog.current?.querySelectorAll<HTMLElement>("button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex='0']") ?? []).filter(element => element.getClientRects().length > 0);
+      const first = controls[0], last = controls.at(-1);
+      const inside = dialog.current?.contains(document.activeElement);
+      if (event.shiftKey && (!inside || document.activeElement === first || document.activeElement === dialog.current)) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && (!inside || document.activeElement === last || document.activeElement === dialog.current)) { event.preventDefault(); first?.focus(); }
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previousOverflow;
+      const target = trigger.current?.isConnected ? trigger.current : document.getElementById("workspace-title");
+      target?.focus({ preventScroll: true });
+    };
   }, [open]);
+
+  useEffect(() => { if (open && paid) successHeading.current?.focus(); }, [open, paid]);
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -32,24 +52,23 @@ export function DemoPaymentSheet({
   }
 
   function finish() {
-    onSettle();
-    setOpen(false);
-    setPaid(false);
+    if (onSettle()) { setOpen(false); setPaid(false); }
+    else setSettlementError("Settlement was not saved. Close this checkout, review the booking message, and retry.");
   }
 
   return (
     <>
-      <button className="payDemoButton" onClick={() => setOpen(true)}>
+      <button ref={trigger} className="payDemoButton" onClick={() => { setSettlementError(""); setOpen(true); }}>
         Pay ₹{amount} · Demo checkout
       </button>
       {open && (
         <div className="paymentBackdrop" role="presentation" onMouseDown={(event) => {
           if (event.target === event.currentTarget) setOpen(false);
         }}>
-          <section className="paymentSheet" role="dialog" aria-modal="true" aria-labelledby="payment-title">
+          <section ref={dialog} tabIndex={-1} className="paymentSheet" role="dialog" aria-modal="true" aria-labelledby="payment-title">
             <header className="paymentHeader">
               <div>
-                <span className="paymentBrand">Razorpay-style checkout</span>
+                <span className="paymentBrand">KaamSabha checkout</span>
                 <strong id="payment-title">Demo payment</strong>
                 <small>No real transaction or Razorpay API call occurs.</small>
               </div>
@@ -64,10 +83,10 @@ export function DemoPaymentSheet({
                   <small>{jobId}</small>
                 </div>
 
-                <div className="paymentMethods" role="tablist" aria-label="Demo payment methods">
-                  <button type="button" role="tab" aria-selected={method === "upi"} className={method === "upi" ? "active" : ""} onClick={() => setMethod("upi")}>UPI</button>
-                  <button type="button" role="tab" aria-selected={method === "card"} className={method === "card" ? "active" : ""} onClick={() => setMethod("card")}>Card</button>
-                  <button type="button" role="tab" aria-selected={method === "netbanking"} className={method === "netbanking" ? "active" : ""} onClick={() => setMethod("netbanking")}>Netbanking</button>
+                <div className="paymentMethods" role="group" aria-label="Demo payment methods">
+                  <button type="button" aria-pressed={method === "upi"} className={method === "upi" ? "active" : ""} onClick={() => setMethod("upi")}>UPI</button>
+                  <button type="button" aria-pressed={method === "card"} className={method === "card" ? "active" : ""} onClick={() => setMethod("card")}>Card</button>
+                  <button type="button" aria-pressed={method === "netbanking"} className={method === "netbanking" ? "active" : ""} onClick={() => setMethod("netbanking")}>Netbanking</button>
                 </div>
 
                 {method === "upi" && (
@@ -93,10 +112,11 @@ export function DemoPaymentSheet({
             ) : (
               <div className="paymentSuccess" role="status">
                 <span className="paymentSuccessIcon">✓</span>
-                <h3>Demo payment successful</h3>
+                <h3 ref={successHeading} tabIndex={-1}>Demo payment successful</h3>
                 <p>Checkout simulation completed. Posting settlement will now create the KaamSabha invoice and protected worker payout.</p>
                 <div className="paymentSuccessFacts"><span>Job</span><strong>{jobId}</strong><span>Amount</span><strong>₹{amount}</strong></div>
                 <button onClick={finish}>Post settlement & close</button>
+                {settlementError && <p role="alert">{settlementError}</p>}
               </div>
             )}
           </section>

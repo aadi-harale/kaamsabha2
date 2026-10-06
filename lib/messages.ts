@@ -156,12 +156,12 @@ const EN = {
   "standing.lastJob": "Your last job is closed and paid",
 
   // ---- screen chrome ----
-  "ui.yourNextStep": "YOUR NEXT STEP",
-  "ui.stepOf": "STEP {n} OF {total}",
-  "ui.cancelled": "CANCELLED",
-  "ui.complete": "COMPLETE",
-  "ui.jobClosed": "JOB CLOSED",
-  "ui.bookingClosed": "BOOKING CLOSED",
+  "ui.yourNextStep": "Your next step",
+  "ui.stepOf": "Step {n} of {total}",
+  "ui.cancelled": "Cancelled",
+  "ui.complete": "Complete",
+  "ui.jobClosed": "Job closed",
+  "ui.bookingClosed": "Booking closed",
   "ui.progress": "Job progress",
   "why.sectionTitle": "WHY YOU DID OR DID NOT GET A JOB",
   "why.sectionHeading": "Every allocation that involved you, with the reason.",

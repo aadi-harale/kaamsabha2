@@ -22,10 +22,10 @@ Use the same browser profile so the deterministic register persists across logou
 
 1. Sign in as `customer` (every demo account uses password `12345`).
 2. Home -> show the five services: Electrical, Cleaning, Appliance repair, Plumbing and Carpentry.
-3. Choose Electrical in `Kharadi, Pune`, add a problem description/reference name, optionally show AI intake assistance, then confirm.
+3. Choose Electrical. A focused booking form replaces the service list. Keep `Kharadi, Pune`, add a problem description/reference name, optionally show intake assistance, then **Confirm booking**. A successful save opens Orders automatically; a failed save keeps the form.
 4. Point out that Kharadi has a local eligible electrician, so the home cooperative serves the request before federation is considered.
-5. Orders -> show assigned worker, protected amount, booked scope and the in-browser OpenStreetMap/OSRM route.
-6. Click the compact map or its expand button. It opens the large interactive map with pan/zoom; ESC or the close button returns to the booking.
+5. Orders -> show the assigned worker, approved amount, booked work and next action first. **Booking progress** expands the full timeline; **Location and directions** loads the in-browser OpenStreetMap/OSRM route on request.
+6. Open **Location and directions**, then click the map or **Expand map**. It opens the large interactive map with pan/zoom; ESC or the close button returns to the booking.
 
 ## 2. Worker + customer: pre-start Scope Lock and full job lifecycle
 
@@ -46,7 +46,7 @@ Use the same browser profile so the deterministic register persists across logou
 12. Customer reviews proof and clicks **Approve the proof and issue the finish code**. It is a different code from the start code and is bound to this job.
 13. Worker enters the finish code -> job becomes `completed`.
 14. Customer opens **Pay ₹… · Demo checkout**.
-15. Show the Razorpay-style demo sheet with UPI / Card / Netbanking choices. Explicitly point out the label: **no real transaction or Razorpay API call occurs**.
+15. Show the KaamSabha demo sheet with UPI / Card / Netbanking choices. Explicitly point out the label: **no real transaction or Razorpay API call occurs**. Keyboard focus stays inside until closed.
 16. Click **Simulate payment**, show the success state, then **Post settlement & close**. This creates the KaamSabha invoice and protected worker payout in the shared ledger.
 17. After payment the booking closes. The Orders screen hands the customer straight to the invoice with **See the invoice and rate this job** rather than dropping them on an empty tab.
 18. Feedback -> optionally choose 1–2 stars to demonstrate the Rating Firewall: a human-review case is opened but worker activation/access does not change.

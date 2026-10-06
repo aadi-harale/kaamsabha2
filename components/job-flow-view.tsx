@@ -71,6 +71,9 @@ export function JobFlowTrack({ job, viewer, locale = "en" }: { job: Job; viewer:
 export function NextStepCard({ job, viewer, locale = "en" }: { job: Job; viewer: FlowViewer; locale?: Locale }) {
   useOtpClock(job);
   const flow = jobFlow(job, viewer, Date.now(), locale);
+  if (viewer === "customer" && job.status === "completed" && job.handoverHistory?.some(h => h.payReviewRequired && !h.payReviewNote)) {
+    return <section className="nextStep waiting" aria-live="polite"><p className="eyebrow">{waitingOnLabel("cooperative", locale)}</p><strong>{locale === "hi" ? "भुगतान से पहले सहकारी संस्था रुके हुए काम की समीक्षा करेगी।" : locale === "mr" ? "पैसे देण्यापूर्वी सहकारी संस्था थांबलेल्या कामाचा आढावा घेईल." : "The cooperative needs to review interrupted work before payment."}</strong></section>;
+  }
   if (flow.finished || flow.cancelled) {
     return (
       <section className={`nextStep ${flow.cancelled ? "closed" : "finished"}`} aria-live="polite">
@@ -83,7 +86,7 @@ export function NextStepCard({ job, viewer, locale = "en" }: { job: Job; viewer:
     <section className={flow.yourMove ? "nextStep yours" : "nextStep waiting"} aria-live="polite">
       <p className="eyebrow">{flow.yourMove ? t(locale, "ui.yourNextStep") : waitingOnLabel(flow.waitingOn, locale)}</p>
       <strong>{flow.nextStep}</strong>
-      <span>{flow.otherSide}</span>
+      {viewer !== "customer" && <span>{flow.otherSide}</span>}
     </section>
   );
 }

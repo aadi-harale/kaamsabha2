@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import type { Map as LeafletMap, Marker, Polyline } from "leaflet";
+import type { LatLngBounds, Map as LeafletMap, Marker, Polyline } from "leaflet";
 import type { AppState, FederationOpportunity, Job } from "@/lib/domain";
 
 type Point={lat:number;lng:number};
@@ -77,6 +77,7 @@ function Fallback({from,to,label}:{from:Point;to:Point;label:string}){
 function ServiceCanvas({from,to,route,workerName,job,mode,interactive,onFail}:{from:Point;to:Point;route:Route|null;workerName?:string;job:Job;mode:"customer"|"worker";interactive:boolean;onFail:()=>void}){
   const host=useRef<HTMLDivElement>(null),map=useRef<LeafletMap|null>(null),failRef=useRef(onFail);
   const layers=useRef<{worker:Marker|null;destination:Marker|null;line:Polyline|null}>({worker:null,destination:null,line:null});
+  const bounds=useRef<LatLngBounds|null>(null);
   const leaflet=useRef<typeof import("leaflet")|null>(null);
   const[ready,setReady]=useState(false);
   useEffect(()=>{failRef.current=onFail;},[onFail]);
@@ -98,7 +99,11 @@ function ServiceCanvas({from,to,route,workerName,job,mode,interactive,onFail}:{f
       // Re-measure whenever the surrounding layout changes size, otherwise Leaflet keeps
       // painting tiles for the size it had when it was created.
       if(typeof ResizeObserver!=="undefined"){
-        observer=new ResizeObserver(()=>{if(!cancelled&&map.current)map.current.invalidateSize({animate:false});});
+        observer=new ResizeObserver(()=>{
+          if(cancelled||!map.current)return;
+          map.current.invalidateSize({animate:false});
+          if(bounds.current)map.current.fitBounds(bounds.current,{padding:interactive?[78,78]:[48,48],maxZoom:interactive?15:14,animate:false});
+        });
         observer.observe(element);
       }
       instance.whenReady(()=>{if(!cancelled)instance?.invalidateSize({animate:false});});
@@ -106,7 +111,7 @@ function ServiceCanvas({from,to,route,workerName,job,mode,interactive,onFail}:{f
     }).catch(()=>failRef.current());
     return()=>{
       cancelled=true;observer?.disconnect();
-      layers.current={worker:null,destination:null,line:null};
+      layers.current={worker:null,destination:null,line:null};bounds.current=null;
       map.current?.remove();map.current=null;instance=null;setReady(false);
     };
   },[interactive]);
@@ -125,8 +130,9 @@ function ServiceCanvas({from,to,route,workerName,job,mode,interactive,onFail}:{f
     const geometry=(route?.geometry?.length?route.geometry:[from,to]).map(p=>[p.lat,p.lng] as [number,number]);
     if(layers.current.line)layers.current.line.remove();
     layers.current.line=L.polyline(geometry,{color:"#176b52",weight:4,dashArray:route?.isApproximate?"7 7":undefined,opacity:.9,interactive:false}).addTo(instance);
-    instance.fitBounds(L.latLngBounds([[from.lat,from.lng],[to.lat,to.lng]]),{padding:interactive?[78,78]:[48,48],maxZoom:interactive?15:14,animate:false});
     instance.invalidateSize({animate:false});
+    bounds.current=L.latLngBounds([...geometry,[from.lat,from.lng],[to.lat,to.lng]]);
+    instance.fitBounds(bounds.current,{padding:interactive?[78,78]:[48,48],maxZoom:interactive?15:14,animate:false});
   },[ready,from.lat,from.lng,to.lat,to.lng,route,workerName,job.workerId,job.locality,mode,interactive]);
 
   return <div ref={host} className="leafletHost"/>;
@@ -146,12 +152,12 @@ export function ServiceMap({job,workerName,mode="customer"}:{job:Job;workerName?
   const distance=route?.distanceMeters??0,duration=route?.durationSeconds??0;
   const fail=()=>setFailed(true);
   return <section className="realMap" aria-label="Service route map">
-    <div className="mapHeading"><div><strong>{job.locality}</strong><span>{mode==="worker"?"Your route to the customer":"Assigned worker route"}</span></div><button type="button" className="mapExpandButton" onClick={()=>setExpanded(true)}><span>Expand map</span><span aria-hidden="true">↗</span></button></div>
-    <p className="srOnly">{workerName||job.workerId||"Worker"} to {job.locality}. {distance?`${fmtKm(distance)}, ${fmtMin(duration)}.`:"Route details loading."}</p>
+    <div className="mapHeading"><div><strong>{job.locality}</strong><span>{mode==="worker"?"Your route to the customer":"Assigned worker route"}</span></div><button type="button" className="mapExpandButton" aria-label="Expand map" onClick={()=>setExpanded(true)}><span>Expand map</span><span aria-hidden="true">↗</span></button></div>
+    <p className="srOnly">{workerName||job.workerId||"Worker"} to {job.locality}. {distance?`${fmtKm(distance)}, ${fmtMin(duration)}.`:route?"Road route unavailable.":"Route details loading."}</p>
     <div className="mapViewport mapPreviewHit" onClick={()=>setExpanded(true)}>
       {failed?<Fallback from={from} to={to} label={workerName||job.workerId||"worker"}/>:<ServiceCanvas from={from} to={to} route={route} workerName={workerName} job={job} mode={mode} interactive={false} onFail={fail}/>}<button type="button" className="mapPreviewLabel" onClick={()=>setExpanded(true)}>Expand interactive map</button>
     </div>
-    <div className="mapSummary"><div><span>Worker</span><strong>{workerName||job.workerId||"Pending"}</strong></div><div><span>Distance</span><strong>{distance?fmtKm(distance):"Loading"}</strong></div><div><span>ETA</span><strong>{duration?fmtMin(duration):"Loading"}</strong></div><div><span>Source</span><strong>{route?.provider||"Routing"}</strong></div></div>
+    <div className="mapSummary"><div><span>Worker</span><strong>{workerName||job.workerId||"Pending"}</strong></div><div><span>Distance</span><strong>{distance?fmtKm(distance):route?"Unavailable":"Loading"}</strong></div><div><span>ETA</span><strong>{duration?fmtMin(duration):route?"Unavailable":"Loading"}</strong></div><div><span>Source</span><strong>{route?.provider||"Routing"}</strong></div></div>
     <p className="mapRuleLine">OpenStreetMap is shown in-browser. {route?.isApproximate?"Road routing was unavailable, so the line is approximate.":"Distance and ETA come from the current OSRM road route."} Worker home addresses are never displayed.</p>
     {expanded&&<MapModal title={`${job.locality} service route`} subtitle={`${workerName||job.workerId||"Assigned worker"} → customer service location`} onClose={()=>setExpanded(false)}><div className="expandedMapCanvas">{failed?<Fallback from={from} to={to} label={workerName||job.workerId||"worker"}/>:<ServiceCanvas from={from} to={to} route={route} workerName={workerName} job={job} mode={mode} interactive onFail={fail}/>}</div><div className="expandedMapFacts"><span><b>{distance?fmtKm(distance):"—"}</b> road distance</span><span><b>{duration?fmtMin(duration):"—"}</b> ETA</span><span><b>{route?.provider||"Routing"}</b> route provider</span></div></MapModal>}
   </section>;

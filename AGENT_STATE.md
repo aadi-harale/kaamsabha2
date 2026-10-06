@@ -528,6 +528,34 @@ deliberately rather than inheriting one.
   and local demo settlement still recorded ₹760. Evidence: Downloads/kaamsabha2-branding-check.json
   and worker-screenshots/branding-* outside Git, in isolated profiles.
 
+# Verified usability pass (2026-10-06)
+
+- Customer Home has one heading, readable service prices and a focused booking form.
+  Successful booking opens Orders; controlled storage/provider failures preserved the draft.
+  Orders leads with member, approved amount and next action. Timeline, route and long history
+  expand on request; safety controls and payment-blocking cooperative review remain visible.
+- Customer copy no longer repeats worker instructions or admin navigation jargon. Removed
+  redundant assurance pills, oversized Help banner and empty-state decoration. Improved text
+  contrast, phone navigation labels, field sizes and keyboard focus through page changes.
+- Service maps refit pins and route after resize; the small-screen expand control has a name.
+  Loaded visible tiles were decoded before inspecting desktop/mobile preview and expanded maps.
+  Demo checkout traps focus, restores it on Escape and stays open when settlement saving fails.
+- Worker earnings and existing ballot list/Twin remain functional in English/Hindi/Marathi.
+  Full normal regression: cancellation Rs190, replay confirmed/closed, settlement Rs760,
+  protected federation transfer and later v3/Rs860 booking. Overview traced 5 bookings,
+  1 completion, 3/13 member coverage and Rs760 payouts; original v2 receipt stayed frozen.
+  Emergency regression also passed Leela -> Farhan, separate pay review, saved media/replies,
+  Rs760 settlement, Rs8560 sample-plus-demo earnings and later v3/Rs860 booking after refresh.
+- Passed: npm test (170/170), npm run typecheck, npm run lint (existing TypeScript alias),
+  npm run build, git diff --check. Browser evidence: 228 responsive checks at all four widths,
+  68 scoped WCAG A/AA audits with zero reported violations, zero page errors. Some map/icon
+  nodes still require manual review; screenshots were inspected. Controlled payment adapter
+  passed Rs940 capture/Route records; real Razorpay credentials and proof model remain unverified.
+- Evidence outside Git: Downloads/kaamsabha2-usability-check.json, kaamsabha2-trust-regression-check.json,
+  kaamsabha2-trust-walkthrough.json, kaamsabha2-payment-ui-check.json and worker-screenshots/
+  usability-* / trust-* / payment-ui-*. Isolated browser profiles preserved user records.
+  FINAL_DEMO_CHECKLIST.md reflects the new customer navigation. Credentials were not changed.
+
 # Freeze
 
 Feature work beyond this pass remains frozen. Remaining work is deployment/browser
